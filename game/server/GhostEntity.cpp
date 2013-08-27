@@ -14,14 +14,23 @@ public:
 	{
 		m_bActive = false;
 	}
+	CGhostEntity(char* name, char* model) {
+		m_bActive = false;
+		m_gName = name;
+		m_gModel = model;
+	}
 	void Spawn( void );
 	void Precache( void );
 	void MoveThink( void );
- 
+	void SetName( char* );
+	void SetModel( char* );
+	
 	// Input function
 	void InputToggle( inputdata_t &inputData );
  
 private:
+	char*   m_gModel;
+	char*   m_gName;
 	bool	m_bActive;
 	float	m_flNextChangeTime;
 };
@@ -36,7 +45,8 @@ BEGIN_DATADESC( CGhostEntity )
 	// Save/restore our active state
 	DEFINE_FIELD( m_bActive, FIELD_BOOLEAN ),
 	DEFINE_FIELD( m_flNextChangeTime, FIELD_TIME ),
- 
+	DEFINE_FIELD( m_gName, FIELD_CHARACTER ),
+	DEFINE_FIELD( m_gModel, FIELD_CHARACTER ),
 	// Links our input name from Hammer to our input member function
 	DEFINE_INPUTFUNC( FIELD_VOID, "Toggle", InputToggle ),
  
@@ -74,10 +84,10 @@ void CGhostEntity::Spawn( void )
 //-----------------------------------------------------------------------------
 void CGhostEntity::MoveThink( void )
 {
-	EntityText(0, "Ghost", 0);
+	EntityText(0, m_gName, 0);
 	// See if we should change direction again
-	//if ( m_flNextChangeTime < gpGlobals->curtime )
-	//{
+	if ( m_flNextChangeTime < gpGlobals->curtime )
+	{
 		
 		// Randomly take a new direction and speed
 		//TODO change this V
@@ -86,8 +96,8 @@ void CGhostEntity::MoveThink( void )
  
 		// Randomly change it again within one to three seconds
 		//TODO change this to not be random
-		//m_flNextChangeTime = gpGlobals->curtime + random->RandomFloat( 1.0f, 3.0f );
-	//}
+		m_flNextChangeTime = gpGlobals->curtime + random->RandomFloat( 1.0f, 3.0f );
+	}
  
 	// Snap our facing to where we're heading
 	Vector velFacing = GetAbsVelocity();
@@ -132,6 +142,12 @@ void CGhostEntity::InputToggle( inputdata_t &inputData )
  		SetMoveType( MOVETYPE_NONE );
  
 		m_bActive = false;
+	}
+}
+
+void CGhostEntity::SetName(char * newname) {
+	if (newname) {
+		m_gName = newname;
 	}
 }
 
