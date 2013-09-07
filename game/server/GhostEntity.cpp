@@ -12,7 +12,9 @@ public:
  
 	CGhostEntity()
 	{
+		SetMoveType(MOVETYPE_NOCLIP );
 		m_bActive = false;
+		m_gName = "Ghost Entity";
 	}
 	CGhostEntity(char* name, char* model) {
 		m_bActive = false;
@@ -24,6 +26,7 @@ public:
 	void MoveThink( void );
 	void SetName( char* );
 	void SetModel( char* );
+	void Move( float*, float*, float*, float *, float*, float*);
 	
 	// Input function
 	void InputToggle( inputdata_t &inputData );
@@ -62,7 +65,12 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 void CGhostEntity::Precache( void )
 {
-	PrecacheModel( ENTITY_MODEL );
+	if ( m_gModel )
+		SetModel(m_gModel);
+	else
+		SetModel( ENTITY_MODEL );
+
+	PrecacheModel( m_gModel );
  
 	BaseClass::Precache();
 }
@@ -148,6 +156,12 @@ void CGhostEntity::InputToggle( inputdata_t &inputData )
 void CGhostEntity::SetName(char * newname) {
 	if (newname) {
 		m_gName = newname;
+	}
+}
+
+void CGhostEntity::SetModel(char * newmodel) {
+	if (newmodel) {
+		m_gModel = newmodel;
 	}
 }
 

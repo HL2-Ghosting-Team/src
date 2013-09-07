@@ -3957,7 +3957,8 @@ void CGameMovement::FinishUnDuckJump( trace_t &trace )
 //-----------------------------------------------------------------------------
 void CGameMovement::FinishDuck( void )
 {
-	int i;
+	if (player->GetFlags() & FL_DUCKING) 
+		return;
 
 	player->AddFlag( FL_DUCKING );
 	player->m_Local.m_bDucked = true;
@@ -3968,10 +3969,10 @@ void CGameMovement::FinishDuck( void )
 	// HACKHACK - Fudge for collision bug - no time to fix this properly
 	if ( player->GetGroundEntity() != NULL )
 	{
-		for ( i = 0; i < 3; i++ )
+		for ( int i = 0; i < 3; i++ )
 		{
 			Vector org = mv->GetAbsOrigin();
-			org[ i ]-= ( VEC_DUCK_HULL_MIN[i] - VEC_HULL_MIN[i] );
+			org[ i ]-= ( VEC_DUCK_HULL_MIN_SCALED( player )[i] - VEC_HULL_MIN_SCALED( player )[i] );
 			mv->SetAbsOrigin( org );
 		}
 	}
@@ -3983,6 +3984,10 @@ void CGameMovement::FinishDuck( void )
 		Vector out;
    		VectorAdd( mv->GetAbsOrigin(), viewDelta, out );
 		mv->SetAbsOrigin( out );
+
+		#ifdef CLIENT_DLL
+			player->ResetLatched();
+		#endif
 	}
 
 	// See if we are stuck?
