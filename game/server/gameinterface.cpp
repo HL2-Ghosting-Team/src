@@ -12,6 +12,7 @@
 #include "game.h"
 #include "entityapi.h"
 #include "client.h"
+#include "cdll_int.h"
 #include "saverestore.h"
 #include "entitylist.h"
 #include "gamerules.h"

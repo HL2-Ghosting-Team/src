@@ -27,7 +27,7 @@
 // #include "../../game/shared/util_shared.h"
 #include "engine/IEngineTrace.h"
 
-extern IBotManager *botmanager; 
+IBotManager *botmanager; 
 extern IUniformRandomStream *randomStr;
 extern IPlayerInfoManager *playerinfomanager; 
 extern IVEngineServer	*engine; 

@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-
 #include <stdio.h>
 #include "interface.h"
 #include "filesystem.h"
@@ -31,16 +30,16 @@
 IVEngineServer	*engine = NULL; // helper functions (messaging clients, loading content, making entities, running commands, etc)
 IGameEventManager *gameeventmanager = NULL; // game events interface
 IPlayerInfoManager *playerinfomanager = NULL; // game dll interface to interact with players
-IBotManager *botmanager = NULL; // game dll interface to interact with bots
 IServerPluginHelpers *helpers = NULL; // special 3rd party plugin helpers from the engine
 IUniformRandomStream *randomStr = NULL;
 IEngineTrace *enginetrace = NULL;
 
 
 CGlobalVars *gpGlobals = NULL;
-
-// function to initialize any cvars/command in this plugin
-void Bot_RunAll( void ); 
+edict_t *currPlayer;
+const char * currMap = NULL;
+double nextTime = 0.00;
+bool isSpawned = false;
 
 // useful helper func
 inline bool FStrEq(const char *sz1, const char *sz2)
@@ -84,6 +83,7 @@ public:
 	virtual void FireGameEvent( KeyValues * event );
 
 	virtual int GetCommandIndex() { return m_iClientCommandIndex; }
+
 private:
 	int m_iClientCommandIndex;
 };
@@ -119,12 +119,6 @@ bool CEmptyServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfa
 	if ( !playerinfomanager )
 	{
 		Warning( "Unable to load playerinfomanager, ignoring\n" ); // this isn't fatal, we just won't be able to access specific player data
-	}
-
-	botmanager = (IBotManager *)gameServerFactory(INTERFACEVERSION_PLAYERBOTMANAGER, NULL);
-	if ( !botmanager )
-	{
-		Warning( "Unable to load botcontroller, ignoring\n" ); // this isn't fatal, we just won't be able to access specific bot functions
 	}
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 	gameeventmanager = (IGameEventManager *)interfaceFactory(INTERFACEVERSION_GAMEEVENTSMANAGER,NULL);
@@ -179,7 +173,7 @@ void CEmptyServerPlugin::UnPause( void )
 //---------------------------------------------------------------------------------
 const char *CEmptyServerPlugin::GetPluginDescription( void )
 {
-	return "Emtpy-Plugin, Valve";
+	return "Ghosting Plugin, Gocnak";
 }
 
 //---------------------------------------------------------------------------------
@@ -188,6 +182,7 @@ const char *CEmptyServerPlugin::GetPluginDescription( void )
 void CEmptyServerPlugin::LevelInit( char const *pMapName )
 {
 	Msg( "Level \"%s\" has been loaded\n", pMapName );
+	currMap = pMapName;
 	gameeventmanager->AddListener( this, true );
 }
 
@@ -204,9 +199,35 @@ void CEmptyServerPlugin::ServerActivate( edict_t *pEdictList, int edictCount, in
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::GameFrame( bool simulating )
 {
-	if ( simulating )
-	{
-		Bot_RunAll();
+	if (isSpawned == true) {
+		if ( currPlayer != NULL && playerinfomanager ) 
+		{
+			const char *map = STRING ( gpGlobals->mapname );
+			const char *point = strstr(map, "background");
+			double time = Plat_FloatTime();
+			if( point == NULL)//not in the menu silly
+			{
+				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
+				if ( info ) {
+					char * state = "ALIVE";
+					if (info->IsDead() == true) {
+						state = "DEAD";
+					}
+				
+					//Msg("Time: %.02f\n", time);
+					if ( time > nextTime ) {//see if we should update again
+							Vector loc = info->GetAbsOrigin();
+							/*Msg("Ghosting, %s, %s, State: %s, Time: %.02f, %.02f, %.02f, %.02f\n", 
+								map, info->GetName(), state,
+								time, 
+								loc.x, loc.y, loc.z);*/
+							nextTime = time + 0.05;//20 times a second
+					}
+				}
+			}
+		} else {
+			//NO PLAYER!?
+		}
 	}
 }
 
@@ -223,6 +244,8 @@ void CEmptyServerPlugin::LevelShutdown( void ) // !!!!this can get called multip
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
 {
+	isSpawned = true;
+	currPlayer = pEntity;
 }
 
 //---------------------------------------------------------------------------------
@@ -230,6 +253,7 @@ void CEmptyServerPlugin::ClientActive( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientDisconnect( edict_t *pEntity )
 {
+	isSpawned = false;
 }
 
 //---------------------------------------------------------------------------------
@@ -237,14 +261,14 @@ void CEmptyServerPlugin::ClientDisconnect( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientPutInServer( edict_t *pEntity, char const *playername )
 {
-	KeyValues *kv = new KeyValues( "msg" );
+	/*KeyValues *kv = new KeyValues( "msg" );
 	kv->SetString( "title", "Hello" );
 	kv->SetString( "msg", "Hello there" );
 	kv->SetColor( "color", Color( 255, 0, 0, 255 ));
 	kv->SetInt( "level", 5);
 	kv->SetInt( "time", 10);
 	helpers->CreateMessage( pEntity, DIALOG_MSG, kv, this );
-	kv->deleteThis();
+	kv->deleteThis();*/
 }
 
 //---------------------------------------------------------------------------------
@@ -271,7 +295,7 @@ void ClientPrint( edict_t *pEdict, char *format, ... )
 //---------------------------------------------------------------------------------
 void CEmptyServerPlugin::ClientSettingsChanged( edict_t *pEdict )
 {
-	if ( playerinfomanager )
+	/*if ( playerinfomanager )
 	{
 		IPlayerInfo *playerinfo = playerinfomanager->GetPlayerInfo( pEdict );
 
@@ -285,7 +309,7 @@ void CEmptyServerPlugin::ClientSettingsChanged( edict_t *pEdict )
 						// this is the bad way to check this, the better option it to listen for the "player_changename" event in FireGameEvent()
 						// this is here to give a real example of how to use the playerinfo interface
 		}
-	}
+	}*/
 }
 
 //---------------------------------------------------------------------------------
@@ -293,6 +317,7 @@ void CEmptyServerPlugin::ClientSettingsChanged( edict_t *pEdict )
 //---------------------------------------------------------------------------------
 PLUGIN_RESULT CEmptyServerPlugin::ClientConnect( bool *bAllowConnect, edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen )
 {
+	currPlayer = pEntity;
 	return PLUGIN_CONTINUE;
 }
 

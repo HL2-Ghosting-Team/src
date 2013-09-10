@@ -1701,9 +1701,17 @@ void C_BasePlayer::PostThink( void )
 
 		StudioFrameAdvance();
 	}
+	Vector loc = EyePosition();
+	string_t name = GetPlayerName();
+	char mapname[MAX_MAP_NAME];
+	Q_FileBase( engine->GetLevelName(), mapname, sizeof(mapname) );
+
+	Msg("%s, %s, %.02f, %.02f, %.02f\n", mapname, name, 
+		loc.x, loc.y, loc.z );
 
 	// Even if dead simulate entities
 	SimulatePlayerSimulatedEntities();
+
 #endif
 }
 

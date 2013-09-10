@@ -66,6 +66,7 @@
 #include "fogcontroller.h"
 #include "gameinterface.h"
 #include "hl2orange.spa.h"
+#include "cdll_int.h"
 
 #ifdef HL2_DLL
 #include "combine_mine.h"
@@ -4466,7 +4467,6 @@ void CBasePlayer::PostThink()
 		PostThinkVPhysics();
 		VPROF_SCOPE_END();
 	}
-
 #if !defined( NO_ENTITY_PREDICTION )
 	// Even if dead simulate entities
 	SimulatePlayerSimulatedEntities();

@@ -15,6 +15,7 @@ public:
 		SetMoveType(MOVETYPE_NOCLIP );
 		m_bActive = false;
 		m_gName = "Ghost Entity";
+		m_gModel = "models/cone.mdl";
 	}
 	CGhostEntity(char* name, char* model) {
 		m_bActive = false;
@@ -24,9 +25,9 @@ public:
 	void Spawn( void );
 	void Precache( void );
 	void MoveThink( void );
-	void SetName( char* );
-	void SetModel( char* );
-	void Move( float*, float*, float*, float *, float*, float*);
+	void SetGhostName( char* );
+	void ChangeModel( char* );
+	void Move( float*, float*, float*);
 	
 	// Input function
 	void InputToggle( inputdata_t &inputData );
@@ -38,7 +39,6 @@ private:
 	float	m_flNextChangeTime;
 };
 //TODO make this a dynamic model
-
 
 LINK_ENTITY_TO_CLASS( ghost_entity, CGhostEntity );
  
@@ -58,20 +58,12 @@ BEGIN_DATADESC( CGhostEntity )
  
 END_DATADESC()
 
-#define ENTITY_MODEL  "models/cone.mdl"
-
 //-----------------------------------------------------------------------------
 // Purpose: Precache assets used by the entity
 //-----------------------------------------------------------------------------
 void CGhostEntity::Precache( void )
 {
-	if ( m_gModel )
-		SetModel(m_gModel);
-	else
-		SetModel( ENTITY_MODEL );
-
 	PrecacheModel( m_gModel );
- 
 	BaseClass::Precache();
 }
 
@@ -81,10 +73,8 @@ void CGhostEntity::Precache( void )
 void CGhostEntity::Spawn( void )
 {
 	Precache();
-	
-	SetModel( ENTITY_MODEL );
+	SetModel( m_gModel );
 	SetSolid( SOLID_NONE );
-
 }
 
 //-----------------------------------------------------------------------------
@@ -153,16 +143,24 @@ void CGhostEntity::InputToggle( inputdata_t &inputData )
 	}
 }
 
-void CGhostEntity::SetName(char * newname) {
+void CGhostEntity::SetGhostName(char * newname) {
 	if (newname) {
 		m_gName = newname;
 	}
 }
 
-void CGhostEntity::SetModel(char * newmodel) {
+void CGhostEntity::ChangeModel(char * newmodel) {
 	if (newmodel) {
 		m_gModel = newmodel;
+		PrecacheModel(m_gModel);
+		SetModel(m_gModel);
 	}
+}
+
+void CGhostEntity::Move(float * newx, float * newy, float* newz) {
+
+
+
 }
 
 CON_COMMAND(create_ghost_entity, "Creates an instance of the sdk model entity in front of the player.")
