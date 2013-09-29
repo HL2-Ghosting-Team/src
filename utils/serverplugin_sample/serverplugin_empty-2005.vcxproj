@@ -206,6 +206,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ghosting_record.cpp" />
     <ClCompile Include="serverplugin_bot.cpp" />
     <ClCompile Include="serverplugin_empty.cpp" />
   </ItemGroup>

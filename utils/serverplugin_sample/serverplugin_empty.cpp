@@ -1,12 +1,10 @@
-//===== Copyright © 1996-2008, Valve Corporation, All rights reserved. ======//
+/*//===== Copyright © 1996-2008, Valve Corporation, All rights reserved. ======//
 //
 // Purpose: 
 //
 // $NoKeywords: $
 //
 //===========================================================================//
-
-#include <stdio.h>
 
 #include <stdio.h>
 #include "interface.h"
@@ -136,7 +134,6 @@ bool CEmptyServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfa
 	{
 		gpGlobals = playerinfomanager->GetGlobalVars();
 	}
-
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
 	ConVar_Register( 0 );
 	return true;
@@ -148,7 +145,6 @@ bool CEmptyServerPlugin::Load(	CreateInterfaceFn interfaceFactory, CreateInterfa
 void CEmptyServerPlugin::Unload( void )
 {
 	gameeventmanager->RemoveListener( this ); // make sure we are unloaded from the event system
-
 	ConVar_Unregister( );
 	DisconnectTier2Libraries( );
 	DisconnectTier1Libraries( );
@@ -207,8 +203,9 @@ void CEmptyServerPlugin::GameFrame( bool simulating )
 			double time = Plat_FloatTime();
 			if( point == NULL)//not in the menu silly
 			{
+				
 				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
-				if ( info ) {
+				if ( info != NULL ) {
 					char * state = "ALIVE";
 					if (info->IsDead() == true) {
 						state = "DEAD";
@@ -217,10 +214,8 @@ void CEmptyServerPlugin::GameFrame( bool simulating )
 					//Msg("Time: %.02f\n", time);
 					if ( time > nextTime ) {//see if we should update again
 							Vector loc = info->GetAbsOrigin();
-							/*Msg("Ghosting, %s, %s, State: %s, Time: %.02f, %.02f, %.02f, %.02f\n", 
-								map, info->GetName(), state,
-								time, 
-								loc.x, loc.y, loc.z);*/
+							/*myFile << "Ghosting " << map << " " << info->GetName() << " " << state << " " <<
+								time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
 							nextTime = time + 0.05;//20 times a second
 					}
 				}
@@ -268,7 +263,7 @@ void CEmptyServerPlugin::ClientPutInServer( edict_t *pEntity, char const *player
 	kv->SetInt( "level", 5);
 	kv->SetInt( "time", 10);
 	helpers->CreateMessage( pEntity, DIALOG_MSG, kv, this );
-	kv->deleteThis();*/
+	kv->deleteThis();
 }
 
 //---------------------------------------------------------------------------------
@@ -309,7 +304,7 @@ void CEmptyServerPlugin::ClientSettingsChanged( edict_t *pEdict )
 						// this is the bad way to check this, the better option it to listen for the "player_changename" event in FireGameEvent()
 						// this is here to give a real example of how to use the playerinfo interface
 		}
-	}*/
+	}
 }
 
 //---------------------------------------------------------------------------------
@@ -471,4 +466,4 @@ CON_COMMAND( empty_log, "logs the version of the empty plugin" )
 //---------------------------------------------------------------------------------
 // Purpose: an example cvar
 //---------------------------------------------------------------------------------
-static ConVar empty_cvar("plugin_empty", "0", 0, "Example plugin cvar");
+static ConVar empty_cvar("plugin_empty", "0", 0, "Example plugin cvar");*/

@@ -21,6 +21,9 @@
     <ClCompile Include="serverplugin_empty.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ghosting_record.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\mathlib.lib">
