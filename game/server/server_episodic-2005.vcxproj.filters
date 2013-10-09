@@ -1746,6 +1746,9 @@
     <ClCompile Include="GhostEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GhostEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\achievement_saverestore.h">
@@ -3463,6 +3466,15 @@
     </ClInclude>
     <ClInclude Include="toolframework_server.h">
       <Filter>Tools Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostEntity.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostEngine.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="runline.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

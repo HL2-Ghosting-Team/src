@@ -435,6 +435,7 @@
     <ClCompile Include="gameweaponmanager.cpp" />
     <ClCompile Include="genericactor.cpp" />
     <ClCompile Include="genericmonster.cpp" />
+    <ClCompile Include="GhostEngine.cpp" />
     <ClCompile Include="GhostEntity.cpp" />
     <ClCompile Include="gib.cpp" />
     <ClCompile Include="globals.cpp" />
@@ -1075,6 +1076,10 @@
     <ClInclude Include="..\shared\gamestringpool.h" />
     <ClInclude Include="..\shared\gamevars_shared.h" />
     <ClInclude Include="gameweaponmanager.h" />
+    <ClInclude Include="GhostEngine.h" />
+    <ClInclude Include="GhostEntity.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="gib.h" />
     <ClInclude Include="globalstate.h" />
     <ClInclude Include="globalstate_private.h" />
@@ -1156,6 +1161,7 @@
     <ClInclude Include="..\shared\saverestore_bitstring.h" />
     <ClInclude Include="..\shared\saverestore_utlsymbol.h" />
     <ClInclude Include="..\shared\saverestore_utlvector.h" />
+    <ClInclude Include="runline.h" />
     <ClInclude Include="sceneentity.h" />
     <ClInclude Include="scripted.h" />
     <ClInclude Include="scriptedtarget.h" />

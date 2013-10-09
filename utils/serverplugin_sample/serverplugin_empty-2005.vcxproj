@@ -190,13 +190,16 @@
       <Command />
     </PostBuildEvent>
     <CustomBuildStep>
-      <Command>copy "$(TargetDir)"serverplugin_empty.dll "c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\addons\"</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>Copying to the addons folder.</Message>
+      <Message>
+      </Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\addons\serverplugin_empty.dll</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>

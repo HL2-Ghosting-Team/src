@@ -476,7 +476,6 @@ CON_COMMAND( empty_version, "prints the version of the empty plugin" )
 CON_COMMAND ( gh_stop, "Stop recording.") {
 	Msg("Stopping recording\n");
 	shouldRecord = false;
-	myFile << "STOP" << std::endl;
 	myFile.close();
 }
 
