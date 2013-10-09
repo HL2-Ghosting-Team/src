@@ -11,7 +11,13 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 // Spawnflags
+LINK_ENTITY_TO_CLASS( ghost_entity, GhostEntity );
 
+BEGIN_DATADESC( GhostEntity )
+	// Declare our think function
+	DEFINE_THINKFUNC( MoveThink ),
+
+	END_DATADESC()
 //-----------------------------------------------------------------------------
 // Purpose: Precache assets used by the entity
 //-----------------------------------------------------------------------------
@@ -30,8 +36,10 @@ void GhostEntity::Spawn( void )
 	SetModel( m_gModel );
 	SetSolid( SOLID_NONE );
 	SetMoveType( MOVETYPE_NOCLIP );
-	SetThink(&GhostEntity::MoveThink);
-	SetNextThink(startTime + 0.05);
+	if (shouldThink) {
+		SetThink(&GhostEntity::MoveThink);
+		SetNextThink(startTime + 0.05);
+	}
 	BaseClass::Spawn();
 }
 
@@ -114,6 +122,7 @@ void GhostEntity::CreateGhost() {
 		}
 		pEnt->SetAbsOrigin(vecOrigin);
 		pEnt->SetAbsAngles(vecAngles);
+		shouldThink = true;
 	}
 }
 
