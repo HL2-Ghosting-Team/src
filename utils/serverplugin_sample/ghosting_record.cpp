@@ -214,20 +214,16 @@ void GhostingRecord::GameFrame( bool simulating )
 			double time = Plat_FloatTime();
 			if( point == NULL)//not in the menu silly
 			{
-				
 				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
-				if ( info != NULL ) {
-					char * state = "ALIVE";
-					if (info->IsDead() == true) {
-						state = "DEAD";
-					}
-				
+				if ( info != NULL ) {	
 					//Msg("Time: %.02f\n", time);
 					if (shouldRecord) {
 						double gh_time = ((int)(((time - startTime) + .005) * 100)) / 100.0;
 						if ( gh_time >= nextTime ) {//see if we should update again
 								Vector loc = info->GetAbsOrigin();
-								myFile << "Ghosting " << map << " " << info->GetName() << " " << state << " " << 
+								//TODO change V this to be a unique "header" for the file,
+								//filename for local, or race hash for online.
+								myFile << "GHOSTING " << map << " " << info->GetName() << " " << 
 									gh_time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
 								nextTime = gh_time + 0.05;//20 times a second
 						}
@@ -271,14 +267,6 @@ void GhostingRecord::ClientDisconnect( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername )
 {
-	/*KeyValues *kv = new KeyValues( "msg" );
-	kv->SetString( "title", "Hello" );
-	kv->SetString( "msg", "Hello there" );
-	kv->SetColor( "color", Color( 255, 0, 0, 255 ));
-	kv->SetInt( "level", 5);
-	kv->SetInt( "time", 10);
-	helpers->CreateMessage( pEntity, DIALOG_MSG, kv, this );
-	kv->deleteThis();*/
 }
 
 //---------------------------------------------------------------------------------
@@ -305,21 +293,6 @@ void ClientPrint( edict_t *pEdict, char *format, ... )
 //---------------------------------------------------------------------------------
 void GhostingRecord::ClientSettingsChanged( edict_t *pEdict )
 {
-	/*if ( playerinfomanager )
-	{
-		IPlayerInfo *playerinfo = playerinfomanager->GetPlayerInfo( pEdict );
-
-		const char * name = engine->GetClientConVarValue( engine->IndexOfEdict(pEdict), "name" );
-
-		if ( playerinfo && name && playerinfo->GetName() && 
-			 Q_stricmp( name, playerinfo->GetName()) ) // playerinfo may be NULL if the MOD doesn't support access to player data 
-													   // OR if you are accessing the player before they are fully connected
-		{
-			ClientPrint( pEdict, "Your name changed to \"%s\" (from \"%s\"\n", name, playerinfo->GetName() );
-						// this is the bad way to check this, the better option it to listen for the "player_changename" event in FireGameEvent()
-						// this is here to give a real example of how to use the playerinfo interface
-		}
-	}*/
 }
 
 //---------------------------------------------------------------------------------
@@ -331,106 +304,11 @@ PLUGIN_RESULT GhostingRecord::ClientConnect( bool *bAllowConnect, edict_t *pEnti
 	return PLUGIN_CONTINUE;
 }
 
-CON_COMMAND( DoAskConnect, "Server plugin example of using the ask connect dialog" )
-{
-	if ( args.ArgC() < 2 )
-	{
-		Warning ( "DoAskConnect <server IP>\n" );
-	}
-	else
-	{
-		const char *pServerIP = args.Arg( 1 );
-
-		KeyValues *kv = new KeyValues( "menu" );
-		kv->SetString( "title", pServerIP );	// The IP address of the server to connect to goes in the "title" field.
-		kv->SetInt( "time", 3 );
-
-		for ( int i=1; i < gpGlobals->maxClients; i++ )
-		{
-			edict_t *pEdict = engine->PEntityOfEntIndex( i );
-			if ( pEdict )
-			{
-				helpers->CreateMessage( pEdict, DIALOG_ASKCONNECT, kv, &g_EmtpyServerPlugin );
-			}
-		}
-
-		kv->deleteThis();
-	}
-}
-
 //---------------------------------------------------------------------------------
 // Purpose: called when a client types in a command (only a subset of commands however, not CON_COMMAND's)
 //---------------------------------------------------------------------------------
 PLUGIN_RESULT GhostingRecord::ClientCommand( edict_t *pEntity, const CCommand &args )
 {
-	const char *pcmd = args[0];
-
-	if ( !pEntity || pEntity->IsFree() ) 
-	{
-		return PLUGIN_CONTINUE;
-	}
-
-	if ( FStrEq( pcmd, "menu" ) )
-	{
-		KeyValues *kv = new KeyValues( "menu" );
-		kv->SetString( "title", "You've got options, hit ESC" );
-		kv->SetInt( "level", 1 );
-		kv->SetColor( "color", Color( 255, 0, 0, 255 ));
-		kv->SetInt( "time", 20 );
-		kv->SetString( "msg", "Pick an option\nOr don't." );
-		
-		for( int i = 1; i < 9; i++ )
-		{
-			char num[10], msg[10], cmd[10];
-			Q_snprintf( num, sizeof(num), "%i", i );
-			Q_snprintf( msg, sizeof(msg), "Option %i", i );
-			Q_snprintf( cmd, sizeof(cmd), "option%i", i );
-
-			KeyValues *item1 = kv->FindKey( num, true );
-			item1->SetString( "msg", msg );
-			item1->SetString( "command", cmd );
-		}
-
-		helpers->CreateMessage( pEntity, DIALOG_MENU, kv, this );
-		kv->deleteThis();
-		return PLUGIN_STOP; // we handled this function
-	}
-	else if ( FStrEq( pcmd, "rich" ) )
-	{
-		KeyValues *kv = new KeyValues( "menu" );
-		kv->SetString( "title", "A rich message" );
-		kv->SetInt( "level", 1 );
-		kv->SetInt( "time", 20 );
-		kv->SetString( "msg", "This is a long long long text string.\n\nIt also has line breaks." );
-		
-		helpers->CreateMessage( pEntity, DIALOG_TEXT, kv, this );
-		kv->deleteThis();
-		return PLUGIN_STOP; // we handled this function
-	}
-	else if ( FStrEq( pcmd, "msg" ) )
-	{
-		KeyValues *kv = new KeyValues( "menu" );
-		kv->SetString( "title", "Just a simple hello" );
-		kv->SetInt( "level", 1 );
-		kv->SetInt( "time", 20 );
-		
-		helpers->CreateMessage( pEntity, DIALOG_MSG, kv, this );
-		kv->deleteThis();
-		return PLUGIN_STOP; // we handled this function
-	}
-	else if ( FStrEq( pcmd, "entry" ) )
-	{
-		KeyValues *kv = new KeyValues( "entry" );
-		kv->SetString( "title", "Stuff" );
-		kv->SetString( "msg", "Enter something" );
-		kv->SetString( "command", "say" ); // anything they enter into the dialog turns into a say command
-		kv->SetInt( "level", 1 );
-		kv->SetInt( "time", 20 );
-		
-		helpers->CreateMessage( pEntity, DIALOG_ENTRY, kv, this );
-		kv->deleteThis();
-		return PLUGIN_STOP; // we handled this function		
-	}
 	return PLUGIN_CONTINUE;
 }
 
@@ -462,7 +340,7 @@ void GhostingRecord::OnEdictFreed( const edict_t *edict  )
 void GhostingRecord::FireGameEvent( KeyValues * event )
 {
 	const char * name = event->GetName();
-	Msg( "GhostingRecord::FireGameEvent: Got event \"%s\"\n", name );
+	//Msg( "GhostingRecord::FireGameEvent: Got event \"%s\"\n", name );
 }
 
 //---------------------------------------------------------------------------------
@@ -485,6 +363,7 @@ void record(const CCommand &args) {
 	}
 	fileName = args.Arg(1);
 	Msg("Recording to %s...\n", args.Arg(1));
+	myFile = std::ofstream(fileName);
 	myFile.open(fileName);
 	shouldRecord = true;
 	startTime = Plat_FloatTime();

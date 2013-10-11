@@ -47,7 +47,6 @@ CBaseEntity *CreateEntityByName( const char *className, int iForceEdictIndex )
 
 	if ( !pNetwork )
 		return NULL;
-
 	CBaseEntity *pEntity = pNetwork->GetBaseEntity();
 	Assert( pEntity );
 	return pEntity;

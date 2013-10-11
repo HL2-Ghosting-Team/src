@@ -1,7 +1,7 @@
 #pragma once
 struct RunLine {
-		const char* map;
-		const char* name;
+		char map[32];
+		char name[32];
 		float tim;
 		float x;
 		float y;

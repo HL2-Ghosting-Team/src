@@ -11,6 +11,9 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 // Spawnflags
+
+#define MODEL "models/cone.mdl"
+
 LINK_ENTITY_TO_CLASS( ghost_entity, GhostEntity );
 
 BEGIN_DATADESC( GhostEntity )
@@ -18,12 +21,14 @@ BEGIN_DATADESC( GhostEntity )
 	DEFINE_THINKFUNC( MoveThink ),
 
 	END_DATADESC()
+
+
 //-----------------------------------------------------------------------------
 // Purpose: Precache assets used by the entity
 //-----------------------------------------------------------------------------
 void GhostEntity::Precache( void )
 {
-	PrecacheModel( m_gModel );
+	PrecacheModel( MODEL );
 	BaseClass::Precache();
 }
 
@@ -33,14 +38,17 @@ void GhostEntity::Precache( void )
 void GhostEntity::Spawn( void )
 {
 	Precache();
-	SetModel( m_gModel );
+	m_gModel = MODEL;
+	SetModel( MODEL );
 	SetSolid( SOLID_NONE );
 	SetMoveType( MOVETYPE_NOCLIP );
-	if (shouldThink) {
-		SetThink(&GhostEntity::MoveThink);
-		SetNextThink(startTime + 0.05);
-	}
-	BaseClass::Spawn();
+}
+
+void GhostEntity::StartRun() {
+	SetThink(&GhostEntity::MoveThink);
+	startTime = gpGlobals->curtime;
+	shouldQuery = true;
+	SetNextThink(startTime + 0.05f);
 }
 
 void GhostEntity::DoStep() {
@@ -55,23 +63,20 @@ void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
 	RunData = toSet;
 }
 
-void GhostEntity::MoveGhost(Vector toMove) {
-	SetAbsOrigin(toMove);
-}
-
 //-----------------------------------------------------------------------------
 // Purpose: Think function to move the ghost
 //-----------------------------------------------------------------------------
 void GhostEntity::MoveThink( void )
 {
-	EntityText(0, m_gName, 0);
-	double time_ = Plat_FloatTime() - startTime;
+	EntityText(0, m_gName, 0.06f);
+	double time_ = gpGlobals->curtime - startTime;
 	double curTime = ((int)((time_ + .005) * 100)) / 100.0;//round it off for comparison
 	// See if we should update
-	GhostEngine::getEngine().handleGhost(curTime, this);
-	Msg("Should read something now\n");
-	nextTime = curTime + 0.05;
-	SetNextThink( nextTime );
+	if (shouldQuery) {
+		GhostEngine::getEngine().handleGhost(curTime, this);
+	}
+	nextTime = curTime + 0.06f;
+	SetNextThink( gpGlobals->curtime + 0.0555f );
 }
 
 
@@ -97,40 +102,22 @@ const char* GhostEntity::GetGhostModel() {
 	return m_gModel;
 }
 
-void GhostEntity::EndRun(bool shouldDestroy) {
-	SetThink(NULL);
-
+void GhostEntity::SetShouldUpdate(bool update) {
+	shouldQuery = update;
 }
 
-//will create a ghost but not spawn it
-void GhostEntity::CreateGhost() {
-	Vector vecForward;
-	CBaseEntity *pEnt = CreateEntityByName( "ghost_entity" );
-	CBasePlayer * pPlayer = UTIL_GetLocalPlayer();
-	startTime = Plat_FloatTime();
-	if ( pEnt )
-	{
-		Vector vecOrigin;
-		QAngle vecAngles;
-		if (pPlayer) { // if the player exists, it can spawn it on his location and orientation
-			AngleVectors( pPlayer->EyeAngles(), &vecForward );
-			vecOrigin = pPlayer->GetAbsOrigin() + vecForward * 256 + Vector(0,0,64);
-			vecAngles = QAngle(0, pPlayer->GetAbsAngles().y - 90, 0);
-		} else {//just go 0,0,0
-			vecOrigin= Vector(0, 0, 0);
-			vecAngles = QAngle(0, 0, 0);
-		}
-		pEnt->SetAbsOrigin(vecOrigin);
-		pEnt->SetAbsAngles(vecAngles);
-		shouldThink = true;
-	}
+void GhostEntity::EndRun(bool shouldDestroy) {
+	SetNextThink(0);
+	SetThink(NULL);
+	//TODO delete it if needed
 }
 
 
 CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity in front of the player.")
 {
 	Vector vecForward;
-	CBaseEntity *pEnt = CreateEntityByName( "ghost_entity" );
+	//CBaseEntity *pEnt = CreateEntityByName( "ghost_entity" );
+	GhostEntity *pEnt = (GhostEntity*) CreateEntityByName( "ghost_entity" );
 	CBasePlayer * pPlayer = UTIL_GetLocalPlayer();
 	if ( pEnt )
 	{
@@ -142,6 +129,7 @@ CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity 
 			vecAngles = QAngle(0, pPlayer->GetAbsAngles().y - 90, 0);
 			pEnt->SetAbsOrigin(vecOrigin);
 			pEnt->SetAbsAngles(vecAngles);
+			pEnt->EntityText(0, "Example Ghost", 0);
 			DispatchSpawn(pEnt);
 		}
 	}

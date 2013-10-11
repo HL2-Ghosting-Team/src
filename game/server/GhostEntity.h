@@ -8,7 +8,7 @@ class GhostEntity : public CBaseAnimating
 	DECLARE_DATADESC();
 public:
 	// Start of our data description for the class
-	GhostEntity()
+	/*GhostEntity()
 	{
 		m_gModel = "models/cone.mdl";
 		m_gName = "Ghosting Entity";
@@ -26,7 +26,7 @@ public:
 		m_gModel = model;
 		step = 0;
 		shouldThink = false;
-	};
+	};*/
 	void SetRunData( std::vector<RunLine>& toSet);
 	void Spawn( void );
 	void Precache( void );
@@ -35,24 +35,21 @@ public:
 	void SetGhostModel( const char* );
 	const char* GetGhostName();
 	const char* GetGhostModel();
-	//spawns the entity with the model and name
-	void CreateGhost();
 	//increments step by one
 	void DoStep();
 	//returns current step
 	int GetCurrentStep();
 	void EndRun(bool);
-	void MoveGhost( Vector loc );
-	
+	void StartRun();
 	std::vector<RunLine> RunData;
-	
- 
+	void SetShouldUpdate(bool);
+	int step;
+	const char*  m_gName;
+
 private:
 	float startTime;
 	float nextTime;
 	const char*  m_gModel;
-	const char*  m_gName;
-	int step;
-	bool shouldThink;
+	bool shouldQuery;
 	
 };
