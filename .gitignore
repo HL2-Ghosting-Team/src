@@ -43,6 +43,12 @@ local.properties
 
 # Build results
 
+[Dd]ebug_episodic/
+[Rr]elease_episodic/
+game/server/[Rr]elease_episodic/
+game/server/[Dd]ebug_episodic/
+game/client/[Rr]elease_episodic/
+game/client/[Dd]ebug_episodic/
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -71,6 +77,9 @@ build/
 *.tmp
 *.tmp_proj
 *.log
+*.1.tlog
+*.tlog
+*.map
 *.vspscc
 *.vssscc
 .builds

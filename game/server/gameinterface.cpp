@@ -12,6 +12,7 @@
 #include "game.h"
 #include "entityapi.h"
 #include "client.h"
+#include "GhostEngine.h"
 #include "cdll_int.h"
 #include "saverestore.h"
 #include "entitylist.h"
@@ -970,13 +971,17 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 		g_MapEntityRefs.Purge();
 		CMapLoadEntityFilter filter;
 		MapEntity_ParseAllEntities( pMapEntities, &filter );
-
 		g_pServerBenchmark->StartBenchmark();
 
 		// Now call the mod specific parse
 		LevelInit_ParseAllEntities( pMapEntities );
 	}
 
+	if ((gpGlobals->eLoadType == MapLoad_LoadGame) || (gpGlobals->eLoadType == MapLoad_Transition)) {
+		if (GhostEngine::getEngine().isActive()) {
+			GhostEngine::getEngine().ResetGhosts();
+		}
+	}
 	// Check low violence settings for this map
 	g_RagdollLVManager.SetLowViolence( pMapName );
 
@@ -1125,7 +1130,7 @@ void CServerGameDLL::GameFrame( bool simulating )
 #endif
 
 	g_pServerBenchmark->UpdateBenchmark();
-
+	//GhostEngine::getEngine().Loop();
 	Physics_RunThinkFunctions( simulating );
 	
 	IGameSystem::FrameUpdatePostEntityThinkAllSystems();

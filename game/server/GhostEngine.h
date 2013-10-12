@@ -1,4 +1,5 @@
 #include "GhostEntity.h"
+#include "GhostRun.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -10,7 +11,7 @@ public:
 	
 	GhostEngine()
 	{
-		ghostCount = 0;
+		isLocal = true;
 	};
 	//gets the singleton Engine instance
 	static GhostEngine& getEngine();
@@ -18,12 +19,17 @@ public:
 	GhostEntity* GetGhost(const char * name); 
 	void handleGhost(float t, GhostEntity * ghost);
 	void StartRun(const char * thing);
-	std::vector<GhostEntity*> ghosts;
-	RunLine readLine(std::string line);
+	std::vector<GhostRun*> ghosts;
+	//main loop of the engine
+	void Loop();
 	bool readFileCompletely(std::string fileName, std::vector<RunLine> &vec);
+	void EndRun(GhostRun*);
+	void ResetGhosts();
+	bool isActive();
+	
 private:
 	static GhostEngine* instance;
-	int ghostCount;
+	bool isLocal;
 	
 	
 };

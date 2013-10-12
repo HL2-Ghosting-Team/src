@@ -437,6 +437,7 @@
     <ClCompile Include="genericmonster.cpp" />
     <ClCompile Include="GhostEngine.cpp" />
     <ClCompile Include="GhostEntity.cpp" />
+    <ClCompile Include="GhostRun.cpp" />
     <ClCompile Include="gib.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="globalstate.cpp" />
@@ -1080,6 +1081,7 @@
     <ClInclude Include="GhostEntity.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="GhostRun.h" />
     <ClInclude Include="gib.h" />
     <ClInclude Include="globalstate.h" />
     <ClInclude Include="globalstate_private.h" />

@@ -46,21 +46,7 @@ void GhostEntity::Spawn( void )
 
 void GhostEntity::StartRun() {
 	SetThink(&GhostEntity::MoveThink);
-	startTime = gpGlobals->curtime;
-	shouldQuery = true;
-	SetNextThink(startTime + 0.05f);
-}
-
-void GhostEntity::DoStep() {
-	step++;
-}
-
-int GhostEntity::GetCurrentStep() {
-	return step;
-}
-
-void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
-	RunData = toSet;
+	SetNextThink(gpGlobals->curtime + 0.01f);
 }
 
 //-----------------------------------------------------------------------------
@@ -68,17 +54,9 @@ void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
 //-----------------------------------------------------------------------------
 void GhostEntity::MoveThink( void )
 {
-	EntityText(0, m_gName, 0.06f);
-	double time_ = gpGlobals->curtime - startTime;
-	double curTime = ((int)((time_ + .005) * 100)) / 100.0;//round it off for comparison
-	// See if we should update
-	if (shouldQuery) {
-		GhostEngine::getEngine().handleGhost(curTime, this);
-	}
-	nextTime = curTime + 0.06f;
-	SetNextThink( gpGlobals->curtime + 0.0555f );
+	EntityText(0, m_gName, 0);
+	SetNextThink( gpGlobals->curtime + 0.01f );
 }
-
 
 void GhostEntity::SetGhostName(const char * newname) {
 	if (newname) {
@@ -102,21 +80,16 @@ const char* GhostEntity::GetGhostModel() {
 	return m_gModel;
 }
 
-void GhostEntity::SetShouldUpdate(bool update) {
-	shouldQuery = update;
-}
-
-void GhostEntity::EndRun(bool shouldDestroy) {
+void GhostEntity::EndRun() {
 	SetNextThink(0);
 	SetThink(NULL);
-	//TODO delete it if needed
+	Remove();
 }
 
 
 CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity in front of the player.")
 {
 	Vector vecForward;
-	//CBaseEntity *pEnt = CreateEntityByName( "ghost_entity" );
 	GhostEntity *pEnt = (GhostEntity*) CreateEntityByName( "ghost_entity" );
 	CBasePlayer * pPlayer = UTIL_GetLocalPlayer();
 	if ( pEnt )

@@ -39,12 +39,12 @@ IEngineTrace *enginetrace = NULL;
 
 CGlobalVars *gpGlobals = NULL;
 edict_t *currPlayer;
-const char * currMap = NULL;
 double nextTime = 0.00;
 double startTime = 0.00;
 bool isSpawned = false;
 const char * fileName;
 bool shouldRecord = false;
+bool firstTime = true;
 std::ofstream myFile;
 
 // useful helper func
@@ -189,8 +189,11 @@ const char *GhostingRecord::GetPluginDescription( void )
 void GhostingRecord::LevelInit( char const *pMapName )
 {
 	Msg( "Level \"%s\" has been loaded\n", pMapName );
-	currMap = pMapName;
 	gameeventmanager->AddListener( this, true );
+	if (shouldRecord) {
+		double time = Plat_FloatTime() - startTime;
+		myFile << "GHOSTING " << pMapName << " empty " << time << " 0 0 0" << std::endl;
+	}
 }
 
 //---------------------------------------------------------------------------------
@@ -211,21 +214,23 @@ void GhostingRecord::GameFrame( bool simulating )
 		{
 			const char *map = STRING ( gpGlobals->mapname );
 			const char *point = strstr(map, "background");
-			double time = Plat_FloatTime();
+			double time = Plat_FloatTime() - startTime;
 			if( point == NULL)//not in the menu silly
 			{
 				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
 				if ( info != NULL ) {	
-					//Msg("Time: %.02f\n", time);
 					if (shouldRecord) {
-						double gh_time = ((int)(((time - startTime) + .005) * 100)) / 100.0;
-						if ( gh_time >= nextTime ) {//see if we should update again
+						if( firstTime) {
+							myFile << "GHOSTING " << map << " " << info->GetName() << " -1 0 0 0" << std::endl;
+							firstTime = false;
+						}
+						if ( time >= nextTime ) {//see if we should update again
 								Vector loc = info->GetAbsOrigin();
 								//TODO change V this to be a unique "header" for the file,
 								//filename for local, or race hash for online.
 								myFile << "GHOSTING " << map << " " << info->GetName() << " " << 
-									gh_time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
-								nextTime = gh_time + 0.05;//20 times a second
+									time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
+								nextTime = time + 0.05;//20 times a second
 						}
 					}
 				}
@@ -364,7 +369,6 @@ void record(const CCommand &args) {
 	fileName = args.Arg(1);
 	Msg("Recording to %s...\n", args.Arg(1));
 	myFile = std::ofstream(fileName);
-	myFile.open(fileName);
 	shouldRecord = true;
 	startTime = Plat_FloatTime();
 }
