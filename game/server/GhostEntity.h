@@ -1,6 +1,7 @@
 #include "cbase.h"
 #include <vector>
 #include "runline.h"
+
 #pragma once
 class GhostEntity : public CBaseAnimating
 {
@@ -24,15 +25,16 @@ public:
 	void EndRun();
 	void StartRun();
 	
-	void HandleGhost(RunLine*, RunLine*);
+	void HandleGhost();
 	
 	void SetShouldUpdate(bool);
-	
-	
+	void SetRunData(std::vector<RunLine>);
+	void SetGhostRun(GhostRun*);
 	void HandleGhost();
 	
 
 private:
+	GhostRun* run;
 	const char*  m_gModel;
 	const char*  m_gName;
 	

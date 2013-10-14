@@ -77,8 +77,8 @@ build/
 *.tmp
 *.tmp_proj
 *.log
-*.1.tlog
-*.tlog
+.1.tlog
+.tlog
 *.map
 *.vspscc
 *.vssscc

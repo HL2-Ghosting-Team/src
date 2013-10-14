@@ -49,6 +49,10 @@ void GhostEntity::StartRun() {
 	SetNextThink(gpGlobals->curtime + 0.01f);
 }
 
+void GhostEntity::SetGhostRun(GhostRun* toSet) {
+	run = toSet;
+}
+
 //-----------------------------------------------------------------------------
 // Purpose: Think function to move the ghost
 //-----------------------------------------------------------------------------

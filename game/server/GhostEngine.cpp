@@ -36,10 +36,11 @@ GhostEngine& GhostEngine::getEngine() {
 void GhostEngine::Loop() {
 	if (ghosts.empty()) return;
 	if (!gpGlobals) return;
-	ghosts[0]->HandleFrame();
-	//for (auto it = ghosts.begin(); it != ghosts.end(); ++it) {
-	//	(*it)->HandleFrame();
-	//}
+	for (auto it = ghosts.begin(); it != ghosts.end(); ++it) {
+		if (!(*it)->isRunActive()) {
+			
+		}
+	}
 }
 
 void GhostEngine::ResetGhosts() {
