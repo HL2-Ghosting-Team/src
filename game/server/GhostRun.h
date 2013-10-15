@@ -40,9 +40,9 @@ public:
 	void HandleFrame();
 	void SpawnGhost();
 private:
-	std::vector<RunLine> RunData;
+	
 	std::string ghostName;
-	int step;
+	
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	bool isActive;

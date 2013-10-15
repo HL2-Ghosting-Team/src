@@ -976,12 +976,6 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 		// Now call the mod specific parse
 		LevelInit_ParseAllEntities( pMapEntities );
 	}
-
-	if ((gpGlobals->eLoadType == MapLoad_LoadGame) || (gpGlobals->eLoadType == MapLoad_Transition)) {
-		if (GhostEngine::getEngine().isActive()) {
-			GhostEngine::getEngine().ResetGhosts();
-		}
-	}
 	// Check low violence settings for this map
 	g_RagdollLVManager.SetLowViolence( pMapName );
 

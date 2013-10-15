@@ -24,18 +24,25 @@ public:
 	int GetCurrentStep();
 	void EndRun();
 	void StartRun();
-	
+	void updateStep();
 	void HandleGhost();
-	
+	bool openRun(const char*);
 	void SetShouldUpdate(bool);
 	void SetRunData(std::vector<RunLine>);
-	void SetGhostRun(GhostRun*);
-	void HandleGhost();
+	RunLine readLine(std::string);
+	float startTime;
+	std::vector<RunLine> RunData;
+	//void SetGhostRun(GhostRun*);
+	//void HandleGhost();
 	
 
 private:
-	GhostRun* run;
+	//GhostRun* run;
+	int step;
+	bool isActive;
 	const char*  m_gModel;
 	const char*  m_gName;
+	RunLine* currentStep; 
+	RunLine* nextStep;
 	
 };

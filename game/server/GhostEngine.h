@@ -1,11 +1,12 @@
 #include "GhostEntity.h"
 #include "GhostRun.h"
+#include "igameevents.h"
 #include <vector>
 #include <map>
 #include <string>
 #include "runline.h"
 #pragma once
-class GhostEngine {
+class GhostEngine : public IGameEventListener2 {
 
 public:
 	
@@ -19,13 +20,14 @@ public:
 	GhostEntity* GetGhost(const char * name); 
 	void handleGhost(float t, GhostEntity * ghost);
 	void StartRun(const char * thing);
-	std::vector<GhostRun*> ghosts;
+	std::vector<GhostEntity*> ghosts;
 	//main loop of the engine
-	void Loop();
 	bool readFileCompletely(std::string fileName, std::vector<RunLine> &vec);
-	void EndRun(GhostRun*);
+	void EndRun(GhostEntity*);
 	void ResetGhosts();
 	bool isActive();
+	void addListener();
+	void FireGameEvent(IGameEvent*);
 	
 private:
 	static GhostEngine* instance;

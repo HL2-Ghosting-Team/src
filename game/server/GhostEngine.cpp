@@ -13,6 +13,7 @@ GhostEngine *GhostEngine::instance = NULL;
 GhostEngine& GhostEngine::getEngine() {
 	if (instance == NULL) {
 		instance = new GhostEngine();
+		instance->addListener();
 	}	
 	return *instance;
 }
@@ -29,23 +30,19 @@ GhostEngine& GhostEngine::getEngine() {
 		return NULL;
 	}
 }*/
+void GhostEngine::FireGameEvent( IGameEvent* event )
+{
+if ( Q_strcmp(event->GetName(), "game_newmap") == 0 )
+	Msg("The map %s has been loaded!\n", event->GetString("mapname") );
+}
 
-
-
-
-void GhostEngine::Loop() {
-	if (ghosts.empty()) return;
-	if (!gpGlobals) return;
-	for (auto it = ghosts.begin(); it != ghosts.end(); ++it) {
-		if (!(*it)->isRunActive()) {
-			
-		}
-	}
+void GhostEngine::addListener() {
+	gameeventmanager->AddListener(this, "game_newmap", false);
 }
 
 void GhostEngine::ResetGhosts() {
 	for (auto it = ghosts.begin(); it != ghosts.end(); ++it) {
-		(*it)->setRunActive(false);
+		(*it)->StartRun();
 	}
 }
 
@@ -55,7 +52,7 @@ bool GhostEngine::isActive() {
 }
 
 //called after the run kills itself
-void GhostEngine::EndRun(GhostRun* run) {
+void GhostEngine::EndRun(GhostEntity* run) {
 	if (run) {
 		ghosts.erase(std::find(ghosts.begin(), ghosts.end(), run));
 	}
@@ -63,10 +60,17 @@ void GhostEngine::EndRun(GhostRun* run) {
 
 
 void GhostEngine::StartRun(const char* fileName) {
-	GhostRun* gh = new GhostRun();
-	if (gh->open(fileName)) {
-		gh->StartRun();
-		ghosts.push_back(gh);
+	GhostEntity * ent = (GhostEntity*) CreateEntityByName( "ghost_entity" );
+	if (ent) {
+		if (ent->openRun(fileName)) {
+			ent->SetGhostName(ent->RunData[0].name);
+			ent->SetAbsOrigin(Vector(ent->RunData[1].x, ent->RunData[1].y, ent->RunData[1].z));
+			if (DispatchSpawn(ent) == 0) {
+				Msg("Spawned the ent %s!\n", ent->GetGhostName());
+				ent->startTime = gpGlobals->curtime;
+				ent->StartRun();
+			}
+		}
 	}
 }
 
