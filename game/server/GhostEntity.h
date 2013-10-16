@@ -18,30 +18,22 @@ public:
 	const char* GetGhostName();
 	//returns the ghost's model
 	const char* GetGhostModel();
-	//increments step by one
+	//Increments the steps intelligently.
 	void updateStep();
 	//returns current step
 	int GetCurrentStep();
 	void EndRun();
 	void StartRun();
-	void updateStep();
 	void HandleGhost();
-	bool openRun(const char*);
 	void SetShouldUpdate(bool);
-	void SetRunData(std::vector<RunLine>);
-	RunLine readLine(std::string);
 	float startTime;
 	std::vector<RunLine> RunData;
-	//void SetGhostRun(GhostRun*);
-	//void HandleGhost();
-	
-
-private:
-	//GhostRun* run;
 	int step;
 	bool isActive;
+
+private:
 	const char*  m_gModel;
-	const char*  m_gName;
+	char  m_gName[256];
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	

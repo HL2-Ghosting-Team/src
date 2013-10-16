@@ -39,8 +39,8 @@ IEngineTrace *enginetrace = NULL;
 
 CGlobalVars *gpGlobals = NULL;
 edict_t *currPlayer;
-double nextTime = 0.00;
-double startTime = 0.00;
+float nextTime = 0.00;
+float startTime = 0.00;
 bool isSpawned = false;
 const char * fileName;
 bool shouldRecord = false;
@@ -188,10 +188,10 @@ const char *GhostingRecord::GetPluginDescription( void )
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelInit( char const *pMapName )
 {
-	Msg( "Level \"%s\" has been loaded\n", pMapName );
+	//Msg( "Level \"%s\" has been loaded\n", pMapName );
 	gameeventmanager->AddListener( this, true );
 	if (shouldRecord) {
-		double time = Plat_FloatTime() - startTime;
+		double time = gpGlobals->curtime - startTime;
 		myFile << "GHOSTING " << pMapName << " empty " << time << " 0 0 0" << std::endl;
 	}
 }
@@ -214,7 +214,7 @@ void GhostingRecord::GameFrame( bool simulating )
 		{
 			const char *map = STRING ( gpGlobals->mapname );
 			const char *point = strstr(map, "background");
-			double time = Plat_FloatTime() - startTime;
+			float time = (gpGlobals->curtime - startTime);
 			if( point == NULL)//not in the menu silly
 			{
 				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
@@ -230,7 +230,7 @@ void GhostingRecord::GameFrame( bool simulating )
 								//filename for local, or race hash for online.
 								myFile << "GHOSTING " << map << " " << info->GetName() << " " << 
 									time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
-								nextTime = time + 0.05;//20 times a second
+								nextTime = time + 0.05f;//20 times a second
 						}
 					}
 				}
@@ -370,7 +370,7 @@ void record(const CCommand &args) {
 	Msg("Recording to %s...\n", args.Arg(1));
 	myFile = std::ofstream(fileName);
 	shouldRecord = true;
-	startTime = Plat_FloatTime();
+	startTime = gpGlobals->curtime;
 }
 
 ConCommand rec( "gh_record", record, "Records a run.", 0);

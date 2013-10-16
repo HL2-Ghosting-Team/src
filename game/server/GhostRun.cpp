@@ -19,116 +19,88 @@ GhostRun::~GhostRun(void)
 {
 }
 
-
-
-
-
-
-RunLine * GhostRun::getCurrentRunStep() {
-	return currentStep;
+RunLine GhostRun::readLine(std::string line) {
+	struct RunLine l;
+	std::sscanf(line.c_str(), "%*s %31s %31s %f %f %f %f", &l.map, &l.name, &l.tim, &l.x, &l.y, &l.z);
+	return l;
 }
 
-RunLine * GhostRun::getNextRunStep() {
-	return nextStep;
+bool GhostRun::openRun(const char* fileName) {
+	std::ifstream myFile = std::ifstream(fileName);
+	if (!myFile) return false;
+	RunData.clear();
+	for(int i = 0; myFile.good(); i++)
+	{
+		std::string temp;
+		std::getline(myFile, temp);
+		RunLine result = readLine(temp);
+		if (result.tim < 0) {
+			strcpy(ghostName, result.name);
+			continue;
+		}
+		RunData.push_back(result);
+	}
+	myFile.close();
+	return true;
 }
 
-bool GhostRun::isRunActive() {
-	return isActive;
+void GhostRun::ResetGhost() {
+	GhostEntity* tempGhost = (GhostEntity*) CreateEntityByName("ghost_entity");
+	Msg("Should be spawning ghost now...\n");
+	if(DispatchSpawn(tempGhost)) {
+		Msg("Spawned!\n");
+		tempGhost->RunData = RunData;
+		tempGhost->step = step;
+		tempGhost->SetGhostName(ghostName);
+		tempGhost->StartRun();
+		ent = *tempGhost;
+	}
 }
 
-void GhostRun::setRunActive(bool toSet) {
-	isActive = toSet;
-}
 
 //compare (for online runlines, ignore for now)
 /*void GhostRun::addRunData(RunLine line) {
-	if (strcmp(line.map, gpGlobals->mapname.ToCStr()) == 0) {
-		if (strcmp(ghostName.c_str(), line.name) == 0) {
-			RunData.push_back(line);
-		}
-	}
+if (strcmp(line.map, gpGlobals->mapname.ToCStr()) == 0) {
+if (strcmp(ghostName.c_str(), line.name) == 0) {
+RunData.push_back(line);
+}
+}
 }*/
 
 void GhostRun::StartRun() {
-	ent = (GhostEntity*) CreateEntityByName( "ghost_entity" );
-	ent->SetGhostName(ghostName.c_str());
-	if (SetUpGhost()) {
-		if (DispatchSpawn(ent) == 0) {
-			Msg("Spawned the ent %s!\n", ent->GetGhostName());
-			isActive = true;
-			startTime = Plat_FloatTime();
-			ent->StartRun();
+	GhostEntity * entity = (GhostEntity*) CreateEntityByName( "ghost_entity" );
+	if (entity) {
+		entity->SetGhostName(RunData[0].name);
+		entity->RunData = RunData;
+		entity->SetAbsOrigin(Vector(RunData[1].x, RunData[1].y, RunData[1].z));
+		if (DispatchSpawn(entity) == 0) {
+			Msg("Spawned the ent %s!\n", entity->GetGhostName());
+			entity->startTime = gpGlobals->curtime;
+			Msg("Start time: %f\n", entity->startTime);
+			entity->StartRun();
+			ent = *entity;
 		}
 	}
-}
-//sets up a ghost from a level change
-void GhostRun::SpawnGhost() {
-	ent = (GhostEntity*) CreateEntityByName( "ghost_entity" );
-	if (DispatchSpawn(ent) == 0) {
-		isActive = true;
-		ent->StartRun();
-	}
-}
-//To interpolate:
-//Ta = time of current line
-//Tb = time of next line
-//Tc = current engine time
-//Pa = current line position
-//Pb = next line position
-//Pa + (Tc - Ta) / (Tb - Ta) * (Pb - Pa)
-
-//TODO: there's too much in this method. break it apart.
-void GhostRun::HandleFrame() {
-	double currentEngineTime = Plat_FloatTime() - startTime;
-	updateStep(currentEngineTime);
-	RunLine * curr = currentStep;
-	RunLine * next = nextStep;
-	if (curr == NULL) {
-		EndRun();
-		return;
-	} else {
-		if (!isActive) {//the ghost isn't spawned!
-			if (strcmp(gpGlobals->mapname.ToCStr(), curr->map) == 0) {
-				SpawnGhost();
-				ent->SetAbsOrigin(Vector(curr->x, curr->y, (curr->z + 40.0f)));
-			}else {
-				Msg("The ghost will not be spawned!\n");
-			}
-		} else {
-			if (strcmp(curr->map, gpGlobals->mapname.ToCStr()) != 0) {
-				//spawned, but not on the map (anymore). Kill it! Kill it with fire!
-				Msg("spawned, but not on the map (anymore). Kill it! Kill it with fire!\n");
-				ent->EndRun();
-				isActive = false;
-				return;
-			}
-			if (next != NULL) {	
-				
-			}//else it's last step, updateStep should have already taken care of this
-		}
-	}
-	
 }
 
 void GhostRun::EndRun() {
-	ent->EndRun();
+	ent.RunData.clear();
+	ent.EndRun();
 	RunData.clear();
 	GhostEngine::getEngine().EndRun(this);
 }
 
 
-
-
-bool GhostRun::SetUpGhost() {
-	const char * mapname = gpGlobals->mapname.ToCStr();
-	if (strstr(mapname, "background") == NULL) {//not in the menu
-		if ( strcmp(mapname, RunData[0].map) == 0) {//same map
-			return true;
-		} else {
-			//TODO teleport to map, start it
-			//but for now,
-			return false;
-		}
-	}
-	return false;
+/*bool GhostRun::SetUpGhost() {
+const char * mapname = gpGlobals->mapname.ToCStr();
+if (strstr(mapname, "background") == NULL) {//not in the menu
+if ( strcmp(mapname, RunData[0].map) == 0) {//same map
+return true;
+} else {
+//TODO teleport to map, start it
+//but for now,
+return false;
 }
+}
+return false;
+}*/

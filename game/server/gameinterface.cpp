@@ -804,7 +804,6 @@ bool CServerGameDLL::GameInit( void )
 	{
 		gameeventmanager->FireEvent( event );
 	}
-
 	return true;
 }
 
@@ -989,7 +988,8 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 	// Sometimes an ent will Remove() itself during its precache, so RemoveImmediate won't happen.
 	// This makes sure those ents get cleaned up.
 	gEntList.CleanupDeleteList();
-
+	Msg("Should be resetting ghosts now!\n");
+	GhostEngine::getEngine().ResetGhosts();
 	g_AIFriendliesTalkSemaphore.Release();
 	g_AIFoesTalkSemaphore.Release();
 	g_OneWayTransition = false;

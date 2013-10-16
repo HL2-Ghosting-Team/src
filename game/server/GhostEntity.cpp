@@ -38,7 +38,7 @@ BEGIN_DATADESC( GhostEntity )
 void GhostEntity::Spawn( void )
 {
 	Precache();
-	m_gModel = MODEL;
+	m_gModel = MODEL;//TODO when online/custom models work, delete this line!
 	SetModel( MODEL );
 	SetSolid( SOLID_NONE );
 	SetMoveType( MOVETYPE_NOCLIP );
@@ -50,33 +50,6 @@ void GhostEntity::StartRun() {
 	SetNextThink(gpGlobals->curtime + 0.01f);
 }
 
-RunLine GhostEntity::readLine(std::string line) {
-	struct RunLine l;
-	std::sscanf(line.c_str(), "%*s %31s %31s %f %f %f %f", &l.map, &l.name, &l.tim, &l.x, &l.y, &l.z);
-	return l;
-}
-
-bool GhostEntity::openRun(const char* fileName) {
-	std::ifstream myFile = std::ifstream(fileName);
-	if (!myFile) return false;
-	RunData.clear();
-	for(int i = 0; myFile.good(); i++)
-	{
-		std::string temp;
-		std::getline(myFile, temp);
-		RunLine result = readLine(temp);
-		if (result.tim < 0) {
-			m_gName = result.name;
-		}
-		RunData.push_back(result);
-	}
-	myFile.close();
-	return true;
-}
-
-//void GhostEntity::SetGhostRun(GhostRun* toSet) {
-//	run = toSet;
-//}
 
 void GhostEntity::updateStep() {
 	const size_t runsize = RunData.size();
@@ -86,21 +59,18 @@ void GhostEntity::updateStep() {
 	} 
 	if (step == 0) step = 1;
 	currentStep = &RunData[step];
-	float currentTime = gpGlobals->curtime;
-	//Msg("Line: %s, %s, %f, %f, %f, %f\n", currentStep->map, currentStep->name, currentStep->tim, currentStep->x, currentStep->y, currentStep->z);
+	float currentTime = (gpGlobals->curtime - startTime);
 	if (currentTime > currentStep->tim) {//catching up to a fast ghost, you came in late
 		int x = step + 1;
 		while (++x < runsize && currentTime > RunData[x].tim);
 		step = x-1;
 	}
-	//Msg("Step %i\n", step);
 	currentStep = &RunData[step];//update it to the new step
-	currentTime = gpGlobals->curtime;//update to new time
-	//Msg("Line Updated: %s, %s, %f, %f, %f, %f\n", currentStep->map, currentStep->name, currentStep->tim, currentStep->x, currentStep->y, currentStep->z);
+	currentTime = (gpGlobals->curtime - startTime);//update to new time
 	if (currentTime > currentStep->tim) {//if it's on the last step
 		nextStep = NULL;
 		if (step == (runsize - 1)) {
-			EndRun();
+			GhostEngine::getEngine().getRun(this)->EndRun();
 		}
 	} else {
 		nextStep = &RunData[step+1];
@@ -115,40 +85,45 @@ void GhostEntity::MoveThink( void )
 	EntityText(0, m_gName, 0);
 	updateStep();
 	HandleGhost();
-	SetNextThink( gpGlobals->curtime + 0.01f );
+	SetNextThink( gpGlobals->curtime + 0.005f );
 }
 
 void GhostEntity::HandleGhost() {
 	if (currentStep == NULL) {
-		EndRun();
-		GhostEngine::getEngine().EndRun(this);
+		GhostEngine::getEngine().getRun(this)->EndRun();
 	} else {
 		if (strcmp(currentStep->map, gpGlobals->mapname.ToCStr()) != 0) {
 			//spawned, but not on the map (anymore). Kill it! Kill it with fire!
 			Msg("spawned, but not on the map (anymore). Kill it! Kill it with fire!\n");
 			EndRun();
-			return;
-		}
-		if (nextStep != NULL) {
-			if (strcmp(currentStep->map, nextStep->map) == 0) {
-				Msg("Trying to interpolate...\n");
-				//interpolate position
-				float x = currentStep->x;
-				float y = currentStep->y;
-				float z = currentStep->z;
-				float x2 = nextStep->x;
-				float y2 = nextStep->y;
-				float z2 = nextStep->z;
-				float t1 = currentStep->tim;
-				float t2 = nextStep->tim;
-				float scalar = (gpGlobals->curtime - t1) / (t2 - t1); 
-				float xfinal = x + (scalar * (x2 - x));
-				float yfinal = y + (scalar * (y2 - y));
-				float zfinal = z + (scalar * (z2 - z));
-				SetAbsOrigin(Vector(xfinal, yfinal, zfinal));
-			} else {//set it to the last position before it updates to the next map
-				Msg("On its last step before the next map!\n");
-				SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z + 40.0f)));
+		} else {
+			if (!isActive) {
+				DispatchSpawn(this);
+			} else {
+				if (nextStep != NULL) {
+					if (strcmp(currentStep->map, nextStep->map) == 0) {
+						//interpolate position
+						float x = currentStep->x;
+						float y = currentStep->y;
+						float z = currentStep->z;
+						if (strcmp(currentStep->name, "empty") == 0) return;
+						if (strcmp(nextStep->name, "empty") == 0) return;
+						if (x == 0) return;
+						float x2 = nextStep->x;
+						float y2 = nextStep->y;
+						float z2 = nextStep->z;
+						float t1 = currentStep->tim;
+						float t2 = nextStep->tim;
+						float scalar = ((gpGlobals->curtime - startTime) - t1) / (t2 - t1); 
+						float xfinal = x + (scalar * (x2 - x));
+						float yfinal = y + (scalar * (y2 - y));
+						float zfinal = z + (scalar * (z2 - z));
+						SetAbsOrigin(Vector(xfinal, yfinal, (zfinal + 25.0f)));
+					} else {//set it to the last position before it updates to the next map
+						Msg("On its last step before the next map!\n");
+						SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z + 30.0f)));
+					}
+				}
 			}
 		}
 	}
@@ -156,7 +131,7 @@ void GhostEntity::HandleGhost() {
 
 void GhostEntity::SetGhostName(const char * newname) {
 	if (newname) {
-		m_gName = newname;
+		strcpy(m_gName, newname);
 	}
 }
 

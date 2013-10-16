@@ -22,30 +22,22 @@ public:
 	GhostRun(void);
 	~GhostRun(void);
 
-	bool open(const char*);
 	void updateForNewMap();
 	void StartRun();
 	//ends the run for good
 	void EndRun();
 	RunLine readLine(std::string);
 	void addRunData(RunLine);
-	void updateStep(float currentTime);
-	RunLine* getCurrentRunStep();
-	RunLine* getNextRunStep();
-	bool SetUpGhost();
-	double startTime;
-	GhostEntity* ent;
-	bool isRunActive();
-	void setRunActive(bool);
-	void HandleFrame();
-	void SpawnGhost();
+	bool openRun(const char*);
+	//bool SetUpGhost();
+	void ResetGhost();
+	GhostEntity ent;
+	float startTime;
+	std::vector<RunLine> RunData;
+	int step;
+	char ghostName[32];
+
 private:
-	
-	std::string ghostName;
-	
-	RunLine* currentStep; 
-	RunLine* nextStep;
-	bool isActive;
 	
 };
 
