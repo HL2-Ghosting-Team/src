@@ -59,6 +59,7 @@ void GhostEntity::updateStep() {
 	} 
 	if (step == 0) step = 1;
 	currentStep = &RunData[step];
+	//if (strcmp(gpGlobals->mapname.ToCStr(), currentStep->map) != 0) return;//not on the same map yet
 	float currentTime = (gpGlobals->curtime - startTime);
 	if (currentTime > currentStep->tim) {//catching up to a fast ghost, you came in late
 		int x = step + 1;
@@ -67,7 +68,7 @@ void GhostEntity::updateStep() {
 	}
 	currentStep = &RunData[step];//update it to the new step
 	currentTime = (gpGlobals->curtime - startTime);//update to new time
-	if (currentTime > currentStep->tim) {//if it's on the last step
+	if (step == (runsize - 1)) {//if it's on the last step
 		nextStep = NULL;
 		if (step == (runsize - 1)) {
 			GhostEngine::getEngine().getRun(this)->EndRun();
@@ -94,8 +95,8 @@ void GhostEntity::HandleGhost() {
 	} else {
 		if (strcmp(currentStep->map, gpGlobals->mapname.ToCStr()) != 0) {
 			//spawned, but not on the map (anymore). Kill it! Kill it with fire!
-			Msg("spawned, but not on the map (anymore). Kill it! Kill it with fire!\n");
-			EndRun();
+			//Msg("spawned, but not on the map (anymore). Kill it! Kill it with fire!\n");
+			//EndRun();
 		} else {
 			if (!isActive) {
 				DispatchSpawn(this);

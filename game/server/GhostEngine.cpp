@@ -47,15 +47,17 @@ void GhostEngine::addListener() {
 void GhostEngine::transferGhostData() {
 	for (int i = 0; i < ghosts.size(); i++) {
 		GhostRun * it = ghosts[i];
-		it->step = it->ent.step;
-		it->startTime = it->ent.startTime;
+		it->step = it->ent->step;
+		Msg("Transferring step %i\n", it->ent->step);
+		it->startTime = it->ent->startTime;
+		Msg("Transferring startTime %f\n", it->ent->startTime);
 	}
 }
 
-GhostRun * GhostEngine::getRun(GhostEntity* toGet) {
+GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 	for (int i = 0; i < ghosts.size(); i++) {
-		GhostRun * it = ghosts[i];
-		if (strcmp(it->ent.GetGhostName(), toGet->GetGhostName()) == 0) {
+		GhostRun* it = ghosts[i];
+		if (strcmp(it->ent->GetGhostName(), toGet->GetGhostName()) == 0) {
 			return it;
 		}
 	}
@@ -65,7 +67,7 @@ GhostRun * GhostEngine::getRun(GhostEntity* toGet) {
 void GhostEngine::ResetGhosts() {
 	Msg("Resetting ghosts!\n");
 	for (int i = 0; i < ghosts.size(); i++) {
-		GhostRun * it = ghosts[i];
+		GhostRun* it = ghosts[i];
 		Msg("Resetting ghost: %s\n", it->ghostName);
 		it->ResetGhost();
 	}

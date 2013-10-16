@@ -34,7 +34,7 @@ bool GhostRun::openRun(const char* fileName) {
 		std::string temp;
 		std::getline(myFile, temp);
 		RunLine result = readLine(temp);
-		if (result.tim < 0) {
+		if (i == 0) {
 			strcpy(ghostName, result.name);
 			continue;
 		}
@@ -47,13 +47,15 @@ bool GhostRun::openRun(const char* fileName) {
 void GhostRun::ResetGhost() {
 	GhostEntity* tempGhost = (GhostEntity*) CreateEntityByName("ghost_entity");
 	Msg("Should be spawning ghost now...\n");
-	if(DispatchSpawn(tempGhost)) {
+	if(DispatchSpawn(tempGhost) == 0) {
 		Msg("Spawned!\n");
 		tempGhost->RunData = RunData;
 		tempGhost->step = step;
 		tempGhost->SetGhostName(ghostName);
+		tempGhost->startTime = startTime;
 		tempGhost->StartRun();
-		ent = *tempGhost;
+		Msg("Starting run for %s again!\n", tempGhost->GetGhostName());
+		ent = tempGhost;
 	}
 }
 
@@ -78,29 +80,14 @@ void GhostRun::StartRun() {
 			entity->startTime = gpGlobals->curtime;
 			Msg("Start time: %f\n", entity->startTime);
 			entity->StartRun();
-			ent = *entity;
+			ent = entity;
 		}
 	}
 }
 
 void GhostRun::EndRun() {
-	ent.RunData.clear();
-	ent.EndRun();
+	ent->RunData.clear();
+	ent->EndRun();
 	RunData.clear();
 	GhostEngine::getEngine().EndRun(this);
 }
-
-
-/*bool GhostRun::SetUpGhost() {
-const char * mapname = gpGlobals->mapname.ToCStr();
-if (strstr(mapname, "background") == NULL) {//not in the menu
-if ( strcmp(mapname, RunData[0].map) == 0) {//same map
-return true;
-} else {
-//TODO teleport to map, start it
-//but for now,
-return false;
-}
-}
-return false;
-}*/

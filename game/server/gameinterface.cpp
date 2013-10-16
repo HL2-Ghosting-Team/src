@@ -988,8 +988,6 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 	// Sometimes an ent will Remove() itself during its precache, so RemoveImmediate won't happen.
 	// This makes sure those ents get cleaned up.
 	gEntList.CleanupDeleteList();
-	Msg("Should be resetting ghosts now!\n");
-	GhostEngine::getEngine().ResetGhosts();
 	g_AIFriendliesTalkSemaphore.Release();
 	g_AIFoesTalkSemaphore.Release();
 	g_OneWayTransition = false;
@@ -1052,7 +1050,8 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
 	CBaseEntity::SetAllowPrecache( false );
-
+	Msg("Should be resetting ghosts now!\n");
+	GhostEngine::getEngine().ResetGhosts();
 	// only display the think limit when the game is run with "developer" mode set
 	if ( !g_pDeveloper->GetInt() )
 	{
@@ -1253,8 +1252,8 @@ void CServerGameDLL::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_
 void CServerGameDLL::LevelShutdown( void )
 {
 	MDLCACHE_CRITICAL_SECTION();
+	GhostEngine::getEngine().transferGhostData();
 	IGameSystem::LevelShutdownPreEntityAllSystems();
-
 	// YWB:
 	// This entity pointer is going away now and is corrupting memory on level transitions/restarts
 	CSoundEnt::ShutdownSoundEnt();

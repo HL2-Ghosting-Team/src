@@ -31,7 +31,7 @@ public:
 	bool openRun(const char*);
 	//bool SetUpGhost();
 	void ResetGhost();
-	GhostEntity ent;
+	GhostEntity *ent;
 	float startTime;
 	std::vector<RunLine> RunData;
 	int step;
