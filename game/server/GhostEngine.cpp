@@ -13,7 +13,6 @@ GhostEngine *GhostEngine::instance = NULL;
 GhostEngine& GhostEngine::getEngine() {
 	if (instance == NULL) {
 		instance = new GhostEngine();
-		//instance->addListener();
 	}	
 	return *instance;
 }
@@ -30,34 +29,19 @@ return ent;
 return NULL;
 }
 }*/
-void GhostEngine::FireGameEvent( IGameEvent* event )
-{
-	//if ( Q_strcmp(event->GetName(), "game_newmap") == 0 ) {
-	if ( Q_strcmp(event->GetName(), "game_init") == 0 ) {
-		//Msg("The map %s has been loaded!\n", gpGlobals->mapname );
-		Msg("The player has respawned!\n");
-		ResetGhosts();
-	}
-}
-
-void GhostEngine::addListener() {
-	gameeventmanager->AddListener(this, "game_init", false);
-}
 
 void GhostEngine::transferGhostData() {
-	for (int i = 0; i < ghosts.size(); i++) {
+	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun * it = ghosts[i];
 		it->step = it->ent->step;
-		Msg("Transferring step %i\n", it->ent->step);
 		it->startTime = it->ent->startTime;
-		Msg("Transferring startTime %f\n", it->ent->startTime);
 	}
 }
 
 GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
-	for (int i = 0; i < ghosts.size(); i++) {
+	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
-		if (strcmp(it->ent->GetGhostName(), toGet->GetGhostName()) == 0) {
+		if (Q_strcmp(it->ent->GetGhostName(), toGet->GetGhostName()) == 0) {
 			return it;
 		}
 	}
@@ -65,10 +49,8 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 }
 
 void GhostEngine::ResetGhosts() {
-	Msg("Resetting ghosts!\n");
-	for (int i = 0; i < ghosts.size(); i++) {
+	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
-		Msg("Resetting ghost: %s\n", it->ghostName);
 		it->ResetGhost();
 	}
 }
@@ -97,9 +79,21 @@ void GhostEngine::StartRun(const char* fileName) {
 }
 
 void startRun_f (const CCommand &args) {
-	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (args.Arg(1) != "")) {
+	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (Q_strcmp(args.Arg(1), "") != 0)) {
 		GhostEngine::getEngine().StartRun(args.Arg(1));
 	}
 }
 
-ConCommand start("gh_play", startRun_f, "Play back a run you did.", 0);
+static int FileAutoComplete ( char const *partial, 
+char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+{
+	char* fileDir;
+	if (UTIL_GetModDir(fileDir, 256)) {
+
+	}
+	strcpy( commands[0], "hello" );
+	strcpy( commands[1], "goodbye" );
+	return 2; // number of entries
+}
+
+ConCommand start("gh_play", startRun_f, "Play back a run you did.", 0/*, FileAutoComplete*/);

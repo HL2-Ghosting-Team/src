@@ -5,7 +5,7 @@
 #include <string>
 #include "runline.h"
 #pragma once
-class GhostEngine : public IGameEventListener2 {
+class GhostEngine {
 
 public:
 	
@@ -25,8 +25,6 @@ public:
 	void ResetGhosts();
 	void transferGhostData();
 	bool isActive();
-	void addListener();
-	void FireGameEvent(IGameEvent*);
 	GhostRun* getRun(GhostEntity*);
 	
 private:

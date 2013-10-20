@@ -45,16 +45,13 @@ bool GhostRun::openRun(const char* fileName) {
 }
 
 void GhostRun::ResetGhost() {
-	GhostEntity* tempGhost = (GhostEntity*) CreateEntityByName("ghost_entity");
-	Msg("Should be spawning ghost now...\n");
+	GhostEntity* tempGhost = dynamic_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
 	if(DispatchSpawn(tempGhost) == 0) {
-		Msg("Spawned!\n");
-		tempGhost->RunData = RunData;
+		tempGhost->SetRunData(RunData);
 		tempGhost->step = step;
 		tempGhost->SetGhostName(ghostName);
 		tempGhost->startTime = startTime;
 		tempGhost->StartRun();
-		Msg("Starting run for %s again!\n", tempGhost->GetGhostName());
 		ent = tempGhost;
 	}
 }
@@ -76,9 +73,7 @@ void GhostRun::StartRun() {
 		entity->RunData = RunData;
 		entity->SetAbsOrigin(Vector(RunData[1].x, RunData[1].y, RunData[1].z));
 		if (DispatchSpawn(entity) == 0) {
-			Msg("Spawned the ent %s!\n", entity->GetGhostName());
-			entity->startTime = gpGlobals->curtime;
-			Msg("Start time: %f\n", entity->startTime);
+			entity->startTime = (float) Plat_FloatTime();
 			entity->StartRun();
 			ent = entity;
 		}

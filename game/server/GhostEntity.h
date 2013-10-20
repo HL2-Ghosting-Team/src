@@ -9,9 +9,6 @@ class GhostEntity : public CBaseAnimating
 	DECLARE_DATADESC();
 public:
 	void SetRunData( std::vector<RunLine>& toSet);
-	void Spawn( void );
-	void Precache( void );
-	void MoveThink( void );
 	void SetGhostName( const char* );
 	void SetGhostModel( const char* );
 	//returns the ghost's name
@@ -23,18 +20,26 @@ public:
 	//returns current step
 	int GetCurrentStep();
 	void EndRun();
+	void CreateTrail();
 	void StartRun();
 	void HandleGhost();
 	void SetShouldUpdate(bool);
 	float startTime;
 	std::vector<RunLine> RunData;
-	int step;
+	unsigned int step;
 	bool isActive;
+	bool isReal;
+
+protected:
+	void Think( void );
+	void Spawn( void );
+	void Precache( void );
 
 private:
 	const char*  m_gModel;
 	char  m_gName[256];
 	RunLine* currentStep; 
 	RunLine* nextStep;
+	CBaseEntity *trail;
 	
 };

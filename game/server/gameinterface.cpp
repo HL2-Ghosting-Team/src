@@ -1050,7 +1050,6 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
 	CBaseEntity::SetAllowPrecache( false );
-	Msg("Should be resetting ghosts now!\n");
 	GhostEngine::getEngine().ResetGhosts();
 	// only display the think limit when the game is run with "developer" mode set
 	if ( !g_pDeveloper->GetInt() )
@@ -1123,7 +1122,6 @@ void CServerGameDLL::GameFrame( bool simulating )
 #endif
 
 	g_pServerBenchmark->UpdateBenchmark();
-	//GhostEngine::getEngine().Loop();
 	Physics_RunThinkFunctions( simulating );
 	
 	IGameSystem::FrameUpdatePostEntityThinkAllSystems();

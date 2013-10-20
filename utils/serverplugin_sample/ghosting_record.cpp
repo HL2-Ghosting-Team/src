@@ -191,7 +191,7 @@ void GhostingRecord::LevelInit( char const *pMapName )
 	//Msg( "Level \"%s\" has been loaded\n", pMapName );
 	gameeventmanager->AddListener( this, true );
 	if (shouldRecord) {
-		double time = gpGlobals->curtime - startTime;
+		float time = ((float)Plat_FloatTime()) - startTime;
 		myFile << "GHOSTING " << pMapName << " empty " << time << " 0 0 0" << std::endl;
 	}
 }
@@ -200,9 +200,7 @@ void GhostingRecord::LevelInit( char const *pMapName )
 // Purpose: called on level start, when the server is ready to accept client connections
 //		edictCount is the number of entities in the level, clientMax is the max client count
 //---------------------------------------------------------------------------------
-void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
-{
-}
+void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax ){}
 
 //---------------------------------------------------------------------------------
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
@@ -214,7 +212,7 @@ void GhostingRecord::GameFrame( bool simulating )
 		{
 			const char *map = STRING ( gpGlobals->mapname );
 			const char *point = strstr(map, "background");
-			float time = (gpGlobals->curtime - startTime);
+			float time = (((float)Plat_FloatTime()) - startTime);
 			if( point == NULL)//not in the menu silly
 			{
 				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
@@ -230,7 +228,7 @@ void GhostingRecord::GameFrame( bool simulating )
 								//filename for local, or race hash for online.
 								myFile << "GHOSTING " << map << " " << info->GetName() << " " << 
 									time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
-								nextTime = time + 0.05f;//20 times a second
+								nextTime = time + 0.04f;//20 times a second
 						}
 					}
 				}
@@ -270,9 +268,7 @@ void GhostingRecord::ClientDisconnect( edict_t *pEntity )
 //---------------------------------------------------------------------------------
 // Purpose: called on 
 //---------------------------------------------------------------------------------
-void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername )
-{
-}
+void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){}
 
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
@@ -282,17 +278,7 @@ void GhostingRecord::SetCommandClient( int index )
 	m_iClientCommandIndex = index;
 }
 
-void ClientPrint( edict_t *pEdict, char *format, ... )
-{
-	va_list		argptr;
-	static char		string[1024];
-	
-	va_start (argptr, format);
-	Q_vsnprintf(string, sizeof(string), format,argptr);
-	va_end (argptr);
-
-	engine->ClientPrintf( pEdict, string );
-}
+void ClientPrint( edict_t *pEdict, char *format, ... ){}
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
@@ -335,9 +321,7 @@ void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_
 void GhostingRecord::OnEdictAllocated( edict_t *edict )
 {
 }
-void GhostingRecord::OnEdictFreed( const edict_t *edict  )
-{
-}
+void GhostingRecord::OnEdictFreed( const edict_t *edict  ){}
 
 //---------------------------------------------------------------------------------
 // Purpose: called when an event is fired
@@ -370,7 +354,7 @@ void record(const CCommand &args) {
 	Msg("Recording to %s...\n", args.Arg(1));
 	myFile = std::ofstream(fileName);
 	shouldRecord = true;
-	startTime = gpGlobals->curtime;
+	startTime = Plat_FloatTime();
 }
 
 ConCommand rec( "gh_record", record, "Records a run.", 0);
