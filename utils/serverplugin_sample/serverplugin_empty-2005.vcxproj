@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>Serverplugin_empty</ProjectName>
+    <ProjectName>ghosting_record</ProjectName>
     <ProjectGuid>{B6572CBE-7C7F-4FFF-94DE-AFBBBAB11C64}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -159,7 +159,7 @@
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
-      <OutputFile>$(OutDir)serverplugin_empty.dll</OutputFile>
+      <OutputFile>$(OutDir)ghosting_record.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>..\..\lib\common;..\..\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libc;libcd;libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -187,15 +187,15 @@
     </Bscmake>
     <PostBuildEvent>
       <Message />
-      <Command />
+      <Command>
+      </Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
       </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Message>
-      </Message>
+      <Message>Copying the plugin...</Message>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>

@@ -1,12 +1,15 @@
 #include "cbase.h"
 #include "GhostEngine.h"
 #include <string>
+#include <sstream>
 #include <vector>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <sstream>
 #include "tier0/memdbgon.h"
+#include "filesystem.h"
+#include "utlbuffer.h"
 
 GhostEngine *GhostEngine::instance = NULL;
 
@@ -72,9 +75,13 @@ void GhostEngine::EndRun(GhostRun* run) {
 
 void GhostEngine::StartRun(const char* fileName) {
 	GhostRun * run = new GhostRun();
-	if (run->openRun(fileName)) {
-		run->StartRun();
-		ghosts.push_back(run);
+	if (!filesystem->FileExists(fileName, "MOD")) {
+		Msg("Run does not exist!\n");
+	} else {
+		if (run->openRun(fileName)) {
+			run->StartRun();
+			ghosts.push_back(run);
+		}
 	}
 }
 
@@ -87,13 +94,38 @@ void startRun_f (const CCommand &args) {
 static int FileAutoComplete ( char const *partial, 
 char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
-	char* fileDir;
-	if (UTIL_GetModDir(fileDir, 256)) {
-
+	char fileDir[MAX_PATH];
+	int toReturn = 0;
+	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
+		FileFindHandle_t findHandle; // note: FileFINDHandle
+		const char *pFilename = filesystem->FindFirstEx( "*.run", "MOD", &findHandle );
+		for(int i = 0; pFilename; i++) {
+			std::stringstream ss;
+			ss << "gh_play " << pFilename;
+			strcpy(commands[i], ss.str().c_str());
+			pFilename = filesystem->FindNext(findHandle);
+			toReturn = i;
+		}
 	}
-	strcpy( commands[0], "hello" );
-	strcpy( commands[1], "goodbye" );
-	return 2; // number of entries
+	return (toReturn + 1); // number of entries
 }
 
-ConCommand start("gh_play", startRun_f, "Play back a run you did.", 0/*, FileAutoComplete*/);
+ConCommand start("gh_play", startRun_f, "Play back a run you did.", 0, FileAutoComplete);
+
+
+
+//Recursive until none left. 
+//Didn't want to bother with having the size of the vector change in mid-loop
+void GhostEngine::stopAllRuns() {
+	if (ghosts.empty()) return;
+	GhostRun* it = ghosts[0];
+	it->EndRun();
+	stopAllRuns();
+}
+
+void stopallg() {
+	GhostEngine::getEngine().stopAllRuns();
+}
+
+
+ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if there are any.", 0);

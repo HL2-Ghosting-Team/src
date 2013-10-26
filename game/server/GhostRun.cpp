@@ -1,5 +1,6 @@
 #include "cbase.h"
 #include "GhostRun.h"
+#include "filesystem.h"
 #include <string>
 #include <vector>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <sstream>
 #include "GhostEngine.h"
 #include "tier0/memdbgon.h"
+#include "utlbuffer.h"
 
 
 GhostRun::GhostRun()
@@ -26,8 +28,13 @@ RunLine GhostRun::readLine(std::string line) {
 }
 
 bool GhostRun::openRun(const char* fileName) {
-	std::ifstream myFile = std::ifstream(fileName);
-	if (!myFile) return false;
+	if (!fileName) return false;//this is just incase
+	char dir[MAX_PATH];
+	engine->GetGameDir(dir, MAX_PATH);
+	V_AppendSlash(dir, MAX_PATH);
+	strcat(dir, fileName);
+	V_FixupPathName(dir, 0, dir);
+	std::ifstream myFile = std::ifstream(dir);
 	RunData.clear();
 	for(int i = 0; myFile.good(); i++)
 	{
@@ -42,6 +49,35 @@ bool GhostRun::openRun(const char* fileName) {
 	}
 	myFile.close();
 	return true;
+
+
+	/*FileHandle_t fh = filesystem->Open(fileName, "r", "MOD");
+	if (fh) {
+
+
+	}
+
+
+	if (filesystem->ReadFile(fileName, "MOD", buf)) {
+	bool first = true;
+	while () {
+	char tempchar[256];
+	buf.GetLine(tempchar);
+
+	std::string temp = std::string(tempchar);
+	RunLine result = readLine(temp);
+	if (first) {
+	strcpy(ghostName, result.name);
+	first = false;
+	continue;
+	}
+	RunData.push_back(result);
+	}
+	buf.Clear();
+	return true;
+	}*/
+	return false;
+
 }
 
 void GhostRun::ResetGhost() {
@@ -80,6 +116,8 @@ void GhostRun::StartRun() {
 	}
 }
 
+//Ends the run and clears data.
+//>>CALLS THE ENT's ENDRUN()!<<
 void GhostRun::EndRun() {
 	ent->RunData.clear();
 	ent->EndRun();

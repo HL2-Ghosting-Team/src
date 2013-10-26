@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <iomanip>
+#include <sstream>
+#include "filesystem.h"
 #include <iostream>
 #include <fstream>
 #include "interface.h"
@@ -35,23 +37,20 @@ IPlayerInfoManager *playerinfomanager = NULL; // game dll interface to interact 
 IServerPluginHelpers *helpers = NULL; // special 3rd party plugin helpers from the engine
 IUniformRandomStream *randomStr = NULL;
 IEngineTrace *enginetrace = NULL;
-
-
+IFileSystem* filesystem = NULL;
 CGlobalVars *gpGlobals = NULL;
 edict_t *currPlayer;
+
+
 float nextTime = 0.00;
 float startTime = 0.00;
 bool isSpawned = false;
-const char * fileName;
+const char* fileName;
 bool shouldRecord = false;
 bool firstTime = true;
-std::ofstream myFile;
+//std::ofstream myFile;
+FileHandle_t myFile;
 
-// useful helper func
-inline bool FStrEq(const char *sz1, const char *sz2)
-{
-	return(Q_stricmp(sz1, sz2) == 0);
-}
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
 //---------------------------------------------------------------------------------
@@ -92,7 +91,7 @@ public:
 
 private:
 	int m_iClientCommandIndex;
-	
+
 	void record( const CCommand &args);
 };
 
@@ -114,7 +113,6 @@ GhostingRecord::GhostingRecord()
 GhostingRecord::~GhostingRecord()
 {
 }
-
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is loaded, load the interface we need from the engine
 //---------------------------------------------------------------------------------
@@ -133,15 +131,13 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 	helpers = (IServerPluginHelpers*)interfaceFactory(INTERFACEVERSION_ISERVERPLUGINHELPERS, NULL);
 	enginetrace = (IEngineTrace *)interfaceFactory(INTERFACEVERSION_ENGINETRACE_SERVER,NULL);
 	randomStr = (IUniformRandomStream *)interfaceFactory(VENGINE_SERVER_RANDOM_INTERFACE_VERSION, NULL);
+	filesystem = (IFileSystem *)interfaceFactory(FILESYSTEM_INTERFACE_VERSION, NULL);
 
 	// get the interfaces we want to use
-	if(	! ( engine && gameeventmanager && g_pFullFileSystem && helpers && enginetrace && randomStr ) )
-	{
+	if(	! ( engine && gameeventmanager && g_pFullFileSystem && helpers && enginetrace && randomStr && filesystem ) ){
 		return false; // we require all these interface to function
 	}
-
-	if ( playerinfomanager )
-	{
+	if ( playerinfomanager ){
 		gpGlobals = playerinfomanager->GetGlobalVars();
 	}
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
@@ -155,7 +151,7 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 void GhostingRecord::Unload( void )
 {
 	gameeventmanager->RemoveListener( this ); // make sure we are unloaded from the event system
-	myFile.close();
+	filesystem->Close(myFile);
 	ConVar_Unregister( );
 	DisconnectTier2Libraries( );
 	DisconnectTier1Libraries( );
@@ -192,7 +188,8 @@ void GhostingRecord::LevelInit( char const *pMapName )
 	gameeventmanager->AddListener( this, true );
 	if (shouldRecord) {
 		float time = ((float)Plat_FloatTime()) - startTime;
-		myFile << "GHOSTING " << pMapName << " empty " << time << " 0 0 0" << std::endl;
+		filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
+		filesystem->Flush(myFile);
 	}
 }
 
@@ -219,16 +216,16 @@ void GhostingRecord::GameFrame( bool simulating )
 				if ( info != NULL ) {	
 					if (shouldRecord) {
 						if( firstTime) {
-							myFile << "GHOSTING " << map << " " << info->GetName() << " -1 0 0 0" << std::endl;
+							filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", map, info->GetName(), -1, 0, 0, 0);
+							filesystem->Flush(myFile);
 							firstTime = false;
 						}
 						if ( time >= nextTime ) {//see if we should update again
-								Vector loc = info->GetAbsOrigin();
-								//TODO change V this to be a unique "header" for the file,
-								//filename for local, or race hash for online.
-								myFile << "GHOSTING " << map << " " << info->GetName() << " " << 
-									time << " " << loc.x << " " << loc.y << " " << loc.z << std::endl;
-								nextTime = time + 0.04f;//20 times a second
+							Vector loc = info->GetAbsOrigin();
+							filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", map, info->GetName(),
+								time, loc.x, loc.y, loc.z);
+							filesystem->Flush(myFile);
+							nextTime = time + 0.04f;//20 times a second
 						}
 					}
 				}
@@ -251,24 +248,19 @@ void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple t
 //---------------------------------------------------------------------------------
 // Purpose: called when a client spawns into a server (i.e as they begin to play)
 //---------------------------------------------------------------------------------
-void GhostingRecord::ClientActive( edict_t *pEntity )
-{
-	isSpawned = true;
-	currPlayer = pEntity;
-}
+void GhostingRecord::ClientActive( edict_t *pEntity ){isSpawned = true;}
 
 //---------------------------------------------------------------------------------
 // Purpose: called when a client leaves a server (or is timed out)
 //---------------------------------------------------------------------------------
-void GhostingRecord::ClientDisconnect( edict_t *pEntity )
-{
-	isSpawned = false;
-}
+void GhostingRecord::ClientDisconnect( edict_t *pEntity ){isSpawned = false;}
 
 //---------------------------------------------------------------------------------
 // Purpose: called on 
 //---------------------------------------------------------------------------------
-void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){}
+void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){
+	if (playername) currPlayer = pEntity;
+}
 
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
@@ -279,12 +271,7 @@ void GhostingRecord::SetCommandClient( int index )
 }
 
 void ClientPrint( edict_t *pEdict, char *format, ... ){}
-//---------------------------------------------------------------------------------
-// Purpose: called on level start
-//---------------------------------------------------------------------------------
-void GhostingRecord::ClientSettingsChanged( edict_t *pEdict )
-{
-}
+void GhostingRecord::ClientSettingsChanged( edict_t *pEdict ){}
 
 //---------------------------------------------------------------------------------
 // Purpose: called when a client joins a server
@@ -300,27 +287,14 @@ PLUGIN_RESULT GhostingRecord::ClientConnect( bool *bAllowConnect, edict_t *pEnti
 //---------------------------------------------------------------------------------
 PLUGIN_RESULT GhostingRecord::ClientCommand( edict_t *pEntity, const CCommand &args )
 {
+	currPlayer = pEntity;
 	return PLUGIN_CONTINUE;
 }
 
-//---------------------------------------------------------------------------------
-// Purpose: called when a client is authenticated
-//---------------------------------------------------------------------------------
-PLUGIN_RESULT GhostingRecord::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID )
-{
-	return PLUGIN_CONTINUE;
-}
+PLUGIN_RESULT GhostingRecord::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID ){return PLUGIN_CONTINUE;}
 
-//---------------------------------------------------------------------------------
-// Purpose: called when a cvar value query is finished
-//---------------------------------------------------------------------------------
-void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue )
-{
-	Msg( "Cvar query (cookie: %d, status: %d) - name: %s, value: %s\n", iCookie, eStatus, pCvarName, pCvarValue );
-}
-void GhostingRecord::OnEdictAllocated( edict_t *edict )
-{
-}
+void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue ){}
+void GhostingRecord::OnEdictAllocated( edict_t *edict ){}
 void GhostingRecord::OnEdictFreed( const edict_t *edict  ){}
 
 //---------------------------------------------------------------------------------
@@ -329,42 +303,40 @@ void GhostingRecord::OnEdictFreed( const edict_t *edict  ){}
 void GhostingRecord::FireGameEvent( KeyValues * event )
 {
 	const char * name = event->GetName();
+	//TODO find event for player gaining control.
 	//Msg( "GhostingRecord::FireGameEvent: Got event \"%s\"\n", name );
-}
-
-//---------------------------------------------------------------------------------
-// Purpose: an example of how to implement a new command
-//---------------------------------------------------------------------------------
-CON_COMMAND( empty_version, "prints the version of the empty plugin" )
-{
-	Msg( "Version:2.0.0.0\n" );
 }
 
 CON_COMMAND ( gh_stop, "Stop recording.") {
 	Msg("Stopping recording\n");
 	shouldRecord = false;
-	myFile.close();
+	filesystem->Close(myFile);
 }
 
 void record(const CCommand &args) {
-	if ( args.ArgC() < 1 || args.Arg(1) == "" || shouldRecord) {
+	if ( args.ArgC() < 1 || args.Arg(1) == "" || shouldRecord || !currPlayer) {
 		return;
 	}
+	//TODO catch a space in their name and kill it with fire
+	//or just politely tell them to change their name, or deal with it somehow
 	fileName = args.Arg(1);
-	Msg("Recording to %s...\n", args.Arg(1));
-	myFile = std::ofstream(fileName);
-	shouldRecord = true;
-	startTime = Plat_FloatTime();
+	char fileName2[256];
+	strcpy(fileName2, fileName);
+	V_SetExtension(fileName2, ".run", sizeof(fileName2));
+	//Msg("Filename: %s\n", fileName);
+	//Msg("Filename2: %s\n", fileName2);
+	if (strchr(fileName, '.') == NULL) {
+		if (!filesystem->Open(fileName2, "r", "MOD")) {
+			Msg("Recording to %s...\n", fileName2);
+			myFile = filesystem->Open(fileName2, "w+", "MOD");
+			shouldRecord = true;
+			startTime = Plat_FloatTime();
+		} else {
+			Msg("File aready exists!\n");
+		}
+	} else {
+		Msg("Usage: gh_record runname  || DO NOT INCLUDE EXTENSION!\n");
+	}
 }
 
 ConCommand rec( "gh_record", record, "Records a run.", 0);
-
-CON_COMMAND( empty_log, "logs the version of the empty plugin" )
-{
-	engine->LogPrint( "Version:2.0.0.0\n" );
-}
-
-//---------------------------------------------------------------------------------
-// Purpose: an example cvar
-//---------------------------------------------------------------------------------
-static ConVar empty_cvar("plugin_empty", "0", 0, "Example plugin cvar");

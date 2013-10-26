@@ -26,6 +26,7 @@ public:
 	void transferGhostData();
 	bool isActive();
 	GhostRun* getRun(GhostEntity*);
+	void stopAllRuns();
 	
 private:
 	static GhostEngine* instance;
