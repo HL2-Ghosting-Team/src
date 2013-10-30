@@ -1046,11 +1046,10 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 			EndCheckChainedActivate( !( pClass->GetEFlags() & EFL_KILLME ) ); 
 		}
 	}
-
+	GhostEngine::getEngine().ResetGhosts();
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
 	CBaseEntity::SetAllowPrecache( false );
-	GhostEngine::getEngine().ResetGhosts();
 	// only display the think limit when the game is run with "developer" mode set
 	if ( !g_pDeveloper->GetInt() )
 	{
@@ -1251,6 +1250,7 @@ void CServerGameDLL::LevelShutdown( void )
 {
 	MDLCACHE_CRITICAL_SECTION();
 	GhostEngine::getEngine().transferGhostData();
+	
 	IGameSystem::LevelShutdownPreEntityAllSystems();
 	// YWB:
 	// This entity pointer is going away now and is corrupting memory on level transitions/restarts
@@ -2375,7 +2375,6 @@ void CServerGameClients::ClientActive( edict_t *pEdict, bool bLoadGame )
 void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 {
 	extern bool	g_fGameOver;
-
 	CBasePlayer *player = ( CBasePlayer * )CBaseEntity::Instance( pEdict );
 	if ( player )
 	{

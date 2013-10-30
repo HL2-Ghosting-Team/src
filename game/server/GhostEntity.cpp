@@ -68,6 +68,7 @@ void GhostEntity::CreateTrail(){
 }
 
 void GhostEntity::updateStep() {
+	if (inReset) return;
 	const size_t runsize = RunData.size();
 	if (step < 0 || step >= runsize) {
 		currentStep = nextStep = NULL;
@@ -101,14 +102,14 @@ void GhostEntity::Think( void )
 		updateStep();
 		HandleGhost();
 	} else {
-		EndRun();
+		EndRun(false);
 	}
 	SetNextThink( gpGlobals->curtime + 0.01f );
 }
 
 void GhostEntity::HandleGhost() {
-	if (currentStep == NULL) {
-		GhostEngine::getEngine().getRun(this)->EndRun();
+	if (currentStep == NULL) {		
+		if (!inReset) GhostEngine::getEngine().getRun(this)->EndRun();
 	} 
 	else {	
 		if (!isActive) {
@@ -128,8 +129,8 @@ void GhostEntity::HandleGhost() {
 					float x = currentStep->x;
 					float y = currentStep->y;
 					float z = currentStep->z;
-					if (strcmp(currentStep->name, "empty") == 0) return;
-					if (strcmp(nextStep->name, "empty") == 0) return;
+					if (Q_strcmp(currentStep->name, "empty") == 0) return;
+					if (Q_strcmp(nextStep->name, "empty") == 0) return;
 					if (x == 0) return;
 					float x2 = nextStep->x;
 					float y2 = nextStep->y;
@@ -142,7 +143,6 @@ void GhostEntity::HandleGhost() {
 					float zfinal = z + (scalar * (z2 - z));
 					SetAbsOrigin(Vector(xfinal, yfinal, (zfinal + 25.0f)));
 				} else {//set it to the last position before it updates to the next map
-					//Msg("On its last step before the next map!\n");
 					SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z + 30.0f)));
 				}
 			}
@@ -152,7 +152,7 @@ void GhostEntity::HandleGhost() {
 
 void GhostEntity::SetGhostName(const char * newname) {
 	if (newname) {
-		strcpy(m_gName, newname);
+		Q_strcpy(m_gName, newname);
 	}
 }
 
@@ -172,9 +172,14 @@ const char* GhostEntity::GetGhostModel() {
 	return m_gModel;
 }
 
-void GhostEntity::EndRun() {
+void GhostEntity::EndRun(bool reset) {
 	SetNextThink(0);
-	if (drawtrails.GetBool()) trail->Remove();
+	if (trail) trail->Remove();
+	inReset = reset;
+	if (reset) {
+		step = 0;
+		startTime = 0.0f;
+	}
 	Remove();
 	isActive = false;
 }
@@ -183,7 +188,7 @@ void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
 	RunData = toSet;
 }
 
-CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity in front of the player.")
+/*CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity in front of the player.")
 {
 	Vector vecForward;
 	GhostEntity *pEnt = (GhostEntity*) CreateEntityByName( "ghost_entity" );
@@ -202,4 +207,4 @@ CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity 
 			DispatchSpawn(pEnt);
 		}
 	}
-}
+}*/

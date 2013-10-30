@@ -12,14 +12,9 @@
 #include "utlbuffer.h"
 
 
-GhostRun::GhostRun()
-{
-}
+GhostRun::GhostRun(){ent = NULL;}
 
-
-GhostRun::~GhostRun(void)
-{
-}
+GhostRun::~GhostRun(void){}
 
 RunLine GhostRun::readLine(std::string line) {
 	struct RunLine l;
@@ -30,8 +25,11 @@ RunLine GhostRun::readLine(std::string line) {
 bool GhostRun::openRun(const char* fileName) {
 	if (!fileName) return false;//this is just incase
 	char dir[MAX_PATH];
+	char file[256];
+	Q_strcpy(file, fileName);
 	engine->GetGameDir(dir, MAX_PATH);
 	V_AppendSlash(dir, MAX_PATH);
+	V_SetExtension(file, ".run", sizeof(file));
 	strcat(dir, fileName);
 	V_FixupPathName(dir, 0, dir);
 	std::ifstream myFile = std::ifstream(dir);
@@ -42,45 +40,17 @@ bool GhostRun::openRun(const char* fileName) {
 		std::getline(myFile, temp);
 		RunLine result = readLine(temp);
 		if (i == 0) {
-			strcpy(ghostName, result.name);
+			Q_strcpy(ghostName, result.name);
 			continue;
 		}
 		RunData.push_back(result);
 	}
 	myFile.close();
 	return true;
-
-
-	/*FileHandle_t fh = filesystem->Open(fileName, "r", "MOD");
-	if (fh) {
-
-
-	}
-
-
-	if (filesystem->ReadFile(fileName, "MOD", buf)) {
-	bool first = true;
-	while () {
-	char tempchar[256];
-	buf.GetLine(tempchar);
-
-	std::string temp = std::string(tempchar);
-	RunLine result = readLine(temp);
-	if (first) {
-	strcpy(ghostName, result.name);
-	first = false;
-	continue;
-	}
-	RunData.push_back(result);
-	}
-	buf.Clear();
-	return true;
-	}*/
-	return false;
-
 }
 
 void GhostRun::ResetGhost() {
+	if (inReset) return;//if we've been reset by the user, ignore us
 	GhostEntity* tempGhost = dynamic_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
 	if(DispatchSpawn(tempGhost) == 0) {
 		tempGhost->SetRunData(RunData);
@@ -92,16 +62,6 @@ void GhostRun::ResetGhost() {
 	}
 }
 
-
-//compare (for online runlines, ignore for now)
-/*void GhostRun::addRunData(RunLine line) {
-if (strcmp(line.map, gpGlobals->mapname.ToCStr()) == 0) {
-if (strcmp(ghostName.c_str(), line.name) == 0) {
-RunData.push_back(line);
-}
-}
-}*/
-
 void GhostRun::StartRun() {
 	GhostEntity * entity = (GhostEntity*) CreateEntityByName( "ghost_entity" );
 	if (entity) {
@@ -110,6 +70,7 @@ void GhostRun::StartRun() {
 		entity->SetAbsOrigin(Vector(RunData[1].x, RunData[1].y, RunData[1].z));
 		if (DispatchSpawn(entity) == 0) {
 			entity->startTime = (float) Plat_FloatTime();
+			entity->step = 0;
 			entity->StartRun();
 			ent = entity;
 		}
@@ -118,9 +79,13 @@ void GhostRun::StartRun() {
 
 //Ends the run and clears data.
 //>>CALLS THE ENT's ENDRUN()!<<
+//This should only be called when gh_stop_all_ghosts is called
+//OR if the run actually finished.
 void GhostRun::EndRun() {
-	ent->RunData.clear();
-	ent->EndRun();
+	if (ent) {
+		ent->RunData.clear();
+		ent->EndRun(false);
+	}
 	RunData.clear();
 	GhostEngine::getEngine().EndRun(this);
 }

@@ -75,7 +75,7 @@ BEGIN_DATADESC( CFuncTank )
 	DEFINE_KEYFIELD( m_iBulletDamageVsPlayer, FIELD_INTEGER, "bullet_damage_vs_player" ),
 	DEFINE_KEYFIELD( m_iszMaster, FIELD_STRING, "master" ),
 	
-#ifdef HL2_EPISODIC	
+#ifndef HL2_EPISODIC	
 	DEFINE_KEYFIELD( m_iszAmmoType, FIELD_STRING, "ammotype" ),
 	DEFINE_FIELD( m_iAmmoType, FIELD_INTEGER ),
 #else
@@ -733,7 +733,7 @@ void CFuncTank::Spawn( void )
 {
 	Precache();
 
-#ifdef HL2_EPISODIC
+#ifndef HL2_EPISODIC
 	m_iAmmoType = GetAmmoDef()->Index( STRING( m_iszAmmoType ) );
 #else
 	m_iSmallAmmoType	= GetAmmoDef()->Index("Pistol");
@@ -2449,7 +2449,7 @@ void CFuncTankGun::Fire( int bulletCount, const Vector &barrelEnd, const Vector 
 	info.m_pAttacker = pAttacker;
 	info.m_pAdditionalIgnoreEnt = GetParent();
 
-#ifdef HL2_EPISODIC
+#ifndef HL2_EPISODIC
 	if ( m_iAmmoType != -1 )
 	{
 		for ( i = 0; i < bulletCount; i++ )

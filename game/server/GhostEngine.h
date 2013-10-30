@@ -21,8 +21,10 @@ public:
 	//main loop of the engine
 	bool readFileCompletely(std::string fileName, std::vector<RunLine> &vec);
 	void EndRun(GhostRun*);
-	void StartRun(const char*);
+	void StartRun(const char*, bool);
 	void ResetGhosts();
+	void restartAllGhosts();
+	void playAllGhosts();
 	void transferGhostData();
 	bool isActive();
 	GhostRun* getRun(GhostEntity*);

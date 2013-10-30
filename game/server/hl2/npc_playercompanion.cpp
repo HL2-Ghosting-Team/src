@@ -3070,12 +3070,17 @@ bool CNPC_PlayerCompanion::ShouldAlwaysTransition( void )
 		return true;
 
 	// Squadmates always come with
-	if ( IsInPlayerSquad() )
-		return true;
+	if ( IsInPlayerSquad() ) return true;
+
+	//Barney
+	if (Classify() == CLASS_PLAYER_ALLY_VITAL) {
+		return (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_10a") == 0) || (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_09") == 0);
+	}
 
 	// If we're following the player, then come along
-	if ( GetFollowBehavior().GetFollowTarget() && GetFollowBehavior().GetFollowTarget()->IsPlayer() )
-		return true;
+	if ( GetFollowBehavior().GetFollowTarget() && GetFollowBehavior().GetFollowTarget()->IsPlayer() ) return true;
+
+	
 
 	return false;
 }
@@ -3086,18 +3091,16 @@ void CNPC_PlayerCompanion::InputOutsideTransition( inputdata_t &inputdata )
 {
 	if ( !AI_IsSinglePlayer() )
 		return;
-
 	// Must want to do this
-	if ( ShouldAlwaysTransition() == false )
+	if ( ShouldAlwaysTransition() == false ) {
 		return;
+	}
 
 	// If we're in a vehicle, that vehicle will transition with us still inside (which is preferable)
 	if ( IsInAVehicle() )
 		return;
-
 	CBaseEntity *pPlayer = UTIL_GetLocalPlayer();
 	const Vector &playerPos = pPlayer->GetAbsOrigin();
-
 	// Mark us as already having succeeded if we're vital or always meant to come with the player
 	bool bAlwaysTransition = ( ( Classify() == CLASS_PLAYER_ALLY_VITAL ) || m_bAlwaysTransition );
 	bool bPathToPlayer = bAlwaysTransition;

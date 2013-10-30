@@ -237,7 +237,7 @@ protected:
 	int						m_iBulletDamage; // 0 means use Bullet type's default damage
 	int						m_iBulletDamageVsPlayer; // Damage vs player. 0 means use m_iBulletDamage
 
-#ifdef HL2_EPISODIC
+#ifndef HL2_EPISODIC
 	string_t				m_iszAmmoType;		// The name of the ammodef that we use when we fire. Bullet damage still comes from keyvalues.
 	int						m_iAmmoType;		// The cached index of the ammodef that we use when we fire.
 #else

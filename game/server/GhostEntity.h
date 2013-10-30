@@ -19,16 +19,15 @@ public:
 	void updateStep();
 	//returns current step
 	int GetCurrentStep();
-	void EndRun();
+	void EndRun(bool);
 	void CreateTrail();
 	void StartRun();
 	void HandleGhost();
-	void SetShouldUpdate(bool);
 	float startTime;
 	std::vector<RunLine> RunData;
 	unsigned int step;
 	bool isActive;
-	bool isReal;
+	bool inReset;
 
 protected:
 	void Think( void );

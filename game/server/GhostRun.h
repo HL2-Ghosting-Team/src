@@ -36,7 +36,9 @@ public:
 	std::vector<RunLine> RunData;
 	unsigned int step;
 	char ghostName[32];
+	bool inReset;
 
 private:
+	
 	
 };
