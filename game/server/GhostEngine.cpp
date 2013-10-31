@@ -31,6 +31,7 @@ void GhostEngine::transferGhostData() {
 			continue;
 		}
 		it->inReset = it->ent->inReset;
+		//Msg("In reset? %s\n", (it->inReset ? "yes" : "no"));
 		if (it->inReset) continue;
 		it->step = it->ent->step;
 		it->startTime = it->ent->startTime;
@@ -126,6 +127,7 @@ char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
 	char fileDir[MAX_PATH];
 	int toReturn = 0;
+	
 	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 		FileFindHandle_t findHandle; // note: FileFINDHandle
 		const char *pFilename = filesystem->FindFirstEx( "*.run", "MOD", &findHandle );

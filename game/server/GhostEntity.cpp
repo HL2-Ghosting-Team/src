@@ -173,7 +173,7 @@ const char* GhostEntity::GetGhostModel() {
 }
 
 void GhostEntity::EndRun(bool reset) {
-	SetNextThink(0);
+	SetNextThink(0.0f);
 	if (trail) trail->Remove();
 	inReset = reset;
 	if (reset) {
@@ -187,24 +187,3 @@ void GhostEntity::EndRun(bool reset) {
 void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
 	RunData = toSet;
 }
-
-/*CON_COMMAND(gh_create_blank_ghost, "Creates an instance of the sdk model entity in front of the player.")
-{
-	Vector vecForward;
-	GhostEntity *pEnt = (GhostEntity*) CreateEntityByName( "ghost_entity" );
-	CBasePlayer * pPlayer = UTIL_GetLocalPlayer();
-	if ( pEnt )
-	{
-		Vector vecOrigin;
-		QAngle vecAngles;
-		if (pPlayer) { // if the player exists, it can spawn it on his location and orientation
-			AngleVectors( pPlayer->EyeAngles(), &vecForward );
-			vecOrigin = pPlayer->GetAbsOrigin() + vecForward * 256 + Vector(0,0,64);
-			vecAngles = QAngle(0, pPlayer->GetAbsAngles().y - 90, 0);
-			pEnt->SetAbsOrigin(vecOrigin);
-			pEnt->SetAbsAngles(vecAngles);
-			pEnt->EntityText(0, "Example Ghost", 9999);
-			DispatchSpawn(pEnt);
-		}
-	}
-}*/

@@ -25,8 +25,6 @@
 #include "tier2/tier2.h"
 #include "game/server/iplayerinfo.h"
 
-// Uncomment this to compile the sample TF2 plugin code, note: most of this is duplicated in serverplugin_tony, but kept here for reference!
-//#define SAMPLE_TF2_PLUGIN
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -43,13 +41,15 @@ edict_t *currPlayer = NULL;
 IPlayerInfo* playerInfo = NULL;
 IServerGameEnts * serverGameEnts = NULL;
 
+static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_DEMO, "Sets the name of your ghost.\nThis can also be used as the base name of your files!");
+
 float nextTime = 0.00;
 float startTime = 0.00;
 bool isSpawned = false;
 const char* fileName;
+const char* playerName = NULL;
 bool shouldRecord = false;
 bool firstTime = true;
-//std::ofstream myFile;
 FileHandle_t myFile;
 
 //---------------------------------------------------------------------------------
@@ -159,20 +159,6 @@ void GhostingRecord::Unload( void )
 }
 
 //---------------------------------------------------------------------------------
-// Purpose: called when the plugin is paused (i.e should stop running but isn't unloaded)
-//---------------------------------------------------------------------------------
-void GhostingRecord::Pause( void )
-{
-}
-
-//---------------------------------------------------------------------------------
-// Purpose: called when the plugin is unpaused (i.e should start executing again)
-//---------------------------------------------------------------------------------
-void GhostingRecord::UnPause( void )
-{
-}
-
-//---------------------------------------------------------------------------------
 // Purpose: the name of this plugin, returned in "plugin_print" command
 //---------------------------------------------------------------------------------
 const char *GhostingRecord::GetPluginDescription( void )
@@ -194,12 +180,6 @@ void GhostingRecord::LevelInit( char const *pMapName )
 }
 
 //---------------------------------------------------------------------------------
-// Purpose: called on level start, when the server is ready to accept client connections
-//		edictCount is the number of entities in the level, clientMax is the max client count
-//---------------------------------------------------------------------------------
-void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax ){}
-
-//---------------------------------------------------------------------------------
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
 //---------------------------------------------------------------------------------
 void GhostingRecord::GameFrame( bool simulating )
@@ -217,59 +197,25 @@ void GhostingRecord::GameFrame( bool simulating )
 			}
 		}
 		if (currPlayer != NULL && playerInfo != NULL) {
-			//CBaseEntity *playerEntity;
-			//playerEntity = serverGameEnts->EdictToBaseEntity(currPlayer);toCome with EyePos
+			//CBaseEntity *playerEntity; FIND EYEPOS
+			//playerEntity = serverGameEnts->EdictToBaseEntity(currPlayer); FIND EYEPOS
 			float time = (((float)Plat_FloatTime()) - startTime);
-			//V_SplitString(playerInfo->GetName()); for now just make sure the name has no spaces
 			//TODO: Find eye pos
 			Vector loc = playerInfo->GetAbsOrigin();
 
 			if( firstTime) {
-				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, playerInfo->GetName(), -1.0f, 0.0f, 0.0f, 0.0f);
+				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, ghName.GetString(), -1.0f, 0.0f, 0.0f, 0.0f);
 				filesystem->Flush(myFile);
 				firstTime = false;
 			}
 			if ( time >= nextTime ) {//see if we should update again
-				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, playerInfo->GetName(),
+				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, ghName.GetString(),
 					time, loc.x, loc.y, loc.z);
 				filesystem->Flush(myFile);
 				nextTime = time + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 			}
 		}
-
 	}
-
-
-	/*if (isSpawned == true) { old way of recording
-		if ( currPlayer != NULL && playerinfomanager ) 
-		{
-			const char *map = STRING ( gpGlobals->mapname );
-			const char *point = strstr(map, "background");
-			
-			if( point == NULL)//not in the menu silly
-			{
-				IPlayerInfo *info = playerinfomanager->GetPlayerInfo( currPlayer );
-				if ( info != NULL ) {	
-					if (shouldRecord) {
-						if( firstTime) {
-							filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", map, info->GetName(), -1, 0, 0, 0);
-							filesystem->Flush(myFile);
-							firstTime = false;
-						}
-						if ( time >= nextTime ) {//see if we should update again
-							Vector loc = info->GetAbsOrigin();
-							filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", map, info->GetName(),
-								time, loc.x, loc.y, loc.z);
-							filesystem->Flush(myFile);
-							nextTime = time + 0.04f;//20 times a second
-						}
-					}
-				}
-			}
-		} else {
-			//NO PLAYER!?
-		}
-	}*/
 }
 
 //---------------------------------------------------------------------------------
@@ -277,7 +223,6 @@ void GhostingRecord::GameFrame( bool simulating )
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple times per map change
 {
-	isSpawned = false;
 	playerInfo = NULL;
 	gameeventmanager->RemoveListener( this );
 }
@@ -285,64 +230,6 @@ void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple t
 //---------------------------------------------------------------------------------
 // Purpose: called when a client spawns into a server (i.e as they begin to play)
 //---------------------------------------------------------------------------------
-void GhostingRecord::ClientActive( edict_t *pEntity ){isSpawned = true;}
-
-//---------------------------------------------------------------------------------
-// Purpose: called when a client leaves a server (or is timed out)
-//---------------------------------------------------------------------------------
-void GhostingRecord::ClientDisconnect( edict_t *pEntity ){isSpawned = false;}
-
-//---------------------------------------------------------------------------------
-// Purpose: called on 
-//---------------------------------------------------------------------------------
-void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){
-	if (playername) currPlayer = pEntity;
-}
-
-//---------------------------------------------------------------------------------
-// Purpose: called on level start
-//---------------------------------------------------------------------------------
-void GhostingRecord::SetCommandClient( int index )
-{
-	m_iClientCommandIndex = index;
-}
-
-void ClientPrint( edict_t *pEdict, char *format, ... ){}
-void GhostingRecord::ClientSettingsChanged( edict_t *pEdict ){}
-
-//---------------------------------------------------------------------------------
-// Purpose: called when a client joins a server
-//---------------------------------------------------------------------------------
-PLUGIN_RESULT GhostingRecord::ClientConnect( bool *bAllowConnect, edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen )
-{
-	currPlayer = pEntity;
-	return PLUGIN_CONTINUE;
-}
-
-//---------------------------------------------------------------------------------
-// Purpose: called when a client types in a command (only a subset of commands however, not CON_COMMAND's)
-//---------------------------------------------------------------------------------
-PLUGIN_RESULT GhostingRecord::ClientCommand( edict_t *pEntity, const CCommand &args )
-{
-	currPlayer = pEntity;
-	return PLUGIN_CONTINUE;
-}
-
-PLUGIN_RESULT GhostingRecord::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID ){return PLUGIN_CONTINUE;}
-
-void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue ){}
-void GhostingRecord::OnEdictAllocated( edict_t *edict ){}
-void GhostingRecord::OnEdictFreed( const edict_t *edict  ){}
-
-//---------------------------------------------------------------------------------
-// Purpose: called when an event is fired
-//---------------------------------------------------------------------------------
-void GhostingRecord::FireGameEvent( KeyValues * event )
-{
-	const char * name = event->GetName();
-	//TODO find event for player gaining control.
-	//Msg( "GhostingRecord::FireGameEvent: Got event \"%s\"\n", name );
-}
 
 CON_COMMAND ( gh_stop, "Stop recording.") {
 	Msg("Stopping recording\n");
@@ -350,31 +237,74 @@ CON_COMMAND ( gh_stop, "Stop recording.") {
 	filesystem->Close(myFile);
 }
 
+int GetFileCount(const char *searchkey)
+{
+	std::stringstream sstr;
+	sstr << searchkey << "_*.run";
+	int toReturn = 0;
+	FileFindHandle_t findHandle; // note: FileFINDHandle
+	const char *pFilename = filesystem->FindFirstEx(sstr.str().c_str(), "MOD", &findHandle );
+	for(int i = 0; pFilename; i++) {
+		pFilename = filesystem->FindNext(findHandle);
+		toReturn = i + 1;
+	}
+	return (toReturn); // number of entries
+}
+
 void record(const CCommand &args) {
-	if ( args.ArgC() < 1 || args.Arg(1) == "" || shouldRecord || !currPlayer) {
+	if (shouldRecord) {
+		Msg("Already recording!\n");
 		return;
 	}
-	//TODO catch a space in their name and kill it with fire
-	//or just politely tell them to change their name, or deal with it somehow
-	
-	fileName = args.Arg(1);
+	std::string test = std::string(ghName.GetString());
+	while (test.find(' ') != std::string::npos) {
+		playerName = test.replace(test.find(' '), 1, "").c_str();
+		ghName.SetValue(playerName);
+	}
+	playerName = ghName.GetString();
+	if (args.ArgC() > 1 && args.Arg(1) != "") {
+		fileName = args.Arg(1);//specified name
+	} else {
+		std::stringstream sstr;
+		int count = GetFileCount(playerName);
+		char fileish[MAX_PATH];
+		std::sprintf(fileish, "%03d", (count + 1));
+		sstr << playerName << "_" << fileish;
+		fileName = sstr.str().c_str();
+	}
 	char fileName2[256];
 	Q_strcpy(fileName2, fileName);
 	V_SetExtension(fileName2, ".run", sizeof(fileName2));
-	if (strchr(fileName, '.') == NULL) {
-		if (!filesystem->Open(fileName2, "r", "MOD")) {
-			Msg("Recording to %s...\n", fileName2);
-			myFile = filesystem->Open(fileName2, "w+", "MOD");
-			shouldRecord = true;
-			firstTime = true;
-			startTime = (float) Plat_FloatTime();
-			nextTime = 0.0f;
-		} else {
-			Msg("File aready exists!\n");
-		}
+	if (!(filesystem->FileExists(fileName2, "MOD"))) {
+		Msg("Recording to %s...\n", fileName2);
+		myFile = filesystem->Open(fileName2, "w+", "MOD");
+		shouldRecord = true;
+		firstTime = true;
+		startTime = (float) Plat_FloatTime();
+		nextTime = 0.0f;
 	} else {
-		Msg("Usage: gh_record runname\n");
+		Msg("File aready exists!\n");
 	}
 }
 
 ConCommand rec( "gh_record", record, "Records a run.", 0);
+
+
+
+//Unused
+void GhostingRecord::ClientActive( edict_t *pEntity ){isSpawned = true;}
+void GhostingRecord::ClientDisconnect( edict_t *pEntity ){isSpawned = false;}
+void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){}
+void GhostingRecord::SetCommandClient( int index ){m_iClientCommandIndex = index;}
+void ClientPrint( edict_t *pEdict, char *format, ... ){}
+void GhostingRecord::ClientSettingsChanged( edict_t *pEdict ){}
+PLUGIN_RESULT GhostingRecord::ClientConnect( bool *bAllowConnect, edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen ){return PLUGIN_CONTINUE;}
+PLUGIN_RESULT GhostingRecord::ClientCommand( edict_t *pEntity, const CCommand &args ){return PLUGIN_CONTINUE;}
+PLUGIN_RESULT GhostingRecord::NetworkIDValidated( const char *pszUserName, const char *pszNetworkID ){return PLUGIN_CONTINUE;}
+void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue ){}
+void GhostingRecord::OnEdictAllocated(edict_t *edict ){}
+void GhostingRecord::OnEdictFreed(const edict_t *edict){}
+void GhostingRecord::FireGameEvent(KeyValues* event){}
+void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax ){}
+void GhostingRecord::Pause( void ){}
+void GhostingRecord::UnPause( void ){}
