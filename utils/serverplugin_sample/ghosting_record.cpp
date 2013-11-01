@@ -1,6 +1,6 @@
 //===== Copyright © 1996-2008, Valve Corporation, All rights reserved. ======//
 //
-// Purpose: 
+// Purpose: Records your positions into a .run file
 //
 // $NoKeywords: $
 //
@@ -45,7 +45,6 @@ static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVA
 
 float nextTime = 0.00;
 float startTime = 0.00;
-bool isSpawned = false;
 const char* fileName;
 const char* playerName = NULL;
 bool shouldRecord = false;
@@ -106,14 +105,9 @@ EXPOSE_SINGLE_INTERFACE_GLOBALVAR(GhostingRecord, IServerPluginCallbacks, INTERF
 //---------------------------------------------------------------------------------
 // Purpose: constructor/destructor
 //---------------------------------------------------------------------------------
-GhostingRecord::GhostingRecord()
-{
-	m_iClientCommandIndex = 0;
-}
+GhostingRecord::GhostingRecord(){m_iClientCommandIndex = 0;}
 
-GhostingRecord::~GhostingRecord()
-{
-}
+GhostingRecord::~GhostingRecord(){}
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is loaded, load the interface we need from the engine
 //---------------------------------------------------------------------------------
@@ -159,14 +153,6 @@ void GhostingRecord::Unload( void )
 }
 
 //---------------------------------------------------------------------------------
-// Purpose: the name of this plugin, returned in "plugin_print" command
-//---------------------------------------------------------------------------------
-const char *GhostingRecord::GetPluginDescription( void )
-{
-	return "Ghosting Plugin, Gocnak";
-}
-
-//---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelInit( char const *pMapName )
@@ -182,8 +168,7 @@ void GhostingRecord::LevelInit( char const *pMapName )
 //---------------------------------------------------------------------------------
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
 //---------------------------------------------------------------------------------
-void GhostingRecord::GameFrame( bool simulating )
-{
+void GhostingRecord::GameFrame( bool simulating ) {
 	if (shouldRecord) {
 		if (playerInfo == NULL) {
 			//Msg("Player info null! Getting player info...\n");
@@ -202,7 +187,6 @@ void GhostingRecord::GameFrame( bool simulating )
 			float time = (((float)Plat_FloatTime()) - startTime);
 			//TODO: Find eye pos
 			Vector loc = playerInfo->GetAbsOrigin();
-
 			if( firstTime) {
 				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, ghName.GetString(), -1.0f, 0.0f, 0.0f, 0.0f);
 				filesystem->Flush(myFile);
@@ -232,9 +216,12 @@ void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple t
 //---------------------------------------------------------------------------------
 
 CON_COMMAND ( gh_stop, "Stop recording.") {
-	Msg("Stopping recording\n");
 	shouldRecord = false;
-	filesystem->Close(myFile);
+	if (myFile) {
+		Msg("Stopping recording\n");
+		filesystem->Close(myFile);
+	}
+	myFile = NULL;
 }
 
 int GetFileCount(const char *searchkey)
@@ -290,10 +277,13 @@ void record(const CCommand &args) {
 ConCommand rec( "gh_record", record, "Records a run.", 0);
 
 
-
+//---------------------------------------------------------------------------------
+// Purpose: the name of this plugin, returned in "plugin_print" command
+//---------------------------------------------------------------------------------
+const char *GhostingRecord::GetPluginDescription( void ){return "Ghosting Plugin by Gocnak";}
 //Unused
-void GhostingRecord::ClientActive( edict_t *pEntity ){isSpawned = true;}
-void GhostingRecord::ClientDisconnect( edict_t *pEntity ){isSpawned = false;}
+void GhostingRecord::ClientActive( edict_t *pEntity ){}
+void GhostingRecord::ClientDisconnect( edict_t *pEntity ){}
 void GhostingRecord::ClientPutInServer( edict_t *pEntity, char const *playername ){}
 void GhostingRecord::SetCommandClient( int index ){m_iClientCommandIndex = index;}
 void ClientPrint( edict_t *pEdict, char *format, ... ){}
