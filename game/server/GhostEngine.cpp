@@ -100,18 +100,26 @@ char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
 	char fileDir[MAX_PATH];
 	int toReturn = 0;
+	char part[MAX_PATH];
+	char* toSearch[2] = {0};
+	strcpy(part, partial);
+	toSearch[0] = strtok(part, " ");
+	toSearch[1] = strtok(0, " ");
 	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 		FileFindHandle_t findHandle; // note: FileFINDHandle
-		const char *pFilename = filesystem->FindFirstEx( "*.run", "MOD", &findHandle );
+		std::stringstream ss1;
+		ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
+		const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
 		for(int i = 0; pFilename; i++) {
 			std::stringstream ss;
 			ss << "gh_play " << pFilename;
 			Q_strcpy(commands[i], ss.str().c_str());
 			pFilename = filesystem->FindNext(findHandle);
-			toReturn = i;
+			toReturn = i + 1;
 		}
+		filesystem->FindClose(findHandle);
 	}
-	return (toReturn + 1); // number of entries
+	return toReturn; // number of entries
 }
 
 ConCommand start("gh_play", startRun_f, "Loads a ghost and immediately starts playing it.", 0, FileAutoComplete);
@@ -127,19 +135,26 @@ char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
 	char fileDir[MAX_PATH];
 	int toReturn = 0;
-	
+	char part[MAX_PATH];
+	char* toSearch[2] = {0};
+	strcpy(part, partial);
+	toSearch[0] = strtok(part, " ");
+	toSearch[1] = strtok(0, " ");
 	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 		FileFindHandle_t findHandle; // note: FileFINDHandle
-		const char *pFilename = filesystem->FindFirstEx( "*.run", "MOD", &findHandle );
+		std::stringstream ss1;
+		ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
+		const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
 		for(int i = 0; pFilename; i++) {
 			std::stringstream ss;
 			ss << "gh_load " << pFilename;
 			Q_strcpy(commands[i], ss.str().c_str());
 			pFilename = filesystem->FindNext(findHandle);
-			toReturn = i;
+			toReturn = i + 1;
 		}
+		filesystem->FindClose(findHandle);
 	}
-	return (toReturn + 1); // number of entries
+	return toReturn; // number of entries
 }
 
 ConCommand load("gh_load", loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", 0, FileAutoCompleteLoad);
@@ -167,7 +182,7 @@ void GhostEngine::restartAllGhosts() {
 		if (it->ent && it->ent->isActive) {
 			Msg("Restarting ghost %s!\n",it->ghostName);
 			it->ent->EndRun(true);
-			it->ent->RunData.clear();
+			it->ent->clearRunData();
 		}
 	}
 	//now the ghostruns are primed with their ents removed.

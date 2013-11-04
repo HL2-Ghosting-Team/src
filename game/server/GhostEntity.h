@@ -17,14 +17,12 @@ public:
 	const char* GetGhostModel();
 	//Increments the steps intelligently.
 	void updateStep();
-	//returns current step
-	int GetCurrentStep();
 	void EndRun(bool);
 	void CreateTrail();
 	void StartRun();
 	void HandleGhost();
 	float startTime;
-	std::vector<RunLine> RunData;
+	void clearRunData();
 	unsigned int step;
 	bool isActive;
 	bool inReset;
@@ -35,10 +33,11 @@ protected:
 	void Precache( void );
 
 private:
-	const char*  m_gModel;
+	char  m_gModel[256];
 	char  m_gName[256];
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	CBaseEntity *trail;
+	std::vector<RunLine> RunData;
 	
 };

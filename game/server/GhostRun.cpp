@@ -1,51 +1,63 @@
 #include "cbase.h"
 #include "GhostRun.h"
-#include "filesystem.h"
 #include <string>
 #include <vector>
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include "stdio.h"
 #include <sstream>
 #include "GhostEngine.h"
+#include "filesystem.h"
 #include "tier0/memdbgon.h"
-#include "utlbuffer.h"
 
 
 GhostRun::GhostRun(){ent = NULL;}
 
 GhostRun::~GhostRun(void){}
 
-RunLine GhostRun::readLine(std::string line) {
-	struct RunLine l;
-	std::sscanf(line.c_str(), "%*s %31s %31s %f %f %f %f", &l.map, &l.name, &l.tim, &l.x, &l.y, &l.z);
-	return l;
-}
-
 bool GhostRun::openRun(const char* fileName) {
 	if (!fileName) return false;//this is just incase
-	char dir[MAX_PATH];
 	char file[256];
 	Q_strcpy(file, fileName);
-	engine->GetGameDir(dir, MAX_PATH);
-	V_AppendSlash(dir, MAX_PATH);
 	V_SetExtension(file, ".run", sizeof(file));
-	strcat(dir, fileName);
-	V_FixupPathName(dir, 0, dir);
-	std::ifstream myFile = std::ifstream(dir);
+	FileHandle_t myFile = filesystem->Open(file, "rb", "MOD");
 	RunData.clear();
-	for(int i = 0; myFile.good(); i++)
-	{
-		std::string temp;
-		std::getline(myFile, temp);
-		RunLine result = readLine(temp);
-		if (i == 0) {
-			Q_strcpy(ghostName, result.name);
-			continue;
-		}
-		RunData.push_back(result);
+	unsigned char firstByte;
+	if (myFile == NULL) {
+		Msg("File is null!\n");
+		return false;
 	}
-	myFile.close();
+	filesystem->Read(&firstByte, sizeof(firstByte), myFile);
+	if (firstByte == 0xAF) {
+		Msg("File is uncompressed!\n");
+	} //TODO add the compressed byte check
+	else {
+		Msg("File is malformed!\n");
+		return false;
+	}
+	while (!filesystem->EndOfFile(myFile)) {
+		struct RunLine l;
+		unsigned char mapNameLength;
+		filesystem->Read((void*)&mapNameLength, sizeof(mapNameLength), myFile);
+		char* mapName = new char[mapNameLength + 1];
+		filesystem->Read((void*)mapName, mapNameLength, myFile);
+		mapName[mapNameLength] = 0;
+		unsigned char nameLength;
+		filesystem->Read((void*)&nameLength, sizeof(nameLength), myFile);
+		char* playerName = new char[nameLength + 1];
+		filesystem->Read((void*)playerName, nameLength, myFile);
+		playerName[nameLength] = 0;
+		Q_strcpy(l.map, mapName);
+		Q_strcpy(l.name, playerName);
+		filesystem->Read(&l.tim, sizeof(l.tim), myFile);//time
+		filesystem->Read(&l.x, sizeof(l.x), myFile);//x
+		filesystem->Read(&l.y, sizeof(l.y), myFile);//y
+		filesystem->Read(&l.z, sizeof(l.z), myFile);//z
+		RunData.push_back(l);
+		delete[] mapName;
+		delete[] playerName;
+	}
+	Q_strcpy(ghostName, RunData[0].name);
+	filesystem->Close(myFile);
 	return true;
 }
 
@@ -65,8 +77,8 @@ void GhostRun::ResetGhost() {
 void GhostRun::StartRun() {
 	GhostEntity * entity = (GhostEntity*) CreateEntityByName( "ghost_entity" );
 	if (entity) {
-		entity->SetGhostName(RunData[0].name);
-		entity->RunData = RunData;
+		entity->SetGhostName(ghostName);
+		entity->SetRunData(RunData);
 		entity->SetAbsOrigin(Vector(RunData[1].x, RunData[1].y, RunData[1].z));
 		if (DispatchSpawn(entity) == 0) {
 			entity->startTime = (float) Plat_FloatTime();
@@ -83,7 +95,7 @@ void GhostRun::StartRun() {
 //OR if the run actually finished.
 void GhostRun::EndRun() {
 	if (ent) {
-		ent->RunData.clear();
+		ent->clearRunData();
 		ent->EndRun(false);
 	}
 	RunData.clear();

@@ -1008,6 +1008,10 @@ bool CBasePlayer::ShouldTakeDamageInCommentaryMode( const CTakeDamageInfo &input
 
 	return true;
 }
+static ConVar bla_punchangle("bla_punchangle", "1",
+                FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
+                "Apply punch effect to view angle when player "
+                "takes damage.\n0 = off, 1 = on");
 
 int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 {
@@ -1304,7 +1308,8 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 			flPunch = RandomFloat( -5, -7 );
 	}
 
-	m_Local.m_vecPunchAngle.SetX( flPunch );
+	if (bla_punchangle.GetBool())
+     m_Local.m_vecPunchAngle.SetX( flPunch );
 
 	if (fTookDamage && !ftrivial && fmajor && flHealthPrev >= 75) 
 	{
@@ -1359,12 +1364,21 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 #define MIN_SHOCK_AND_CONFUSION_DAMAGE	30.0f
 #define MIN_EAR_RINGING_DISTANCE		240.0f  // 20 feet
 
+
+static ConVar bla_damagefx("bla_damagefx", "1", 
+                FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE, 
+                "Add effects like ear ringing when the player "
+                "takes damage caused by an explosion.\n"
+				"0 = off (no ear ringing etc), 1 = on (default game)");
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 // Input  : &info - 
 //-----------------------------------------------------------------------------
 void CBasePlayer::OnDamagedByExplosion( const CTakeDamageInfo &info )
 {
+	if (!bla_damagefx.GetBool())
+      return;
 	float lastDamage = info.GetDamage();
 
 	float distanceFromPlayer = 9999.0f;

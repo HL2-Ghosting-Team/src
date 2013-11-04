@@ -25,11 +25,35 @@ BEGIN_DATADESC(GhostEntity)
 	//-----------------------------------------------------------------------------
 	void GhostEntity::Precache( void )
 {
-	PrecacheModel( MODEL );
 	BaseClass::Precache();
 }
 
-static ConVar drawtrails("gh_draw_trails", "1", 0, "Draws a trail on each ghost.");
+void splitSpaces(const char* toSplit, std::vector<char*> &toCopyInto) {
+	char toBeSplit[1000];
+	strcpy(toBeSplit, toSplit);
+	char* parts[100] = {0};
+	unsigned int index = 0;
+	parts[index] = strtok(toBeSplit, " ");
+	while(parts[index] != 0)
+	{
+		//Msg("Adding the value: %s\n", parts[index]);
+		toCopyInto.push_back(parts[index]);
+		++index;
+		parts[index] = strtok(0, " ");
+    }  
+}
+
+static ConVar drawtrails("gh_draw_trails", "1", 
+						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						 "Draws a trail on each ghost.");
+
+static ConVar ghostColor("gh_ghost_color", "237 133 60", 
+						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						 "The R G B (0 - 255) values for color for your ghost.");
+
+static ConVar ghostType("gh_ghost_type", "0", 
+						FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						"Sets the type of ghost model.\n0 = Solid-fill arrow | 1 = Translucent-style arrow");
 
 //-----------------------------------------------------------------------------
 // Purpose: Sets up the entity's initial state
@@ -41,9 +65,30 @@ void GhostEntity::Spawn( void )
 		CreateTrail();
 	}
 	RemoveEffects(EF_NODRAW);
-	m_gModel = MODEL;//TODO when online/custom models work, delete this line!
-	SetModel( MODEL );//and this one!
+	if (ghostType.GetBool()) {
+		//Msg("Setting the model to the translucent kind!\n");
+		SetModel("models/conet.mdl");
+	} else {
+		//Msg("Setting the model to the solid fill kind!\n");
+		SetModel("models/cone.mdl");
+	}//TODO look into a gh_set_ghost_model con command
 	SetSolid( SOLID_NONE );
+	std::vector<char*> vec;
+	splitSpaces(ghostColor.GetString(), vec);
+	if (vec.empty()) {
+		//Msg("VECTOR IS EMPTY!\n");
+	} else {
+		if (vec.size() == 3) {
+			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
+		} else {
+			//Msg("Vector not full: size is %i ... Resetting to default!\n", vec.size());
+			ghostColor.SetValue(ghostColor.GetDefault());
+			vec.clear();
+			splitSpaces(ghostColor.GetString(), vec);
+			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
+		}
+		SetRenderColor(atoi(vec[0]), atoi(vec[1]), atoi(vec[2]));
+	}
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -53,14 +98,17 @@ void GhostEntity::StartRun() {
 	SetNextThink(gpGlobals->curtime + 0.005f);
 }
 
+static ConVar spriteLength("gh_trail_length", "5", FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, "How long the trail of the ghost lasts in seconds.");
+static ConVar spriteColor("gh_trail_color", "237 133 60", FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, "The R G B values for the color of the ghost's trail.");
+
 void GhostEntity::CreateTrail(){
 	trail = CreateEntityByName("env_spritetrail");
 	trail->SetAbsOrigin(GetAbsOrigin());
 	trail->SetParent(this);
 	trail->KeyValue("rendermode", "5");
 	trail->KeyValue("spritename", "materials/sprites/laser.vmt");
-	trail->KeyValue("lifetime", "5.00");
-	trail->KeyValue("rendercolor", "237 133 60");
+	trail->KeyValue("lifetime", spriteLength.GetInt());
+	trail->KeyValue("rendercolor", spriteColor.GetString());
 	trail->KeyValue("renderamt", "255");
 	trail->KeyValue("startwidth", "11");
 	trail->KeyValue("endwidth", "1.05");
@@ -158,7 +206,7 @@ void GhostEntity::SetGhostName(const char * newname) {
 
 void GhostEntity::SetGhostModel(const char * newmodel) {
 	if (newmodel) {
-		m_gModel = newmodel;
+		Q_strcpy(m_gModel, newmodel);
 		PrecacheModel(m_gModel);
 		SetModel(m_gModel);
 	}
@@ -186,4 +234,7 @@ void GhostEntity::EndRun(bool reset) {
 
 void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
 	RunData = toSet;
+}
+void GhostEntity::clearRunData() {
+	RunData.clear();	
 }

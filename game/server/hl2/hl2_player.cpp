@@ -83,7 +83,7 @@ ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 //Credit CZF
 static ConVar bla_autowepswitch("bla_autowepswitch", "0",
                 FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
-                "Switch weapon on ammunition depletion.");
+                "Switch weapon on ammunition depletion.\n0 = switch to another weapon (default), 1 = do not switch to another weapon");
 //Credit CZF, default is off
 static ConVar bla_itemflying("bla_itemflying", "0",
                FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
@@ -91,7 +91,7 @@ static ConVar bla_itemflying("bla_itemflying", "0",
                "carrying. This allows to continuously jump on "
                "an object which causes the player to be boosted "
                "up on every jump, ultimately allowing him to "
-               "fly.");
+               "fly.\n0 = off (default), 1 = old-style itemflying");
 
 #ifdef HL2MP
 	#define	HL2_WALK_SPEED 150

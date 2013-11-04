@@ -238,7 +238,7 @@ void CNPC_PlayerCompanion::Spawn()
 	// We strip this flag because it's been made obsolete by the StartScripting behavior
 	if ( HasSpawnFlags( SF_NPC_ALTCOLLISION ) )
 	{
-		Warning( "NPC %s using alternate collision! -- DISABLED\n", STRING( GetEntityName() ) );
+		//Warning( "NPC %s using alternate collision! -- DISABLED\n", STRING( GetEntityName() ) );
 		RemoveSpawnFlags( SF_NPC_ALTCOLLISION );
 	}
 
@@ -264,7 +264,7 @@ int CNPC_PlayerCompanion::Restore( IRestore &restore )
 	// We strip this flag because it's been made obsolete by the StartScripting behavior
 	if ( HasSpawnFlags( SF_NPC_ALTCOLLISION ) )
 	{
-		Warning( "NPC %s using alternate collision! -- DISABLED\n", STRING( GetEntityName() ) );
+		//Warning( "NPC %s using alternate collision! -- DISABLED\n", STRING( GetEntityName() ) );
 		RemoveSpawnFlags( SF_NPC_ALTCOLLISION );
 	}
 #endif // HL2_EPISODIC

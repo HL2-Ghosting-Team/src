@@ -21,6 +21,11 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+//credit CZF
+static ConVar bla_hudhints("bla_hudhints", "1", 
+                           FCVAR_CLIENTDLL | FCVAR_ARCHIVE,
+                           "1 = Display HUD hints, 0 = do not display hudhints");
+
 //-----------------------------------------------------------------------------
 // Purpose: Displays hints across the center of the screen
 //-----------------------------------------------------------------------------
@@ -279,6 +284,9 @@ void CHudHintDisplay::FireGameEvent( IGameEvent * event)
 //-----------------------------------------------------------------------------
 void CHudHintDisplay::LocalizeAndDisplay( const char *pszHudTxtMsg, const char *szRawString )
 {
+	if (!bla_hudhints.GetBool())
+     return;
+
 	static wchar_t szBuf[128];
 	static wchar_t *pszBuf;
 
@@ -412,7 +420,8 @@ void CHudHintKeyDisplay::ApplySchemeSettings( vgui::IScheme *pScheme )
 //-----------------------------------------------------------------------------
 bool CHudHintKeyDisplay::ShouldDraw( void )
 {
-	return ( ( GetAlpha() > 0 ) && CHudElement::ShouldDraw() );
+	return (bla_hudhints.GetBool() && (GetAlpha() > 0) && 
+          CHudElement::ShouldDraw());
 }
 
 //-----------------------------------------------------------------------------

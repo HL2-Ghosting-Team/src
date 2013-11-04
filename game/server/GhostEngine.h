@@ -15,11 +15,7 @@ public:
 	};
 	//gets the singleton Engine instance
 	static GhostEngine& getEngine();
-	//gets a ghost by the name <name> (used for online maybe)
-	//GhostEntity* GetGhost(const char * name); 
 	std::vector<GhostRun*> ghosts;
-	//main loop of the engine
-	bool readFileCompletely(std::string fileName, std::vector<RunLine> &vec);
 	void EndRun(GhostRun*);
 	void StartRun(const char*, bool);
 	void ResetGhosts();

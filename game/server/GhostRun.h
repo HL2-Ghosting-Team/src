@@ -13,11 +13,7 @@
 
 
 
-class GhostRun
-{
-
-
-
+class GhostRun {
 public:
 	GhostRun(void);
 	~GhostRun(void);
@@ -26,7 +22,6 @@ public:
 	void StartRun();
 	//ends the run for good
 	void EndRun();
-	RunLine readLine(std::string);
 	void addRunData(RunLine);
 	bool openRun(const char*);
 	//bool SetUpGhost();
@@ -37,8 +32,4 @@ public:
 	unsigned int step;
 	char ghostName[32];
 	bool inReset;
-
-private:
-	
-	
 };

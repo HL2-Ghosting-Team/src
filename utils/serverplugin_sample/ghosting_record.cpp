@@ -7,12 +7,12 @@
 //===========================================================================//
 
 #include <stdio.h>
-#include <stdio.h>
 #include <iomanip>
 #include <sstream>
 #include "filesystem.h"
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "interface.h"
 #include "filesystem.h"
 #include "engine/iserverplugin.h"
@@ -49,7 +49,7 @@ const char* fileName;
 const char* playerName = NULL;
 bool shouldRecord = false;
 bool firstTime = true;
-FileHandle_t myFile;
+FileHandle_t myFile = NULL;
 
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
@@ -152,6 +152,22 @@ void GhostingRecord::Unload( void )
 	DisconnectTier1Libraries( );
 }
 
+void writeLine(const char* map, const char* name, float ti, float x, float y, float z) {
+	if (!myFile) return;
+	unsigned char mapLength = strlen(map);
+	//Msg("Map length: %i\n", mapLength);
+	unsigned char nameLength = strlen(name);
+	//Msg("Name length: %i\n", nameLength);
+	filesystem->Write((void*)&mapLength, sizeof(mapLength), myFile);
+	filesystem->Write((void*)map, mapLength, myFile);//map
+	filesystem->Write((void*)&nameLength, sizeof(nameLength), myFile);
+	filesystem->Write((void*)name, nameLength, myFile);
+	filesystem->Write(&ti, sizeof(ti), myFile);//time
+	filesystem->Write(&x, sizeof(x), myFile);//x
+	filesystem->Write(&y, sizeof(y), myFile);//y
+	filesystem->Write(&z, sizeof(z), myFile);//z
+}
+
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
@@ -160,8 +176,9 @@ void GhostingRecord::LevelInit( char const *pMapName )
 	gameeventmanager->AddListener( this, true );
 	if (shouldRecord) {
 		float time = ((float)Plat_FloatTime()) - startTime;
-		filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
-		filesystem->Flush(myFile);
+		writeLine(pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
+		//filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
+		//filesystem->Flush(myFile);
 	}
 }
 
@@ -169,6 +186,7 @@ void GhostingRecord::LevelInit( char const *pMapName )
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
 //---------------------------------------------------------------------------------
 void GhostingRecord::GameFrame( bool simulating ) {
+
 	if (shouldRecord) {
 		if (playerInfo == NULL) {
 			//Msg("Player info null! Getting player info...\n");
@@ -188,14 +206,13 @@ void GhostingRecord::GameFrame( bool simulating ) {
 			//TODO: Find eye pos
 			Vector loc = playerInfo->GetAbsOrigin();
 			if( firstTime) {
-				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, ghName.GetString(), -1.0f, 0.0f, 0.0f, 0.0f);
-				filesystem->Flush(myFile);
+				unsigned char first = 0xAF;
+				filesystem->Write(&first, sizeof(first), myFile); 
+				writeLine(STRING(gpGlobals->mapname), ghName.GetString(), -1.0f, 0.0f, 0.0f, 0.0f); 
 				firstTime = false;
 			}
 			if ( time >= nextTime ) {//see if we should update again
-				filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", gpGlobals->mapname, ghName.GetString(),
-					time, loc.x, loc.y, loc.z);
-				filesystem->Flush(myFile);
+				writeLine(STRING(gpGlobals->mapname), ghName.GetString(), time, loc.x, loc.y, loc.z); 
 				nextTime = time + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 			}
 		}
@@ -220,6 +237,7 @@ CON_COMMAND ( gh_stop, "Stop recording.") {
 	if (myFile) {
 		Msg("Stopping recording\n");
 		filesystem->Close(myFile);
+		//filesystem->Close(myFile);
 	}
 	myFile = NULL;
 }
@@ -235,7 +253,8 @@ int GetFileCount(const char *searchkey)
 		pFilename = filesystem->FindNext(findHandle);
 		toReturn = i + 1;
 	}
-	return (toReturn); // number of entries
+	filesystem->FindClose(findHandle);
+	return toReturn; // number of entries
 }
 
 void record(const CCommand &args) {
@@ -264,7 +283,7 @@ void record(const CCommand &args) {
 	V_SetExtension(fileName2, ".run", sizeof(fileName2));
 	if (!(filesystem->FileExists(fileName2, "MOD"))) {
 		Msg("Recording to %s...\n", fileName2);
-		myFile = filesystem->Open(fileName2, "w+", "MOD");
+		myFile = filesystem->Open(fileName2, "w+b", "MOD");
 		shouldRecord = true;
 		firstTime = true;
 		startTime = (float) Plat_FloatTime();
