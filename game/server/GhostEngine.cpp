@@ -6,21 +6,191 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <sstream>
 #include "tier0/memdbgon.h"
 #include "filesystem.h"
 #include "utlbuffer.h"
+
+
+void splitSpaces(const char* toSplit, std::vector<unsigned char> &toCopyInto) {
+	char toBeSplit[1000];
+	strcpy(toBeSplit, toSplit);
+	char* parts[100] = {0};
+	unsigned int index = 0;
+	parts[index] = strtok(toBeSplit, " ");
+	while(parts[index] != 0)
+	{
+		//Msg("Adding the value: %s\n", parts[index]);
+		toCopyInto.push_back(atoi(parts[index]));
+		++index;
+		parts[index] = strtok(0, " ");
+    }  
+}
+
+void fixInts(std::vector<unsigned char> &vec) {
+	if (vec.size() == 3) {
+		if (vec[0] > 255 || vec[0] < 0) {
+			vec[0] = 237;
+		}
+		if (vec[1] > 255 || vec[1] < 0) {
+			vec[1] = 133;
+		}
+		if (vec[2] > 255 || vec[2] < 0) {
+			vec[2] = 60;
+		}
+	} else {
+		vec.clear();
+		vec[0] = 237;
+		vec[1] = 133;
+		vec[2] = 60;
+	}
+}
+
+//Used to check the ghost and trail colors, and reset them back to default if not appropriate
+//and assigns the r, g, b values to the vector.
+void getColor(const char* word, std::vector<unsigned char> &vec) {
+	if (!word) {
+		vec[0] = 237;
+		vec[1] = 133;
+		vec[2] = 60;
+	}
+	splitSpaces(word, vec);
+	if (vec.empty()) {//default to orange
+		vec[0] = 237;
+		vec[1] = 133;
+		vec[2] = 60;
+	} else {
+		if (vec.size() == 3) {
+			fixInts(vec);
+			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
+		} else {
+			//Msg("Vector not full: size is %i ... Resetting to default!\n", vec.size());
+			vec.clear();
+			vec[0] = 237;
+			vec[1] = 133;
+			vec[2] = 60;
+			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
+		}
+	}
+}
+
+static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldValue) {
+	int toCheck = ((ConVar*)var)->GetInt();
+	Msg("Trail length change: new %i | old: %i\n", toCheck, (int)fOldValue);
+	if (toCheck == (int)fOldValue) return;
+	if (toCheck < 0) {
+		var->SetValue(((ConVar*)var)->GetDefault());
+	}
+	gpGlobals->ghostType = (unsigned char)((ConVar*)var)->GetInt();
+}
+static ConVar spriteLength("gh_trail_length", "5", 
+						   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						   "How long the trail of the ghost lasts in seconds.", 
+						   onTrailLengthChange);
+unsigned char GhostEngine::getTrailLength() {
+	return (unsigned char) spriteLength.GetInt();
+}
+
+
+static void onColorTChange(IConVar *var, const char* pOldValue, float fOldValue) {
+	if (!((ConVar*)var)->GetString()) return;
+	if (!pOldValue) return;
+	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
+		return;
+	}
+	std::vector<unsigned char> vec;
+	getColor(((ConVar*)var)->GetString(), vec);
+	if (vec[0] != 237) {
+		std::stringstream ss;
+		ss << (int)vec[0] << " " << (int)vec[1] << " " << (int)vec[2];
+		gpGlobals->trailRed = vec[0];
+		gpGlobals->trailGreen = vec[1];
+		gpGlobals->trailBlue = vec[2];
+		var->SetValue(ss.str().c_str());
+	} else {
+		((ConVar*)var)->Revert();
+	}
+}
+static ConVar spriteColor("gh_trail_color", "237 133 60", 
+						  FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						  "The R G B values for the color of the ghost's trail.", 
+						  onColorTChange);
+
+static void onColorGChange(IConVar *var, const char* pOldValue, float fOldValue) {
+	if (!((ConVar*)var)->GetString()) return;
+	if (!pOldValue) return;
+	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
+		return;
+	}
+	std::vector<unsigned char> vec;
+	getColor(((ConVar*)var)->GetString(), vec);
+	if (vec[0] != 237) {
+		std::stringstream ss;
+		ss << (int)vec[0] << " " << (int)vec[1] << " " << (int)vec[2];
+		gpGlobals->ghostRed = vec[0];
+		gpGlobals->ghostGreen = vec[1];
+		gpGlobals->ghostBlue = vec[2];
+		var->SetValue(ss.str().c_str());
+	} else {
+		((ConVar*)var)->Revert();
+	}
+}
+static ConVar ghostColor("gh_ghost_color", "237 133 60", 
+						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						 "The R G B (0 - 255) values for color for your ghost.", onColorGChange);
+
+
+
+static void onGTypeChange(IConVar *var, const char* pOldValue, float fOldValue) {
+	int toCheck = ((ConVar*)var)->GetInt();
+	if (toCheck != 0 && toCheck != 1) {
+		var->SetValue(((ConVar*)var)->GetDefault());
+	}
+	gpGlobals->ghostType = (unsigned char)((ConVar*)var)->GetInt();
+}
+static ConVar ghostType("gh_ghost_type", "0", 
+						FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						"Sets the type of ghost model.\n0 = Solid-fill arrow | 1 = Translucent-style arrow", onGTypeChange);
+unsigned char GhostEngine::getGhostType() {
+	return (unsigned char) ghostType.GetInt();
+}
+
+void initVars() {
+	std::vector<unsigned char> vec;
+	getColor(ghostColor.GetString(), vec);
+	gpGlobals->ghostRed = vec[0];
+	gpGlobals->ghostGreen = vec[1];
+	gpGlobals->ghostBlue = vec[2];
+	Msg("Setting ghost color: R: %i, G: %i, B: %i\n", gpGlobals->ghostRed, gpGlobals->ghostGreen, gpGlobals->ghostBlue);
+	vec.clear();
+	getColor(spriteColor.GetString(), vec);
+	gpGlobals->trailRed = vec[0];
+	gpGlobals->trailGreen = vec[1];
+	gpGlobals->trailBlue = vec[2];
+	Msg("Current trail color: R: %i, G: %i, B: %i\n", gpGlobals->trailRed, gpGlobals->trailGreen, gpGlobals->trailBlue);
+	gpGlobals->ghostType = (unsigned char)ghostType.GetInt();
+	Msg("Current ghost type: %i\n", gpGlobals->ghostType);
+	gpGlobals->trailLength = (unsigned char)spriteLength.GetInt();
+	Msg("Current trail length: %i\n", gpGlobals->trailLength);
+}
+
+
+//-----------------------------------------END VARS ----------------------------------------------------------------
+
 
 GhostEngine *GhostEngine::instance = NULL;
 
 GhostEngine& GhostEngine::getEngine() {
 	if (instance == NULL) {
 		instance = new GhostEngine();
+		initVars();
 	}	
 	return *instance;
 }
 
-//Called every level load to transfer the data of
+
+
+
+//Called before every level load to transfer the data of
 //the last ghost, for continuity's sake.
 void GhostEngine::transferGhostData() {
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
@@ -33,6 +203,11 @@ void GhostEngine::transferGhostData() {
 		it->inReset = it->ent->inReset;
 		//Msg("In reset? %s\n", (it->inReset ? "yes" : "no"));
 		if (it->inReset) continue;
+		if (Q_strlen(it->ent->currentMap) != 0) {
+			Q_strcpy(it->currentMap, it->ent->currentMap);
+		} else {//this should never happen, just incase though
+			Q_strcpy(it->currentMap, STRING(gpGlobals->mapname));
+		}
 		it->step = it->ent->step;
 		it->startTime = it->ent->startTime;
 	}
@@ -51,6 +226,7 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 
 //This is not to be mistaken for the resetAllGhosts, this is the
 //handler for Level transitions, not resetting the run.
+//This gets called after the level inits again.
 void GhostEngine::ResetGhosts() {
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
@@ -221,3 +397,5 @@ void playAllG() {
 ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if there are any.", 0);
 ConCommand restart("gh_restart_runs", restartG, "Restarts the run(s) back to the first step. Use gh_play_all_ghosts in order to play them again.", 0);
 ConCommand playAll("gh_play_all_ghosts", playAllG, "Plays back all ghosts that are loaded, but not currently playing.", 0);
+
+

@@ -210,8 +210,6 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ghosting_record.cpp" />
-    <ClCompile Include="serverplugin_bot.cpp" />
-    <ClCompile Include="serverplugin_empty.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\mathlib.lib" />

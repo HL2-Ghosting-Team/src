@@ -5,7 +5,8 @@
 // $NoKeywords: $
 //
 //===========================================================================//
-
+#define GAME_DLL 1
+#include "cbase.h"
 #include <stdio.h>
 #include <iomanip>
 #include <sstream>
@@ -20,41 +21,45 @@
 #include "igameevents.h"
 #include "convar.h"
 #include "Color.h"
-#include "vstdlib/random.h"
-#include "engine/IEngineTrace.h"
 #include "tier2/tier2.h"
 #include "game/server/iplayerinfo.h"
+#include "GhostEngine.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 // Interfaces from the engine
 IVEngineServer	*engine = NULL; // helper functions (messaging clients, loading content, making entities, running commands, etc)
-IGameEventManager *gameeventmanager = NULL; // game events interface
 IPlayerInfoManager *playerinfomanager = NULL; // game dll interface to interact with players
-IServerPluginHelpers *helpers = NULL; // special 3rd party plugin helpers from the engine
-IUniformRandomStream *randomStr = NULL;
-IEngineTrace *enginetrace = NULL;
 IFileSystem* filesystem = NULL;
 CGlobalVars *gpGlobals = NULL;
 edict_t *currPlayer = NULL;
 IPlayerInfo* playerInfo = NULL;
 IServerGameEnts * serverGameEnts = NULL;
 
-static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_DEMO, "Sets the name of your ghost.\nThis can also be used as the base name of your files!");
-
-float nextTime = 0.00;
-float startTime = 0.00;
-const char* fileName;
-const char* playerName = NULL;
+float nextTime = 0.00f;
+float startTime = 0.00f;
+char mapName[32];
 bool shouldRecord = false;
+bool mapNameDirty = true;
+bool playerNameDirty = true;
 bool firstTime = true;
 FileHandle_t myFile = NULL;
+std::vector<unsigned char> ghostColor;
+std::vector<unsigned char> trailColor;
+
+static void onNameChange(IConVar *var, const char* pOldValue, float fOldValue) {
+	if(Q_strcmp(((ConVar*)var)->GetString(), pOldValue) != 0) { 
+		playerNameDirty = true;
+	}
+}
+static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_DEMO, "Sets the name of your ghost.\nThis can also be used as the base name of your files!", onNameChange);
+
 
 //---------------------------------------------------------------------------------
 // Purpose: a sample 3rd party plugin class
 //---------------------------------------------------------------------------------
-class GhostingRecord: public IServerPluginCallbacks, public IGameEventListener
+class GhostingRecord: public IServerPluginCallbacks
 {
 public:
 	GhostingRecord();
@@ -85,7 +90,6 @@ public:
 	virtual void			OnEdictFreed( const edict_t *edict  );	
 
 	// IGameEventListener Interface
-	virtual void FireGameEvent( KeyValues * event );
 
 	virtual int GetCommandIndex() { return m_iClientCommandIndex; }
 
@@ -117,25 +121,15 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 	ConnectTier2Libraries( &interfaceFactory, 1 );
 
 	playerinfomanager = (IPlayerInfoManager *)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
-	if ( !playerinfomanager )
-	{
-		Warning( "Unable to load playerinfomanager, ignoring\n" ); // this isn't fatal, we just won't be able to access specific player data
-	}
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
-	gameeventmanager = (IGameEventManager *)interfaceFactory(INTERFACEVERSION_GAMEEVENTSMANAGER,NULL);
-	helpers = (IServerPluginHelpers*)interfaceFactory(INTERFACEVERSION_ISERVERPLUGINHELPERS, NULL);
-	enginetrace = (IEngineTrace *)interfaceFactory(INTERFACEVERSION_ENGINETRACE_SERVER,NULL);
-	randomStr = (IUniformRandomStream *)interfaceFactory(VENGINE_SERVER_RANDOM_INTERFACE_VERSION, NULL);
 	filesystem = (IFileSystem *)interfaceFactory(FILESYSTEM_INTERFACE_VERSION, NULL);
-	serverGameEnts = (IServerGameEnts*)interfaceFactory(INTERFACEVERSION_GAMEEVENTSMANAGER, NULL);
+	serverGameEnts = (IServerGameEnts*)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
 
 	// get the interfaces we want to use
-	if(	! ( engine && gameeventmanager && g_pFullFileSystem && helpers && enginetrace && randomStr && filesystem && serverGameEnts ) ){
+	if(	! ( engine && g_pFullFileSystem && filesystem && serverGameEnts && playerinfomanager ) ){
 		return false; // we require all these interface to function
 	}
-	if ( playerinfomanager ){
-		gpGlobals = playerinfomanager->GetGlobalVars();
-	}
+	gpGlobals = playerinfomanager->GetGlobalVars();
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
 	ConVar_Register( 0 );
 	return true;
@@ -146,7 +140,6 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 //---------------------------------------------------------------------------------
 void GhostingRecord::Unload( void )
 {
-	gameeventmanager->RemoveListener( this ); // make sure we are unloaded from the event system
 	ConVar_Unregister( );
 	DisconnectTier2Libraries( );
 	DisconnectTier1Libraries( );
@@ -168,17 +161,35 @@ void writeLine(const char* map, const char* name, float ti, float x, float y, fl
 	filesystem->Write(&z, sizeof(z), myFile);//z
 }
 
+void writeHeader() {
+	if (!myFile) return;
+	unsigned char first = 0xAF;
+	filesystem->Write(&first, sizeof(first), myFile); 
+	unsigned char gt = gpGlobals->ghostType;
+	filesystem->Write(&gt, sizeof(gt), myFile);//ghost type
+	unsigned char gr = gpGlobals->ghostRed;
+	filesystem->Write(&gr, sizeof(gr), myFile);//ghost red
+	unsigned char gg = gpGlobals->ghostGreen;
+	filesystem->Write(&gg, sizeof(gg), myFile);//ghost green
+	unsigned char gb = gpGlobals->ghostBlue;
+	filesystem->Write(&gb, sizeof(gb), myFile);//ghost blue
+	unsigned char tr = gpGlobals->trailRed;
+	filesystem->Write(&tr, sizeof(tr), myFile);//trail red
+	unsigned char tg = gpGlobals->trailGreen;
+	filesystem->Write(&tg, sizeof(tg), myFile);//trail green
+	unsigned char tb = gpGlobals->trailBlue;
+	filesystem->Write(&tb, sizeof(tb), myFile);//trail blue
+	unsigned char tl = gpGlobals->trailLength;
+	filesystem->Write(&tl, sizeof(tl), myFile);//trail length
+}
+
 //---------------------------------------------------------------------------------
 // Purpose: called on level start
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelInit( char const *pMapName )
 {
-	gameeventmanager->AddListener( this, true );
 	if (shouldRecord) {
-		float time = ((float)Plat_FloatTime()) - startTime;
-		writeLine(pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
-		//filesystem->FPrintf(myFile, "%s %s %s %f %f %f %f\n", "GHOSTING", pMapName, "empty", time, 0.0f, 0.0f, 0.0f);
-		//filesystem->Flush(myFile);
+		mapNameDirty = true;
 	}
 }
 
@@ -186,7 +197,6 @@ void GhostingRecord::LevelInit( char const *pMapName )
 // Purpose: called once per server frame, do recurring work here (like checking for timeouts)
 //---------------------------------------------------------------------------------
 void GhostingRecord::GameFrame( bool simulating ) {
-
 	if (shouldRecord) {
 		if (playerInfo == NULL) {
 			//Msg("Player info null! Getting player info...\n");
@@ -200,20 +210,31 @@ void GhostingRecord::GameFrame( bool simulating ) {
 			}
 		}
 		if (currPlayer != NULL && playerInfo != NULL) {
-			//CBaseEntity *playerEntity; FIND EYEPOS
-			//playerEntity = serverGameEnts->EdictToBaseEntity(currPlayer); FIND EYEPOS
-			float time = (((float)Plat_FloatTime()) - startTime);
-			//TODO: Find eye pos
-			Vector loc = playerInfo->GetAbsOrigin();
-			if( firstTime) {
-				unsigned char first = 0xAF;
-				filesystem->Write(&first, sizeof(first), myFile); 
-				writeLine(STRING(gpGlobals->mapname), ghName.GetString(), -1.0f, 0.0f, 0.0f, 0.0f); 
-				firstTime = false;
-			}
-			if ( time >= nextTime ) {//see if we should update again
-				writeLine(STRING(gpGlobals->mapname), ghName.GetString(), time, loc.x, loc.y, loc.z); 
-				nextTime = time + 0.04f;//~20 times a second, the more there is, the smoother it'll be
+			CBaseEntity *playerEntity = serverGameEnts->EdictToBaseEntity(currPlayer);
+			if (playerEntity) {
+				float time = (((float)Plat_FloatTime()) - startTime);
+				Vector loc = playerEntity->EyePosition();
+				if( firstTime) {
+					writeHeader();
+					firstTime = false;
+				}
+				if ( time >= nextTime ) {//see if we should update again
+					const char* mapToWrite = "";
+					const char* playerToWrite = "";
+					if (mapNameDirty) {
+						if(Q_strcmp(mapName, STRING(gpGlobals->mapname)) != 0) {
+							mapToWrite = STRING(gpGlobals->mapname);
+							Q_strcpy(mapName, mapToWrite);
+						}
+						mapNameDirty = false;
+					}
+					if (playerNameDirty) {
+						playerToWrite = ghName.GetString();
+						playerNameDirty = false;
+					}
+					writeLine(mapToWrite, playerToWrite, time, loc.x, loc.y, loc.z); 
+					nextTime = time + 0.04f;//~20 times a second, the more there is, the smoother it'll be
+				}
 			}
 		}
 	}
@@ -224,8 +245,8 @@ void GhostingRecord::GameFrame( bool simulating ) {
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple times per map change
 {
+	currPlayer = NULL;
 	playerInfo = NULL;
-	gameeventmanager->RemoveListener( this );
 }
 
 //---------------------------------------------------------------------------------
@@ -237,10 +258,11 @@ CON_COMMAND ( gh_stop, "Stop recording.") {
 	if (myFile) {
 		Msg("Stopping recording\n");
 		filesystem->Close(myFile);
-		//filesystem->Close(myFile);
 	}
+	mapName[0] = 0;
 	myFile = NULL;
 }
+
 
 int GetFileCount(const char *searchkey)
 {
@@ -262,21 +284,23 @@ void record(const CCommand &args) {
 		Msg("Already recording!\n");
 		return;
 	}
+	char playerName[256];
+	char fileName[256];
 	std::string test = std::string(ghName.GetString());
 	while (test.find(' ') != std::string::npos) {
-		playerName = test.replace(test.find(' '), 1, "").c_str();
+		Q_strcpy(playerName, test.replace(test.find(' '), 1, "").c_str());
 		ghName.SetValue(playerName);
 	}
-	playerName = ghName.GetString();
-	if (args.ArgC() > 1 && args.Arg(1) != "") {
-		fileName = args.Arg(1);//specified name
+	Q_strcpy(playerName, ghName.GetString());
+	if (args.ArgC() > 1 && (Q_strcmp(args.Arg(1), "") != 0)) {
+		Q_strcpy(fileName, args.Arg(1));//specified name
 	} else {
 		std::stringstream sstr;
 		int count = GetFileCount(playerName);
 		char fileish[MAX_PATH];
 		std::sprintf(fileish, "%03d", (count + 1));
 		sstr << playerName << "_" << fileish;
-		fileName = sstr.str().c_str();
+		Q_strcpy(fileName, sstr.str().c_str());
 	}
 	char fileName2[256];
 	Q_strcpy(fileName2, fileName);
@@ -288,6 +312,8 @@ void record(const CCommand &args) {
 		firstTime = true;
 		startTime = (float) Plat_FloatTime();
 		nextTime = 0.0f;
+		mapNameDirty = true;
+		playerNameDirty = true;
 	} else {
 		Msg("File aready exists!\n");
 	}
@@ -313,7 +339,6 @@ PLUGIN_RESULT GhostingRecord::NetworkIDValidated( const char *pszUserName, const
 void GhostingRecord::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_t *pPlayerEntity, EQueryCvarValueStatus eStatus, const char *pCvarName, const char *pCvarValue ){}
 void GhostingRecord::OnEdictAllocated(edict_t *edict ){}
 void GhostingRecord::OnEdictFreed(const edict_t *edict){}
-void GhostingRecord::FireGameEvent(KeyValues* event){}
 void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax ){}
 void GhostingRecord::Pause( void ){}
 void GhostingRecord::UnPause( void ){}

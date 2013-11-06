@@ -28,44 +28,17 @@ BEGIN_DATADESC(GhostEntity)
 	BaseClass::Precache();
 }
 
-void splitSpaces(const char* toSplit, std::vector<char*> &toCopyInto) {
-	char toBeSplit[1000];
-	strcpy(toBeSplit, toSplit);
-	char* parts[100] = {0};
-	unsigned int index = 0;
-	parts[index] = strtok(toBeSplit, " ");
-	while(parts[index] != 0)
-	{
-		//Msg("Adding the value: %s\n", parts[index]);
-		toCopyInto.push_back(parts[index]);
-		++index;
-		parts[index] = strtok(0, " ");
-    }  
-}
-
-static ConVar drawtrails("gh_draw_trails", "1", 
-						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-						 "Draws a trail on each ghost.");
-
-static ConVar ghostColor("gh_ghost_color", "237 133 60", 
-						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-						 "The R G B (0 - 255) values for color for your ghost.");
-
-static ConVar ghostType("gh_ghost_type", "0", 
-						FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-						"Sets the type of ghost model.\n0 = Solid-fill arrow | 1 = Translucent-style arrow");
-
 //-----------------------------------------------------------------------------
 // Purpose: Sets up the entity's initial state
 //-----------------------------------------------------------------------------
 void GhostEntity::Spawn( void )
 {
 	Precache();
-	if (drawtrails.GetBool()) {
+	if (trailLength > 0) {
 		CreateTrail();
 	}
 	RemoveEffects(EF_NODRAW);
-	if (ghostType.GetBool()) {
+	if (typeGhost == 1) {
 		//Msg("Setting the model to the translucent kind!\n");
 		SetModel("models/conet.mdl");
 	} else {
@@ -73,22 +46,7 @@ void GhostEntity::Spawn( void )
 		SetModel("models/cone.mdl");
 	}//TODO look into a gh_set_ghost_model con command
 	SetSolid( SOLID_NONE );
-	std::vector<char*> vec;
-	splitSpaces(ghostColor.GetString(), vec);
-	if (vec.empty()) {
-		//Msg("VECTOR IS EMPTY!\n");
-	} else {
-		if (vec.size() == 3) {
-			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
-		} else {
-			//Msg("Vector not full: size is %i ... Resetting to default!\n", vec.size());
-			ghostColor.SetValue(ghostColor.GetDefault());
-			vec.clear();
-			splitSpaces(ghostColor.GetString(), vec);
-			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
-		}
-		SetRenderColor(atoi(vec[0]), atoi(vec[1]), atoi(vec[2]));
-	}
+	SetRenderColor(ghostRed, ghostGreen, ghostBlue);
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -98,19 +56,17 @@ void GhostEntity::StartRun() {
 	SetNextThink(gpGlobals->curtime + 0.005f);
 }
 
-static ConVar spriteLength("gh_trail_length", "5", FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, "How long the trail of the ghost lasts in seconds.");
-static ConVar spriteColor("gh_trail_color", "237 133 60", FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, "The R G B values for the color of the ghost's trail.");
-
 void GhostEntity::CreateTrail(){
 	trail = CreateEntityByName("env_spritetrail");
 	trail->SetAbsOrigin(GetAbsOrigin());
 	trail->SetParent(this);
 	trail->KeyValue("rendermode", "5");
 	trail->KeyValue("spritename", "materials/sprites/laser.vmt");
-	trail->KeyValue("lifetime", spriteLength.GetInt());
-	trail->KeyValue("rendercolor", spriteColor.GetString());
+	trail->KeyValue("lifetime", trailLength);
+	trail->SetRenderColor(trailRed, trailGreen, trailBlue);
+	//trail->KeyValue("rendercolor", spriteColor.GetString());
 	trail->KeyValue("renderamt", "255");
-	trail->KeyValue("startwidth", "11");
+	trail->KeyValue("startwidth", "9.5");
 	trail->KeyValue("endwidth", "1.05");
 	DispatchSpawn(trail);
 }
@@ -122,13 +78,19 @@ void GhostEntity::updateStep() {
 		currentStep = nextStep = NULL;
 		return;
 	}
-	if (step == 0) step = 1;
 	currentStep = &RunData[step];
 	float currentTime = ((float)Plat_FloatTime() - startTime);
 	if (currentTime > currentStep->tim) {//catching up to a fast ghost, you came in late
 		unsigned int x = step + 1;
-		while (++x < runsize && currentTime > RunData[x].tim);
-		step = x-1;
+		while (++x < runsize) {
+			if (Q_strlen(RunData[x].map) > 0) {
+				Q_strcpy(currentMap, RunData[x].map);
+			}
+			if (currentTime < RunData[x].tim) {
+				break;
+			}
+		}
+		step = x - 1;
 	}
 	currentStep = &RunData[step];//update it to the new step
 	currentTime = ((float)Plat_FloatTime() - startTime);//update to new time
@@ -161,13 +123,13 @@ void GhostEntity::HandleGhost() {
 	} 
 	else {	
 		if (!isActive) {
-			if (Q_strcmp(currentStep->map, gpGlobals->mapname.ToCStr()) == 0) {
+			if (Q_strcmp(currentMap, STRING(gpGlobals->mapname)) == 0) {
 				DispatchSpawn(this);
 			}
 		} 
 		else {
 			if (nextStep != NULL) {
-				if (Q_strcmp(gpGlobals->mapname.ToCStr(), currentStep->map) != 0) {
+				if (Q_strcmp(STRING(gpGlobals->mapname), currentMap) != 0) {
 					if (!IsEffectActive(EF_NODRAW)) AddEffects(EF_NODRAW);
 					return;
 				}
@@ -177,9 +139,7 @@ void GhostEntity::HandleGhost() {
 					float x = currentStep->x;
 					float y = currentStep->y;
 					float z = currentStep->z;
-					if (Q_strcmp(currentStep->name, "empty") == 0) return;
-					if (Q_strcmp(nextStep->name, "empty") == 0) return;
-					if (x == 0) return;
+					if (x == 0.0f) return;
 					float x2 = nextStep->x;
 					float y2 = nextStep->y;
 					float z2 = nextStep->z;
@@ -189,9 +149,9 @@ void GhostEntity::HandleGhost() {
 					float xfinal = x + (scalar * (x2 - x));
 					float yfinal = y + (scalar * (y2 - y));
 					float zfinal = z + (scalar * (z2 - z));
-					SetAbsOrigin(Vector(xfinal, yfinal, (zfinal + 25.0f)));
+					SetAbsOrigin(Vector(xfinal, yfinal, (zfinal - 15.0f)));
 				} else {//set it to the last position before it updates to the next map
-					SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z + 30.0f)));
+					SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z - 15.0f)));
 				}
 			}
 		}

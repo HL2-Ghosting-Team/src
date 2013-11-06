@@ -20,20 +20,30 @@ bool GhostRun::openRun(const char* fileName) {
 	Q_strcpy(file, fileName);
 	V_SetExtension(file, ".run", sizeof(file));
 	FileHandle_t myFile = filesystem->Open(file, "rb", "MOD");
-	RunData.clear();
-	unsigned char firstByte;
 	if (myFile == NULL) {
 		Msg("File is null!\n");
 		return false;
 	}
+	RunData.clear();
+	//--------------------------------------HEADER ---------------------------------------------
+	unsigned char firstByte;
 	filesystem->Read(&firstByte, sizeof(firstByte), myFile);
 	if (firstByte == 0xAF) {
-		Msg("File is uncompressed!\n");
+		//Msg("File is uncompressed!\n");
 	} //TODO add the compressed byte check
 	else {
 		Msg("File is malformed!\n");
 		return false;
 	}
+	filesystem->Read(&typeGhost, sizeof(typeGhost), myFile); 
+	filesystem->Read(&ghostRed, sizeof(ghostRed), myFile); 
+	filesystem->Read(&ghostGreen, sizeof(ghostGreen), myFile); 
+	filesystem->Read(&ghostBlue, sizeof(ghostBlue), myFile); 
+	filesystem->Read(&trailRed, sizeof(trailRed), myFile); 
+	filesystem->Read(&trailGreen, sizeof(trailGreen), myFile); 
+	filesystem->Read(&trailBlue, sizeof(trailBlue), myFile); 
+	filesystem->Read(&trailLength, sizeof(trailLength), myFile); 
+	//-------------------------------------END HEADER -----------------------------------------
 	while (!filesystem->EndOfFile(myFile)) {
 		struct RunLine l;
 		unsigned char mapNameLength;
@@ -56,6 +66,7 @@ bool GhostRun::openRun(const char* fileName) {
 		delete[] mapName;
 		delete[] playerName;
 	}
+	Q_strcpy(currentMap, RunData[0].map);
 	Q_strcpy(ghostName, RunData[0].name);
 	filesystem->Close(myFile);
 	return true;
@@ -63,11 +74,20 @@ bool GhostRun::openRun(const char* fileName) {
 
 void GhostRun::ResetGhost() {
 	if (inReset) return;//if we've been reset by the user, ignore us
-	GhostEntity* tempGhost = dynamic_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
+	GhostEntity* tempGhost = static_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
+	tempGhost->typeGhost = typeGhost;
+	tempGhost->ghostRed = ghostRed;
+	tempGhost->ghostGreen = ghostGreen;
+	tempGhost->ghostBlue = ghostBlue;
+	tempGhost->trailRed = trailRed;
+	tempGhost->trailGreen = trailGreen;
+	tempGhost->trailBlue = trailBlue;
+	tempGhost->trailLength = trailLength;
+	tempGhost->SetRunData(RunData);
+	tempGhost->step = step;
+	tempGhost->SetGhostName(ghostName);
+	Q_strcpy(tempGhost->currentMap, currentMap);
 	if(DispatchSpawn(tempGhost) == 0) {
-		tempGhost->SetRunData(RunData);
-		tempGhost->step = step;
-		tempGhost->SetGhostName(ghostName);
 		tempGhost->startTime = startTime;
 		tempGhost->StartRun();
 		ent = tempGhost;
@@ -75,11 +95,20 @@ void GhostRun::ResetGhost() {
 }
 
 void GhostRun::StartRun() {
-	GhostEntity * entity = (GhostEntity*) CreateEntityByName( "ghost_entity" );
+	GhostEntity * entity = static_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
 	if (entity) {
+		entity->typeGhost = typeGhost;
+		entity->ghostRed = ghostRed;
+		entity->ghostGreen = ghostGreen;
+		entity->ghostBlue = ghostBlue;
+		entity->trailRed = trailRed;
+		entity->trailGreen = trailGreen;
+		entity->trailBlue = trailBlue;
+		entity->trailLength = trailLength;
 		entity->SetGhostName(ghostName);
 		entity->SetRunData(RunData);
-		entity->SetAbsOrigin(Vector(RunData[1].x, RunData[1].y, RunData[1].z));
+		Q_strcpy(entity->currentMap, currentMap);
+		entity->SetAbsOrigin(Vector(RunData[0].x, RunData[0].y, RunData[0].z));
 		if (DispatchSpawn(entity) == 0) {
 			entity->startTime = (float) Plat_FloatTime();
 			entity->step = 0;

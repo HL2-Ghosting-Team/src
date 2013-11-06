@@ -31,5 +31,16 @@ public:
 	std::vector<RunLine> RunData;
 	unsigned int step;
 	char ghostName[32];
+	char currentMap[32];
 	bool inReset;
+
+	//convars
+	unsigned char trailLength;
+	unsigned char trailRed;
+	unsigned char trailGreen;
+	unsigned char trailBlue;
+	unsigned char typeGhost;//0 = solid, 1 = translucent
+	unsigned char ghostRed;
+	unsigned char ghostGreen;
+	unsigned char ghostBlue;
 };

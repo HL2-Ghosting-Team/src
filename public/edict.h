@@ -59,6 +59,16 @@ public:
 	bool			teamplay;
 	// current maxentities
 	int				maxEntities;
+
+	// ghosting
+	unsigned char ghostRed;
+	unsigned char ghostGreen;
+	unsigned char ghostBlue;
+	unsigned char ghostType;
+	unsigned char trailRed;
+	unsigned char trailGreen;
+	unsigned char trailBlue;
+	unsigned char trailLength;
 };
 
 inline CGlobalVars::CGlobalVars( bool bIsClient ) : 

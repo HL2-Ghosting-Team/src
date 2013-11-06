@@ -26,6 +26,21 @@ public:
 	unsigned int step;
 	bool isActive;
 	bool inReset;
+	
+	//convars
+	unsigned char trailLength;
+	unsigned char trailRed;
+	unsigned char trailGreen;
+	unsigned char trailBlue;
+	unsigned char typeGhost;//0 = solid, 1 = translucent
+	unsigned char ghostRed;
+	unsigned char ghostGreen;
+	unsigned char ghostBlue;
+
+	char currentMap[32];
+	
+
+
 
 protected:
 	void Think( void );

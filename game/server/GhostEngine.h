@@ -25,10 +25,14 @@ public:
 	bool isActive();
 	GhostRun* getRun(GhostEntity*);
 	void stopAllRuns();
+	//convars
+	unsigned char getGhostType();
+	unsigned char shouldDrawTrails();
+	unsigned char getTrailLength();
 	
 private:
-	static GhostEngine* instance;
 	bool isLocal;
+	static GhostEngine* instance;
 	
 	
 };
