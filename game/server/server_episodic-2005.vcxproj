@@ -1078,9 +1078,7 @@
     <ClInclude Include="..\shared\gamevars_shared.h" />
     <ClInclude Include="gameweaponmanager.h" />
     <ClInclude Include="GhostEngine.h" />
-    <ClInclude Include="GhostEntity.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="GhostEntity.h" />
     <ClInclude Include="GhostRun.h" />
     <ClInclude Include="gib.h" />
     <ClInclude Include="globalstate.h" />

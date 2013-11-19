@@ -119,12 +119,10 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 {
 	ConnectTier1Libraries( &interfaceFactory, 1 );
 	ConnectTier2Libraries( &interfaceFactory, 1 );
-
 	playerinfomanager = (IPlayerInfoManager *)gameServerFactory(INTERFACEVERSION_PLAYERINFOMANAGER,NULL);
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 	filesystem = (IFileSystem *)interfaceFactory(FILESYSTEM_INTERFACE_VERSION, NULL);
 	serverGameEnts = (IServerGameEnts*)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
-
 	// get the interfaces we want to use
 	if(	! ( engine && g_pFullFileSystem && filesystem && serverGameEnts && playerinfomanager ) ){
 		return false; // we require all these interface to function

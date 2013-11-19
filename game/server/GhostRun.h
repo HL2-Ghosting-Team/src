@@ -10,9 +10,6 @@
 
 #pragma once
 
-
-
-
 class GhostRun {
 public:
 	GhostRun(void);

@@ -128,5 +128,5 @@ void GhostRun::EndRun() {
 		ent->EndRun(false);
 	}
 	RunData.clear();
-	GhostEngine::getEngine().EndRun(this);
+	GhostEngine::getEngine()->EndRun(this);
 }

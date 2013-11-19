@@ -37,7 +37,7 @@
 
 #endif
 
-#ifdef HL2_EPISODIC
+#ifndef HL2_EPISODIC //TODO change this if you're running on Episodes
 ConVar hl2_episodic( "hl2_episodic", "1", FCVAR_REPLICATED );
 #else
 ConVar hl2_episodic( "hl2_episodic", "0", FCVAR_REPLICATED );

@@ -40,6 +40,9 @@
     <Filter Include="game_controls Header Files">
       <UniqueIdentifier>{d429eb97-16d7-4ef1-b8c2-8b88a45e6b2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Ghost">
+      <UniqueIdentifier>{fcc12e61-a97b-4ea7-acad-df8bb5c53230}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="achievement_notification_panel.cpp">

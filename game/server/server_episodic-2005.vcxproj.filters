@@ -28,6 +28,9 @@
     <Filter Include="Tools Framework">
       <UniqueIdentifier>{c532a8d8-7cde-4f6d-a258-bf8edf51b1ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Ghost">
+      <UniqueIdentifier>{18bf4293-08b0-4f3c-8969-2e2de8b92a06}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\shared\achievement_saverestore.cpp">
@@ -1743,14 +1746,14 @@
     <ClCompile Include="toolframework_server.cpp">
       <Filter>Tools Framework</Filter>
     </ClCompile>
-    <ClCompile Include="GhostEntity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GhostEngine.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="GhostEntity.cpp">
+      <Filter>Source Files\Ghost</Filter>
     </ClCompile>
     <ClCompile Include="GhostRun.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Ghost</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3470,17 +3473,17 @@
     <ClInclude Include="toolframework_server.h">
       <Filter>Tools Framework</Filter>
     </ClInclude>
-    <ClInclude Include="GhostEntity.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="GhostEngine.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Ghost</Filter>
     </ClInclude>
-    <ClInclude Include="runline.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="GhostEntity.h">
+      <Filter>Source Files\Ghost</Filter>
     </ClInclude>
     <ClInclude Include="GhostRun.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="runline.h">
+      <Filter>Source Files\Ghost</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

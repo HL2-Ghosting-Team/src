@@ -1046,7 +1046,7 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 			EndCheckChainedActivate( !( pClass->GetEFlags() & EFL_KILLME ) ); 
 		}
 	}
-	GhostEngine::getEngine().ResetGhosts();
+	GhostEngine::getEngine()->ResetGhosts();
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
 	CBaseEntity::SetAllowPrecache( false );
@@ -1249,7 +1249,7 @@ void CServerGameDLL::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_
 void CServerGameDLL::LevelShutdown( void )
 {
 	MDLCACHE_CRITICAL_SECTION();
-	GhostEngine::getEngine().transferGhostData();
+	GhostEngine::getEngine()->transferGhostData();
 	
 	IGameSystem::LevelShutdownPreEntityAllSystems();
 	// YWB:

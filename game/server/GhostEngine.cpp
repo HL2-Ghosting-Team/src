@@ -10,6 +10,21 @@
 #include "filesystem.h"
 #include "utlbuffer.h"
 
+//Is the engine supporting any ghosts right now?
+bool GhostEngine::isActive() {
+	return ghosts.size() != 0;
+}
+
+GhostEngine * GhostEngine::instance = NULL;
+
+GhostEngine* GhostEngine::getEngine() {
+	if (instance == NULL) {
+		instance = new GhostEngine();
+		instance->initVars();
+	}
+	return instance;
+}
+
 
 void splitSpaces(const char* toSplit, std::vector<unsigned char> &toCopyInto) {
 	char toBeSplit[1000];
@@ -72,10 +87,9 @@ void getColor(const char* word, std::vector<unsigned char> &vec) {
 		}
 	}
 }
-
 static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldValue) {
 	int toCheck = ((ConVar*)var)->GetInt();
-	Msg("Trail length change: new %i | old: %i\n", toCheck, (int)fOldValue);
+	//Msg("Trail length change: new %i | old: %i\n", toCheck, (int)fOldValue);
 	if (toCheck == (int)fOldValue) return;
 	if (toCheck < 0) {
 		var->SetValue(((ConVar*)var)->GetDefault());
@@ -154,7 +168,7 @@ unsigned char GhostEngine::getGhostType() {
 	return (unsigned char) ghostType.GetInt();
 }
 
-void initVars() {
+void GhostEngine::initVars() {
 	std::vector<unsigned char> vec;
 	getColor(ghostColor.GetString(), vec);
 	gpGlobals->ghostRed = vec[0];
@@ -173,23 +187,7 @@ void initVars() {
 	Msg("Current trail length: %i\n", gpGlobals->trailLength);
 }
 
-
 //-----------------------------------------END VARS ----------------------------------------------------------------
-
-
-GhostEngine *GhostEngine::instance = NULL;
-
-GhostEngine& GhostEngine::getEngine() {
-	if (instance == NULL) {
-		instance = new GhostEngine();
-		initVars();
-	}	
-	return *instance;
-}
-
-
-
-
 //Called before every level load to transfer the data of
 //the last ghost, for continuity's sake.
 void GhostEngine::transferGhostData() {
@@ -227,17 +225,12 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 //This is not to be mistaken for the resetAllGhosts, this is the
 //handler for Level transitions, not resetting the run.
 //This gets called after the level inits again.
-void GhostEngine::ResetGhosts() {
+void GhostEngine::ResetGhosts(void) {
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
 		//Msg("Attempting to reset ghost: %s...\n", it->ghostName);
 		if (it) it->ResetGhost();
 	}
-}
-
-//Is the engine supporting any ghosts right now?
-bool GhostEngine::isActive() {
-	return !ghosts.empty();
 }
 
 //Called after the run kills itself, >>should be the last thing called!!<<
@@ -267,7 +260,7 @@ void GhostEngine::StartRun(const char* fileName, bool shouldStart) {
 
 void startRun_f (const CCommand &args) {
 	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (Q_strcmp(args.Arg(1), "") != 0)) {
-		GhostEngine::getEngine().StartRun(args.Arg(1), true);
+		GhostEngine::getEngine()->StartRun(args.Arg(1), true);
 	}
 }
 
@@ -302,7 +295,7 @@ ConCommand start("gh_play", startRun_f, "Loads a ghost and immediately starts pl
 
 void loadRun_f(const CCommand &args) {
 	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (Q_strcmp(args.Arg(1), "") != 0)) {
-		GhostEngine::getEngine().StartRun(args.Arg(1), false);
+		GhostEngine::getEngine()->StartRun(args.Arg(1), false);
 	}
 }
 
@@ -334,7 +327,6 @@ char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 }
 
 ConCommand load("gh_load", loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", 0, FileAutoCompleteLoad);
-
 
 //Recursive until none left. 
 //Didn't want to bother with having the size of the vector change in mid-loop
@@ -382,20 +374,19 @@ void GhostEngine::playAllGhosts() {
 
 
 void stopallg() {
-	GhostEngine::getEngine().stopAllRuns();
+	GhostEngine::getEngine()->stopAllRuns();
 }
 
 void restartG() {
-	GhostEngine::getEngine().restartAllGhosts();
+	GhostEngine::getEngine()->restartAllGhosts();
 }
 
 void playAllG() {
-	GhostEngine::getEngine().playAllGhosts();
+	GhostEngine::getEngine()->playAllGhosts();
 }
 
 
 ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if there are any.", 0);
 ConCommand restart("gh_restart_runs", restartG, "Restarts the run(s) back to the first step. Use gh_play_all_ghosts in order to play them again.", 0);
 ConCommand playAll("gh_play_all_ghosts", playAllG, "Plays back all ghosts that are loaded, but not currently playing.", 0);
-
 

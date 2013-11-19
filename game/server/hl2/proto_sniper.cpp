@@ -3230,7 +3230,7 @@ void CSniperBullet::BulletThink( void )
 		GetOwnerEntity()->FireBullets( 1, vecStart, m_vecDir, vec3_origin, flDist, m_AmmoType, 0 );
 		m_iImpacts++;
 
-#ifdef HL2_EPISODIC
+#ifndef HL2_EPISODIC
 		if( tr.m_pEnt->IsNPC() || m_iImpacts == NUM_PENETRATIONS )
 #else	 
 		if( tr.m_pEnt->m_takedamage == DAMAGE_YES || m_iImpacts == NUM_PENETRATIONS )

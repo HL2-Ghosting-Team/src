@@ -20,6 +20,18 @@ BEGIN_DATADESC(GhostEntity)
 
 	END_DATADESC()
 
+
+	
+	
+
+const char* GhostEntity::GetGhostName() {
+	return m_gName;
+}
+
+const char* GhostEntity::GetGhostModel() {
+	return m_gModel;
+}
+
 	//-----------------------------------------------------------------------------
 	// Purpose: Precache assets used by the entity
 	//-----------------------------------------------------------------------------
@@ -40,13 +52,15 @@ void GhostEntity::Spawn( void )
 	RemoveEffects(EF_NODRAW);
 	if (typeGhost == 1) {
 		//Msg("Setting the model to the translucent kind!\n");
-		SetModel("models/conet.mdl");
+		SetModel("models/conet.mdl");//conet
 	} else {
 		//Msg("Setting the model to the solid fill kind!\n");
-		SetModel("models/cone.mdl");
+		SetModel("models/cone.mdl");//cone
 	}//TODO look into a gh_set_ghost_model con command
 	SetSolid( SOLID_NONE );
+	SetRenderMode(kRenderTransColor);
 	SetRenderColor(ghostRed, ghostGreen, ghostBlue);
+	SetRenderColorA(100);
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -55,7 +69,6 @@ void GhostEntity::StartRun() {
 	//Msg("Starting run with Rundata: %i, Step %i, Name %s, Starttime: %f, This: %i\n", RunData.size(), step, m_gName, startTime, this);
 	SetNextThink(gpGlobals->curtime + 0.005f);
 }
-
 void GhostEntity::CreateTrail(){
 	trail = CreateEntityByName("env_spritetrail");
 	trail->SetAbsOrigin(GetAbsOrigin());
@@ -95,12 +108,12 @@ void GhostEntity::updateStep() {
 	currentStep = &RunData[step];//update it to the new step
 	currentTime = ((float)Plat_FloatTime() - startTime);//update to new time
 	if (step == (runsize - 1)) {//if it's on the last step
-		GhostEngine::getEngine().getRun(this)->EndRun();
+
+		GhostEngine::getEngine()->getRun(this)->EndRun();
 	} else {
 		nextStep = &RunData[step+1];
 	}
 }
-
 //-----------------------------------------------------------------------------
 // Purpose: Think function to move the ghost
 //-----------------------------------------------------------------------------
@@ -119,7 +132,7 @@ void GhostEntity::Think( void )
 
 void GhostEntity::HandleGhost() {
 	if (currentStep == NULL) {		
-		if (!inReset) GhostEngine::getEngine().getRun(this)->EndRun();
+		if (!inReset) GhostEngine::getEngine()->getRun(this)->EndRun();
 	} 
 	else {	
 		if (!isActive) {
@@ -170,14 +183,6 @@ void GhostEntity::SetGhostModel(const char * newmodel) {
 		PrecacheModel(m_gModel);
 		SetModel(m_gModel);
 	}
-}
-
-const char* GhostEntity::GetGhostName() {
-	return m_gName;
-}
-
-const char* GhostEntity::GetGhostModel() {
-	return m_gModel;
 }
 
 void GhostEntity::EndRun(bool reset) {
