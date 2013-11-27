@@ -65,6 +65,7 @@
 #include "AI_ResponseSystem.h"
 #include "saverestore_stringtable.h"
 #include "util.h"
+#include "timer.h"
 #include "tier0/icommandline.h"
 #include "datacache/imdlcache.h"
 #include "engine/iserverplugin.h"
@@ -1160,7 +1161,9 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 	// Any entities that detect network state changes on a timer do it here.
 	g_NetworkPropertyEventMgr.FireEvents();
-
+	if (BlaTimer::timer()->IsRunning()) {
+		BlaTimer::timer()->DispatchTimeMessage();
+	}
 	gpGlobals->frametime = oldframetime;
 }
 

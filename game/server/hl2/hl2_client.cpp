@@ -23,6 +23,7 @@
 #include "game.h"
 #include "player_resource.h"
 #include "engine/IEngineSound.h"
+#include "timer.h"
 
 #include "tier0/vprof.h"
 
@@ -65,6 +66,9 @@ void ClientActive( edict_t *pEdict, bool bLoadGame )
 	{
 		pPlayer->Spawn();
 	}
+
+	BlaTimer::timer()->Init();
+	BlaTimer::timer()->DispatchTimeToBeatMessage();
 }
 
 

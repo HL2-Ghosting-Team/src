@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "timer.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -20,9 +21,8 @@ BEGIN_DATADESC(GhostEntity)
 
 	END_DATADESC()
 
-
-	
-	
+static ConVar shouldDraw("gh_draw_trails", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_DEMO,
+	"Toggles global drawing of trails on (1) or off (0).");
 
 const char* GhostEntity::GetGhostName() {
 	return m_gName;
@@ -46,8 +46,10 @@ const char* GhostEntity::GetGhostModel() {
 void GhostEntity::Spawn( void )
 {
 	Precache();
-	if (trailLength > 0) {
-		CreateTrail();
+	if (shouldDraw.GetBool()) {
+		if (trailLength > 0) {
+			CreateTrail();
+		}
 	}
 	RemoveEffects(EF_NODRAW);
 	if (typeGhost == 1) {
@@ -106,10 +108,12 @@ void GhostEntity::updateStep() {
 		step = x - 1;
 	}
 	currentStep = &RunData[step];//update it to the new step
+	//here's where we can get current time: currentStep->tim
+	GhostRun* thisrun = GhostEngine::getEngine()->getRun(this);
+	BlaTimer::timer()->UpdateGhost((size_t)thisrun, step, currentMap);
 	currentTime = ((float)Plat_FloatTime() - startTime);//update to new time
 	if (step == (runsize - 1)) {//if it's on the last step
-
-		GhostEngine::getEngine()->getRun(this)->EndRun();
+		thisrun->EndRun();
 	} else {
 		nextStep = &RunData[step+1];
 	}

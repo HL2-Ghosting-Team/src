@@ -447,6 +447,7 @@
     <ClCompile Include="hud_numericdisplay.cpp" />
     <ClCompile Include="hud_pdump.cpp" />
     <ClCompile Include="hud_redraw.cpp" />
+    <ClCompile Include="hud_timer.cpp" />
     <ClCompile Include="hud_vehicle.cpp" />
     <ClCompile Include="hud_weapon.cpp" />
     <ClCompile Include="..\shared\igamesystem.cpp" />

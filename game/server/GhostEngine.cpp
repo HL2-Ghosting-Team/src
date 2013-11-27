@@ -34,11 +34,10 @@ void splitSpaces(const char* toSplit, std::vector<unsigned char> &toCopyInto) {
 	parts[index] = strtok(toBeSplit, " ");
 	while(parts[index] != 0)
 	{
-		//Msg("Adding the value: %s\n", parts[index]);
 		toCopyInto.push_back(atoi(parts[index]));
 		++index;
 		parts[index] = strtok(0, " ");
-    }  
+	}  
 }
 
 void fixInts(std::vector<unsigned char> &vec) {
@@ -215,7 +214,7 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
 		if (!it || !it->ent) continue;
-		if (Q_strcmp(it->ent->GetGhostName(), toGet->GetGhostName()) == 0) {
+		if (it->ent == toGet) {
 			return it;
 		}
 	}
@@ -265,7 +264,7 @@ void startRun_f (const CCommand &args) {
 }
 
 static int FileAutoComplete ( char const *partial, 
-char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+							 char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
 	char fileDir[MAX_PATH];
 	int toReturn = 0;
@@ -300,7 +299,7 @@ void loadRun_f(const CCommand &args) {
 }
 
 static int FileAutoCompleteLoad ( char const *partial, 
-char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+								 char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 {
 	char fileDir[MAX_PATH];
 	int toReturn = 0;

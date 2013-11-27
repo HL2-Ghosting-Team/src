@@ -8,6 +8,7 @@
 #include "GhostEngine.h"
 #include "filesystem.h"
 #include "tier0/memdbgon.h"
+#include "timer.h"
 
 
 GhostRun::GhostRun(){ent = NULL;}
@@ -68,6 +69,7 @@ bool GhostRun::openRun(const char* fileName) {
 	}
 	Q_strcpy(currentMap, RunData[0].map);
 	Q_strcpy(ghostName, RunData[0].name);
+	BlaTimer::timer()->AddGhost((size_t)this, ghostName, currentMap);
 	filesystem->Close(myFile);
 	return true;
 }
@@ -127,6 +129,7 @@ void GhostRun::EndRun() {
 		ent->clearRunData();
 		ent->EndRun(false);
 	}
+	BlaTimer::timer()->RemoveGhost((size_t)this);
 	RunData.clear();
 	GhostEngine::getEngine()->EndRun(this);
 }
