@@ -52,13 +52,7 @@ void GhostEntity::Spawn( void )
 		}
 	}
 	RemoveEffects(EF_NODRAW);
-	if (typeGhost == 1) {
-		//Msg("Setting the model to the translucent kind!\n");
-		SetModel("models/conet.mdl");//conet
-	} else {
-		//Msg("Setting the model to the solid fill kind!\n");
-		SetModel("models/cone.mdl");//cone
-	}//TODO look into a gh_set_ghost_model con command
+	SetModel("models/cone.mdl");
 	SetSolid( SOLID_NONE );
 	SetRenderMode(kRenderTransColor);
 	SetRenderColor(ghostRed, ghostGreen, ghostBlue);

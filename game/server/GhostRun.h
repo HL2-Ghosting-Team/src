@@ -15,13 +15,11 @@ public:
 	GhostRun(void);
 	~GhostRun(void);
 
-	void updateForNewMap();
 	void StartRun();
 	//ends the run for good
 	void EndRun();
 	void addRunData(RunLine);
 	bool openRun(const char*);
-	//bool SetUpGhost();
 	void ResetGhost();
 	GhostEntity* ent;
 	float startTime;

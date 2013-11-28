@@ -28,7 +28,6 @@ public:
 	unsigned char ghostBlue;
 	float startTime;
 	char currentMap[32];
-#ifndef CLIENT_DLL
 	void SetRunData( std::vector<RunLine>& toSet);
 	void SetGhostName( const char* );
 	void SetGhostModel( const char* );
@@ -38,7 +37,6 @@ public:
 	void CreateTrail();
 	void StartRun();
 	void HandleGhost();
-	
 	void clearRunData();
 
 
@@ -48,7 +46,7 @@ protected:
 	void Think( void );
 	void Spawn( void );
 	void Precache( void );
-#endif
+
 private:
 	char  m_gModel[256];
 	char  m_gName[256];

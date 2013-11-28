@@ -9,6 +9,7 @@
 #include "tier0/memdbgon.h"
 #include "filesystem.h"
 #include "utlbuffer.h"
+#include "timer.h"
 
 //Is the engine supporting any ghosts right now?
 bool GhostEngine::isActive() {
@@ -342,14 +343,13 @@ void GhostEngine::restartAllGhosts() {
 	if (!isActive()) return;
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
-		if (!it) {
-			Msg("BROKEN: %i\n", i);
-			continue;
-		}
 		if (it->ent && it->ent->isActive) {
 			Msg("Restarting ghost %s!\n",it->ghostName);
 			it->ent->EndRun(true);
 			it->ent->clearRunData();
+			it->ent = NULL;
+			Q_strcpy(it->currentMap, it->RunData[0].map);
+			BlaTimer::timer()->UpdateGhost((size_t)it, 0, "Resetting...");
 		}
 	}
 	//now the ghostruns are primed with their ents removed.
@@ -364,8 +364,7 @@ void GhostEngine::playAllGhosts() {
 	for (unsigned int i = 0; i < ghosts.size(); i++) {
 		GhostRun* it = ghosts[i];
 		Msg("Attempting to play ghost %s...\n", it->ghostName);
-		if (!it) continue;
-		if(!it->ent || (!(it->ent->isActive))) {
+		if(!(it->ent) || (!(it->ent->isActive))) {
 			it->StartRun();
 		}
 	}
