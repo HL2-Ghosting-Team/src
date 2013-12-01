@@ -9,6 +9,7 @@
 #include "tier0/memdbgon.h"
 #include "filesystem.h"
 #include "utlbuffer.h"
+#include "ghosthud.h"
 #include "timer.h"
 
 //Is the engine supporting any ghosts right now?
@@ -349,7 +350,7 @@ void GhostEngine::restartAllGhosts() {
 			it->ent->clearRunData();
 			it->ent = NULL;
 			Q_strcpy(it->currentMap, it->RunData[0].map);
-			BlaTimer::timer()->UpdateGhost((size_t)it, 0, "Resetting...");
+			GhostHud::hud()->UpdateGhost((size_t)it, 0, "Resetting...");
 		}
 	}
 	//now the ghostruns are primed with their ents removed.
@@ -388,3 +389,15 @@ ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if th
 ConCommand restart("gh_restart_runs", restartG, "Restarts the run(s) back to the first step. Use gh_play_all_ghosts in order to play them again.", 0);
 ConCommand playAll("gh_play_all_ghosts", playAllG, "Plays back all ghosts that are loaded, but not currently playing.", 0);
 
+
+//timer
+void startTimer() {
+	BlaTimer::timer()->Start();
+}
+
+void stopTimer() {
+	BlaTimer::timer()->Stop();
+}
+
+ConCommand startTimer_c("gh_timer_start", startTimer, "Starts the timer.", 0);
+ConCommand stopTimer_c("gh_timer_stop", stopTimer, "Stops the timer.", 0);

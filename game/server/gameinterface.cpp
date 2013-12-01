@@ -12,7 +12,6 @@
 #include "game.h"
 #include "entityapi.h"
 #include "client.h"
-#include "GhostEngine.h"
 #include "cdll_int.h"
 #include "saverestore.h"
 #include "entitylist.h"
@@ -65,7 +64,6 @@
 #include "AI_ResponseSystem.h"
 #include "saverestore_stringtable.h"
 #include "util.h"
-#include "timer.h"
 #include "tier0/icommandline.h"
 #include "datacache/imdlcache.h"
 #include "engine/iserverplugin.h"
@@ -87,6 +85,10 @@
 #include "steam/steam_api.h"
 #include "tier3/tier3.h"
 #include "serverbenchmark_base.h"
+
+//ghosting
+#include "GhostEngine.h"
+#include "timer.h"
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 #include "bot/bot.h"
@@ -1096,7 +1098,9 @@ void CServerGameDLL::GameFrame( bool simulating )
 		// If we're skipping frames, then the frametime is 2x the normal tick
 		gpGlobals->frametime *= 2.0f;
 	}
-
+	if (BlaTimer::timer()->IsRunning() && !BlaTimer::timer()->InLevelLoad()) {
+		BlaTimer::timer()->DispatchTimeMessage();
+	}
 	float oldframetime = gpGlobals->frametime;
 
 #ifdef _DEBUG
@@ -1161,9 +1165,6 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 	// Any entities that detect network state changes on a timer do it here.
 	g_NetworkPropertyEventMgr.FireEvents();
-	if (BlaTimer::timer()->IsRunning()) {
-		BlaTimer::timer()->DispatchTimeMessage();
-	}
 	gpGlobals->frametime = oldframetime;
 }
 
@@ -1252,8 +1253,15 @@ void CServerGameDLL::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_
 void CServerGameDLL::LevelShutdown( void )
 {
 	MDLCACHE_CRITICAL_SECTION();
-	GhostEngine::getEngine()->transferGhostData();
 	
+	GhostEngine::getEngine()->transferGhostData();
+	if (BlaTimer::timer()->IsRunning()) {
+		BlaTimer::timer()->SetLevelLoad(true);
+		float tim = gpGlobals->realtime;
+		Msg("LEVELSHUTDOWN: Setting offset to %f!\n", tim);
+		BlaTimer::timer()->SetOffsetBefore(tim);
+	}
+
 	IGameSystem::LevelShutdownPreEntityAllSystems();
 	// YWB:
 	// This entity pointer is going away now and is corrupting memory on level transitions/restarts
@@ -1570,22 +1578,6 @@ static TITLECOMMENT gTitleComments[] =
 	{ "ep2_outland_12", "#ep2_Chapter6_Title" },
 #endif
 };
-
-#ifdef _XBOX
-void CServerGameDLL::GetTitleName( const char *pMapName, char* pTitleBuff, int titleBuffSize )
-{
-	// Try to find a matching title comment for this mapname
-	for ( int i = 0; i < ARRAYSIZE(gTitleComments); i++ )
-	{
-		if ( !Q_strnicmp( pMapName, gTitleComments[i].pBSPName, strlen(gTitleComments[i].pBSPName) ) )
-		{
-			Q_strncpy( pTitleBuff, gTitleComments[i].pTitleName, titleBuffSize );
-			return;
-		}
-	}
-	Q_strncpy( pTitleBuff, pMapName, titleBuffSize );
-}
-#endif
 
 void CServerGameDLL::GetSaveComment( char *text, int maxlength, float flMinutes, float flSeconds, bool bNoTime )
 {
@@ -1921,48 +1913,6 @@ void UpdateRichPresence ( void )
 
 	if ( iChapterID < 0 )
 		iChapterID = 0;
-
-#if defined( _X360 )
-
-	// Set chapter context based on mapname
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), iChapterID, iChapterIndex, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( commentary.GetBool() )
-	{
-		// Set presence to show the user is playing developer commentary
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, CONTEXT_PRESENCE_COMMENTARY, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	else
-	{
-		// Set presence to show the user is in-game
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, iGamePresenceID, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	
-	// Set which game the user is playing
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), CONTEXT_GAME, iGameID, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_SINGLEPLAYER, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -2369,6 +2319,11 @@ void CServerGameClients::ClientActive( edict_t *pEdict, bool bLoadGame )
 	CBasePlayer *pPlayer = ( CBasePlayer * )CBaseEntity::Instance( pEdict );
 	CSoundEnvelopeController::GetController().CheckLoopingSoundsForPlayer( pPlayer );
 	SceneManager_ClientActive( pPlayer );
+	Msg("Should be active 2...%f\n",gpGlobals->realtime);
+	if (BlaTimer::timer()->GetOffsetBefore() != 0.0f) {
+		BlaTimer::timer()->Init(gpGlobals->realtime);
+		BlaTimer::timer()->SetRunning(true);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2407,7 +2362,12 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 				gamestats->Event_PlayerDisconnected( player );
 			}
 		}
-
+		if (BlaTimer::timer()->IsRunning()) {
+			BlaTimer::timer()->SetLevelLoad(true);
+			float tim = gpGlobals->realtime;
+			Msg("CSERVERGAME ENTS: Setting offset to %f!\n", tim);
+			BlaTimer::timer()->SetOffsetBefore(tim);
+		}
 		// Make sure all Untouch()'s are called for this client leaving
 		CBaseEntity::PhysicsRemoveTouchedList( player );
 		CBaseEntity::PhysicsRemoveGroundList( player );

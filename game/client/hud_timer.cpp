@@ -18,9 +18,12 @@ using namespace vgui;
 
 #define BUFSIZE (sizeof("00:00.0000")+1)
 
-static ConVar bla_timer("bla_timer", "1",
+static ConVar bla_timer("gh_timer", "1",
 						FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DEMO, 
 						"Turn the timer display on/off");
+
+static ConVar timer_mode("gh_timer_mode", "0", FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED,
+						 "Set what type of timer you want.\n0 = Generic Timer (no splits)\n1 = Splits by Chapter\n2 = Splits by Level");
 
 class CHudTimer : public CHudElement, public Panel
 {
@@ -31,7 +34,78 @@ public:
 	virtual void Init();
 	virtual void VidInit()
 	{
-		Reset();
+		
+		/*const char* charray[68] = {
+			"d1_trainstation_01",
+			"d1_trainstation_02",
+			"d1_trainstation_03",
+			"d1_trainstation_04",
+			"d1_trainstation_05",
+			"d1_trainstation_06",
+			"d1_canals_01",
+			"d1_canals_01a",
+			"d1_canals_02",
+			"d1_canals_03",
+			"d1_canals_05",
+			"d1_canals_06",
+			"d1_canals_07",
+			"d1_canals_08",
+			"d1_canals_09",
+			"d1_canals_10",
+			"d1_canals_11",
+			"d1_canals_12",
+			"d1_canals_13",
+			"d1_eli_01",
+			"d1_eli_02",
+			"d1_town_01",
+			"d1_town_01a",
+			"d1_town_02",
+			"d1_town_02a",
+			"d1_town_03",
+			"d1_town_04",
+			"d1_town_05",
+			"d2_coast_01",
+			"d2_coast_03",
+			"d2_coast_04",
+			"d2_coast_05",
+			"d2_coast_07",
+			"d2_coast_08",
+			"d2_coast_09",
+			"d2_coast_10",
+			"d2_coast_11",
+			"d2_coast_12",
+			"d2_prison_01",
+			"d2_prison_02",
+			"d2_prison_03",
+			"d2_prison_04",
+			"d2_prison_05",
+			"d2_prison_06",
+			"d2_prison_07",
+			"d2_prison_08",
+			"d3_c17_01",
+			"d3_c17_02",
+			"d3_c17_03",
+			"d3_c17_04",
+			"d3_c17_05",
+			"d3_c17_06a",
+			"d3_c17_06b",
+			"d3_c17_07",
+			"d3_c17_08",
+			"d3_c17_09",
+			"d3_c17_10a",
+			"d3_c17_10b",
+			"d3_c17_11",
+			"d3_c17_12",
+			"d3_c17_12b",
+			"d3_c17_13",
+			"d3_citadel_01",
+			"d3_citadel_02",
+			"d3_citadel_03",
+			"d3_citadel_04",
+			"d3_citadel_05",
+			"d3_breen_01"
+		};*/
+		//Reset();
 	}
 	virtual void Reset();
 	virtual bool ShouldDraw()
@@ -41,9 +115,9 @@ public:
 	void MsgFunc_BlaTimer_TimeToBeat(bf_read &msg);
 	void MsgFunc_BlaTimer_Time(bf_read &msg);
 	void MsgFunc_BlaTimer_StateChange(bf_read &msg);
-	void MsgFunc_BlaTimer_AddGhost(bf_read &msg);
-	void MsgFunc_BlaTimer_RemoveGhost(bf_read &msg);
-	void MsgFunc_BlaTimer_UpdateGhost(bf_read &msg);
+
+	//int getPos(const char*);
+
 	virtual void Paint();
 
 private:
@@ -52,16 +126,7 @@ private:
 	float m_flSecondsTime;
 	wchar_t m_pwCurrentTime[BUFSIZE];
 	char m_pszString[BUFSIZE];
-
-	struct GhostData {
-		size_t runPtr;
-		char name[32];
-		char map[32];
-		int step;
-	};
-	CUtlVector<GhostData> ghosts;
-
-
+	CUtlMap<const char*, float> map;
 
 protected:
 	CPanelAnimationVar(float, m_flBlur, "Blur", "0");
@@ -93,15 +158,11 @@ DECLARE_HUDELEMENT(CHudTimer);
 DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_TimeToBeat);
 DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_Time);
 DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_StateChange);
-DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_AddGhost);
-DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_RemoveGhost);
-DECLARE_HUD_MESSAGE(CHudTimer, BlaTimer_UpdateGhost);
 
 CHudTimer::CHudTimer(const char *pElementName) :
 	CHudElement(pElementName), Panel(NULL, "HudTimer")
 {
 	SetParent(g_pClientMode->GetViewport());
-	SetHiddenBits(HIDEHUD_PLAYERDEAD);
 }
 
 void CHudTimer::Init()
@@ -109,11 +170,8 @@ void CHudTimer::Init()
 	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_TimeToBeat);
 	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_Time);
 	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_StateChange);
-	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_AddGhost);
-	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_RemoveGhost);
-	HOOK_HUD_MESSAGE(CHudTimer, BlaTimer_UpdateGhost);
 	initialTall = 48;
-	Reset();
+	//Reset();
 }
 
 void CHudTimer::Reset()
@@ -121,63 +179,28 @@ void CHudTimer::Reset()
 	m_flSecondsTime = 0.0f;
 }
 
-void CHudTimer::MsgFunc_BlaTimer_RemoveGhost(bf_read &msg)  {
-	char string[256];
-	msg.ReadString(string, sizeof(string), true);
-	size_t ptr = atoi(string);
-	int size = ghosts.Size();
-	for (int i = 0; i < size; i++) {
-		if (ghosts[i].runPtr == ptr) {
-			ghosts.Remove(i);
-			break;
-		}
-	}
-}
-
-void splitByDelimiter(const char* toSplit, const char* delim, CUtlVector<const char*> &toCopyInto) {
-	char toBeSplit[1000];
-	strcpy(toBeSplit, toSplit);
-	char* parts[100] = {0};
-	unsigned int index = 0;
-	parts[index] = strtok(toBeSplit, delim);
-	while(parts[index] != 0)
+/*int CHudTimer::getPos(const char* map) {
+	switch (timer_mode.GetInt())
 	{
-		toCopyInto.AddToTail(parts[index]);
-		++index;
-		parts[index] = strtok(0, delim);
-	}  
-}
+	case 0://generic timer
 
-void CHudTimer::MsgFunc_BlaTimer_AddGhost(bf_read &msg) {
-	struct GhostData gd;
-	char string[255];
-	msg.ReadString(string, sizeof(string), true);
-	CUtlVector<const char*> vec;
-	splitByDelimiter(string, ":", vec);
-	size_t ptr = atoi(vec[0]);
-	gd.runPtr = ptr;
-	Q_strcpy(gd.name, vec[1]);
-	Q_strcpy(gd.map, vec[2]);
-	gd.step = 0;
-	ghosts.AddToTail(gd);
-}
 
-void CHudTimer::MsgFunc_BlaTimer_UpdateGhost(bf_read &msg) {
-	//TODO update map and step (maybe calculate time)
-	char string[255];
-	msg.ReadString(string, sizeof(string), true);
-	CUtlVector<const char*> vec;
-	splitByDelimiter(string, ":", vec);
-	size_t ptr = atoi(vec[0]);
-	int size = ghosts.Size();
-	for (int i = 0; i < size; i++ ) {
-		if (ghosts[i].runPtr == ptr) {
-			Q_strcpy(ghosts[i].map, vec[2]);
-			ghosts[i].step = atoi(vec[1]);
-			break;
-		}
+
+		break;
+	case 1://splits by chapter
+
+
+
+		break;
+	case 2://splits by level
+
+
+		break;
+
+	default:
+		return 0;
 	}
-}
+}*/
 
 void CHudTimer::MsgFunc_BlaTimer_TimeToBeat(bf_read &msg)
 {
@@ -216,43 +239,24 @@ void CHudTimer::MsgFunc_BlaTimer_StateChange(bf_read &msg)
 void CHudTimer::Paint(void)
 {
 	// Convert the current time to a string.
-	// Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d.%04d",
-	//            (int)(m_flSecondsTime / 60), ((int)m_flSecondsTime) % 60,
-	//           (int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));
+	Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d.%04d",
+		(int)(m_flSecondsTime / 60), ((int)m_flSecondsTime) % 60,
+		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));
 
 	// msg.ReadString(m_pszString, sizeof(m_pszString));
-	//g_pVGuiLocalize->ConvertANSIToUnicode(
-	//        m_pszString, m_pwCurrentTime, sizeof(m_pwCurrentTime));
+	g_pVGuiLocalize->ConvertANSIToUnicode(
+		m_pszString, m_pwCurrentTime, sizeof(m_pwCurrentTime));
 
 	// Draw the text label.
 	surface()->DrawSetTextFont(m_hTextFont);
 	surface()->DrawSetTextColor(GetFgColor());
+	//current map can be found with:    g_pGameRules->MapName()
 
-	float yPos = text_ypos;
 	//surface()->DrawPrintText(L"TIME", wcslen(L"TIME"));
-	int size = ghosts.Size();
-	if (size > 3) {
-		SetTall(initialTall + (15 * (size - 3)));
-	} else {
-		SetTall(initialTall);
-	}
-	for (int i = 0; i < size; i++) {
-		wchar_t name[32U];
-		wchar_t map[32U];
-		surface()->DrawSetTextPos(text_xpos, yPos);
-		g_pVGuiLocalize->ConvertANSIToUnicode(ghosts[i].name, name, sizeof(name));
-		g_pVGuiLocalize->ConvertANSIToUnicode(ghosts[i].map, map, sizeof(map));
-		surface()->DrawPrintText(name, wcslen(name));
-		int x = 0, y = 0;
-		surface()->DrawGetTextPos(x, y);
-		surface()->DrawSetTextPos(x + 10.0f, yPos);
-		surface()->DrawPrintText(map, wcslen(map));
-		yPos += 15.0f;
-	}
 	// Draw current time.
 	//surface()->DrawSetTextFont(surface()->GetFontTall(m_hTextFont));
-	//surface()->DrawSetTextPos(digit_xpos, digit_ypos);
-	//surface()->DrawPrintText(m_pwCurrentTime, wcslen(m_pwCurrentTime));
+	surface()->DrawSetTextPos(digit_xpos, digit_ypos);
+	surface()->DrawPrintText(m_pwCurrentTime, wcslen(m_pwCurrentTime));
 }
 
 

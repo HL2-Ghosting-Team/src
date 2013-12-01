@@ -45,7 +45,7 @@ void RegisterUserMessages( void )
 	usermessages->Register("BlaTimer_TimeToBeat", -1);
     usermessages->Register("BlaTimer_Time", -1);
     usermessages->Register("BlaTimer_StateChange", -1);
-	usermessages->Register("BlaTimer_AddGhost", -1);
-	usermessages->Register("BlaTimer_RemoveGhost", -1);
-	usermessages->Register("BlaTimer_UpdateGhost", -1);
+	usermessages->Register("GhostHud_AddGhost", -1);
+	usermessages->Register("GhostHud_RemoveGhost", -1);
+	usermessages->Register("GhostHud_UpdateGhost", -1);
 }

@@ -1497,6 +1497,9 @@
     <ClCompile Include="hud_timer.cpp">
       <Filter>Source Files\Ghost</Filter>
     </ClCompile>
+    <ClCompile Include="GhostHud.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">

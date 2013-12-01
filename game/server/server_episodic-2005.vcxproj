@@ -1079,6 +1079,7 @@
     <ClInclude Include="gameweaponmanager.h" />
     <ClInclude Include="GhostEngine.h" />
     <ClInclude Include="GhostEntity.h" />
+    <ClInclude Include="ghosthud.h" />
     <ClInclude Include="GhostRun.h" />
     <ClInclude Include="gib.h" />
     <ClInclude Include="globalstate.h" />

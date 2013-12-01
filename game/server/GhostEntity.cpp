@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "timer.h"
+#include "ghosthud.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -104,7 +104,7 @@ void GhostEntity::updateStep() {
 	currentStep = &RunData[step];//update it to the new step
 	//here's where we can get current time: currentStep->tim
 	GhostRun* thisrun = GhostEngine::getEngine()->getRun(this);
-	BlaTimer::timer()->UpdateGhost((size_t)thisrun, step, currentMap);
+	GhostHud::hud()->UpdateGhost((size_t)thisrun, step, currentMap);
 	currentTime = ((float)Plat_FloatTime() - startTime);//update to new time
 	if (step == (runsize - 1)) {//if it's on the last step
 		thisrun->EndRun();

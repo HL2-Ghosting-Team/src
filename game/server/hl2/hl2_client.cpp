@@ -66,9 +66,11 @@ void ClientActive( edict_t *pEdict, bool bLoadGame )
 	{
 		pPlayer->Spawn();
 	}
-
-	BlaTimer::timer()->Init();
-	BlaTimer::timer()->DispatchTimeToBeatMessage();
+	Msg("Should be loading the timer now...%f\n", gpGlobals->realtime);
+	if (BlaTimer::timer()->GetOffsetBefore() != 0.0f) {
+		BlaTimer::timer()->Init(gpGlobals->realtime);
+		BlaTimer::timer()->SetRunning(true);
+	}
 }
 
 

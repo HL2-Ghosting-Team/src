@@ -273,6 +273,7 @@
     <ClCompile Include="c_func_conveyor.cpp" />
     <ClCompile Include="c_func_dust.cpp" />
     <ClCompile Include="c_func_lod.cpp" />
+    <ClCompile Include="GhostHud.cpp" />
     <ClCompile Include="hl2\C_Func_Monitor.cpp" />
     <ClCompile Include="c_func_occluder.cpp" />
     <ClCompile Include="c_func_reflective_glass.cpp" />

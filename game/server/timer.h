@@ -5,7 +5,6 @@
 #include "fasttimer.h"
 #include "filesystem.h"
 #include "utlbuffer.h"
-#include "GhostEngine.h"
 
 extern IFileSystem *filesystem;
 
@@ -20,6 +19,11 @@ class BlaTimer
 public:
 	BlaTimer() : m_bIsRunning(false), m_flSecondsRecord(0.0f)
 	{
+		inLevelLoad = false;
+		curTime = 0.0f;
+		offset = 0.0f;
+		offsetBefore = 0.0f;
+		startTime = 0.0f;
 		m_vStart.Init();
 		m_vGoal.Init();
 	}
@@ -31,12 +35,13 @@ public:
 		return timer;
 	}
 
-	void Init()
+	void Init(float offsetAfterLoad)
 	{
-		m_ftTimer.End();
-		m_ftTimer = CFastTimer(); // CFastTimer has no reset method.
-		m_bIsRunning = false;
-
+		offset = offsetAfterLoad - offsetBefore;
+		Msg("Offset after level load is: %f!\n", offset);
+		SetLevelLoad(false);
+		//m_bIsRunning = false;
+		/*
 		// Make sure the maps directory is there (you never know...).
 		filesystem->CreateDirHierarchy("maps", "MOD");
 
@@ -59,30 +64,46 @@ public:
 
 		CBasePlayer *pPlayer = UTIL_GetLocalPlayer();
 		if (!pPlayer)
-			return;
+			return;*/
 		//pPlayer->SetStartPosition(m_vStart);
 		//pPlayer->SetGoalPosition(m_vGoal);
 	}
 
+	void SetOffsetBefore(float newOff) {
+		offsetBefore = newOff;
+	}
+
 	void Start()
 	{
-		m_ftTimer.Start();
-		m_bIsRunning = true;
-		DispatchStateChangeMessage();
+		offsetBefore = 0.0f;
+		offset = 0.0f;
+		startTime = gpGlobals->realtime;
+		Msg("Starttime: %f\n", startTime);
+		SetRunning(true);
+		//DispatchStateChangeMessage();
+	}
+
+	void SetLevelLoad(bool newVal) {
+		inLevelLoad = newVal;
+	}
+
+	bool InLevelLoad() {
+		return inLevelLoad;
 	}
 
 	void Stop()
 	{
-		m_ftTimer.End();
-		m_bIsRunning = false;
-		DispatchStateChangeMessage();
-		float flSecondsTime = GetCurrentTime();
+		//m_ftTimer->End();
+		SetOffsetBefore(0.0f);
+		SetRunning(false);
+		//DispatchStateChangeMessage();
+		/*float flSecondsTime = GetCurrentTime();
 		if (flSecondsTime < m_flSecondsRecord || m_flSecondsRecord == 0.0f)
 		{
 			m_flSecondsRecord = flSecondsTime;
 			DevMsg("New map record: %.4f seconds\n", m_flSecondsRecord);
 			WriteMapFile();
-		}
+		}*/
 	}
 
 	bool IsRunning()
@@ -90,14 +111,20 @@ public:
 		return m_bIsRunning;
 	}
 
+	void SetRunning(bool newb) {
+		m_bIsRunning = newb;
+	}
+
 	float GetCurrentTime()
 	{
-		CCycleCount ccCycles;
+		/*CCycleCount ccCycles;
 		if (m_bIsRunning)
-			ccCycles = m_ftTimer.GetDurationInProgress();
+			ccCycles = m_ftTimer->GetDurationInProgress();
 		else
-			ccCycles = m_ftTimer.GetDuration();
-		return static_cast<float>(ccCycles.GetSeconds());;
+			ccCycles = m_ftTimer->GetDuration();
+		curTime = static_cast<float>(ccCycles.GetSeconds());*/
+		curTime = gpGlobals->realtime;
+		return ((curTime - offset) - startTime);
 	}
 
 	void DispatchTimeToBeatMessage()
@@ -118,36 +145,6 @@ public:
 		MessageEnd();
 	}
 
-	void RemoveGhost(size_t ptr) {
-		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
-		user.MakeReliable();
-		UserMessageBegin(user, "BlaTimer_RemoveGhost");
-		char string[255];
-		Q_snprintf(string, sizeof(string), "%i", ptr);
-		WRITE_STRING(string);
-		MessageEnd();
-	}
-
-	void AddGhost(size_t ptr, const char* name, const char* map) {
-		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
-		user.MakeReliable();
-		UserMessageBegin(user, "BlaTimer_AddGhost");
-		char totalString[255];
-		Q_snprintf(totalString, sizeof(totalString), "%i:%s:%s", ptr, name, map);
-		WRITE_STRING(totalString);
-		MessageEnd();
-	}
-
-	void UpdateGhost(size_t ptr, int currentStep, const char* map) {
-		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
-		user.MakeReliable();
-		UserMessageBegin(user, "BlaTimer_UpdateGhost");
-		char totalString[255];
-		Q_snprintf(totalString, sizeof(totalString), "%i:%i:%s", ptr, currentStep, map);
-		WRITE_STRING(totalString);
-		MessageEnd();
-	}
-
 	void SetStartPosition(Vector start)
 	{
 		//UTIL_GetLocalPlayer()->SetStartPosition(start);
@@ -162,14 +159,23 @@ public:
 		WriteMapFile();
 	}
 
+	float GetOffsetBefore() {
+		return offsetBefore;
+	}
+
 private:
 	Vector m_vStart;
 	Vector m_vGoal;
-	CFastTimer m_ftTimer;
+	CFastTimer *m_ftTimer;
 	CCycleCount m_ccCycles;
+	bool inLevelLoad;
 	bool m_bIsRunning;
 	bool m_IsPaused;
 	float m_flSecondsRecord;
+	float offset;
+	float offsetBefore;
+	float curTime;
+	float startTime;
 
 	// Inform the HUD about status changes of the timer so it can fire up some
 	// fancy animation effects.

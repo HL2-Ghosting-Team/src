@@ -146,9 +146,7 @@ void GhostingRecord::Unload( void )
 void writeLine(const char* map, const char* name, float ti, float x, float y, float z) {
 	if (!myFile) return;
 	unsigned char mapLength = strlen(map);
-	//Msg("Map length: %i\n", mapLength);
 	unsigned char nameLength = strlen(name);
-	//Msg("Name length: %i\n", nameLength);
 	filesystem->Write((void*)&mapLength, sizeof(mapLength), myFile);
 	filesystem->Write((void*)map, mapLength, myFile);//map
 	filesystem->Write((void*)&nameLength, sizeof(nameLength), myFile);
@@ -197,12 +195,10 @@ void GhostingRecord::LevelInit( char const *pMapName )
 void GhostingRecord::GameFrame( bool simulating ) {
 	if (shouldRecord) {
 		if (playerInfo == NULL) {
-			//Msg("Player info null! Getting player info...\n");
 			for (int i = 1; i < gpGlobals->maxEntities; i++) {
 				currPlayer = engine->PEntityOfEntIndex(i);
 				playerInfo = playerinfomanager->GetPlayerInfo(currPlayer);
-				if (playerInfo != NULL/* && playerInfo->IsConnected()*/) {
-					//Msg("Found valid playerInfo: %s\n", playerInfo->GetName());
+				if (playerInfo != NULL) {
 					break;
 				}
 			}
