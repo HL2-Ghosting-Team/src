@@ -1,6 +1,4 @@
 #include "GhostRun.h"
-#include <vector>
-#include <string>
 #include "runline.h"
 #pragma once
 class GhostEngine {
@@ -10,7 +8,7 @@ public:
 	};
 	//gets the singleton Engine instance
 	static GhostEngine* getEngine();
-	std::vector<GhostRun*> ghosts;
+	CUtlVector<GhostRun*> ghosts;
 	static GhostEngine* instance;
 	bool isActive();
 	//convars

@@ -38,7 +38,7 @@ public:
 	void Init(float offsetAfterLoad)
 	{
 		offset = offsetAfterLoad - offsetBefore;
-		Msg("Offset after level load is: %f!\n", offset);
+		//Msg("Offset after level load is: %f!\n", offset);
 		SetLevelLoad(false);
 		//m_bIsRunning = false;
 		/*
@@ -78,7 +78,7 @@ public:
 		offsetBefore = 0.0f;
 		offset = 0.0f;
 		startTime = gpGlobals->realtime;
-		Msg("Starttime: %f\n", startTime);
+		//Msg("Starttime: %f\n", startTime);
 		SetRunning(true);
 		//DispatchStateChangeMessage();
 	}

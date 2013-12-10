@@ -1258,7 +1258,7 @@ void CServerGameDLL::LevelShutdown( void )
 	if (BlaTimer::timer()->IsRunning()) {
 		BlaTimer::timer()->SetLevelLoad(true);
 		float tim = gpGlobals->realtime;
-		Msg("LEVELSHUTDOWN: Setting offset to %f!\n", tim);
+		//Msg("LEVELSHUTDOWN: Setting offset to %f!\n", tim);
 		BlaTimer::timer()->SetOffsetBefore(tim);
 	}
 
@@ -2319,7 +2319,7 @@ void CServerGameClients::ClientActive( edict_t *pEdict, bool bLoadGame )
 	CBasePlayer *pPlayer = ( CBasePlayer * )CBaseEntity::Instance( pEdict );
 	CSoundEnvelopeController::GetController().CheckLoopingSoundsForPlayer( pPlayer );
 	SceneManager_ClientActive( pPlayer );
-	Msg("Should be active 2...%f\n",gpGlobals->realtime);
+	//Msg("Should be active 2...%f\n",gpGlobals->realtime);
 	if (BlaTimer::timer()->GetOffsetBefore() != 0.0f) {
 		BlaTimer::timer()->Init(gpGlobals->realtime);
 		BlaTimer::timer()->SetRunning(true);
@@ -2365,7 +2365,7 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 		if (BlaTimer::timer()->IsRunning()) {
 			BlaTimer::timer()->SetLevelLoad(true);
 			float tim = gpGlobals->realtime;
-			Msg("CSERVERGAME ENTS: Setting offset to %f!\n", tim);
+			//Msg("CSERVERGAME ENTS: Setting offset to %f!\n", tim);
 			BlaTimer::timer()->SetOffsetBefore(tim);
 		}
 		// Make sure all Untouch()'s are called for this client leaving

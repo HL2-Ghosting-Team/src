@@ -1,10 +1,4 @@
 #include "cbase.h"
-#include <vector>
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
 #include "runline.h"
 #include "GhostEntity.h"
 
@@ -23,7 +17,7 @@ public:
 	void ResetGhost();
 	GhostEntity* ent;
 	float startTime;
-	std::vector<RunLine> RunData;
+	CUtlVector<RunLine> RunData;
 	unsigned int step;
 	char ghostName[32];
 	char currentMap[32];

@@ -2,19 +2,20 @@
 #include "GhostEngine.h"
 #include <string>
 #include <sstream>
-#include <vector>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "tier0/memdbgon.h"
 #include "filesystem.h"
-#include "utlbuffer.h"
 #include "ghosthud.h"
 #include "timer.h"
+#include "GhostUtils.h"
+
+
+#include "tier0/memdbgon.h"
 
 //Is the engine supporting any ghosts right now?
 bool GhostEngine::isActive() {
-	return ghosts.size() != 0;
+	return ghosts.Count() != 0;
 }
 
 GhostEngine * GhostEngine::instance = NULL;
@@ -28,66 +29,7 @@ GhostEngine* GhostEngine::getEngine() {
 }
 
 
-void splitSpaces(const char* toSplit, std::vector<unsigned char> &toCopyInto) {
-	char toBeSplit[1000];
-	strcpy(toBeSplit, toSplit);
-	char* parts[100] = {0};
-	unsigned int index = 0;
-	parts[index] = strtok(toBeSplit, " ");
-	while(parts[index] != 0)
-	{
-		toCopyInto.push_back(atoi(parts[index]));
-		++index;
-		parts[index] = strtok(0, " ");
-	}  
-}
 
-void fixInts(std::vector<unsigned char> &vec) {
-	if (vec.size() == 3) {
-		if (vec[0] > 255 || vec[0] < 0) {
-			vec[0] = 237;
-		}
-		if (vec[1] > 255 || vec[1] < 0) {
-			vec[1] = 133;
-		}
-		if (vec[2] > 255 || vec[2] < 0) {
-			vec[2] = 60;
-		}
-	} else {
-		vec.clear();
-		vec[0] = 237;
-		vec[1] = 133;
-		vec[2] = 60;
-	}
-}
-
-//Used to check the ghost and trail colors, and reset them back to default if not appropriate
-//and assigns the r, g, b values to the vector.
-void getColor(const char* word, std::vector<unsigned char> &vec) {
-	if (!word) {
-		vec[0] = 237;
-		vec[1] = 133;
-		vec[2] = 60;
-	}
-	splitSpaces(word, vec);
-	if (vec.empty()) {//default to orange
-		vec[0] = 237;
-		vec[1] = 133;
-		vec[2] = 60;
-	} else {
-		if (vec.size() == 3) {
-			fixInts(vec);
-			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
-		} else {
-			//Msg("Vector not full: size is %i ... Resetting to default!\n", vec.size());
-			vec.clear();
-			vec[0] = 237;
-			vec[1] = 133;
-			vec[2] = 60;
-			//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
-		}
-	}
-}
 static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldValue) {
 	int toCheck = ((ConVar*)var)->GetInt();
 	//Msg("Trail length change: new %i | old: %i\n", toCheck, (int)fOldValue);
@@ -99,7 +41,7 @@ static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldV
 }
 static ConVar spriteLength("gh_trail_length", "5", 
 						   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-						   "How long the trail of the ghost lasts in seconds.", 
+						   "How long the trail of the ghost lasts in seconds.\n0 = no trail drawn for your ghost.", 
 						   onTrailLengthChange);
 unsigned char GhostEngine::getTrailLength() {
 	return (unsigned char) spriteLength.GetInt();
@@ -112,8 +54,8 @@ static void onColorTChange(IConVar *var, const char* pOldValue, float fOldValue)
 	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
 		return;
 	}
-	std::vector<unsigned char> vec;
-	getColor(((ConVar*)var)->GetString(), vec);
+	CUtlVector<unsigned char> vec;
+	GhostUtils::getColor(((ConVar*)var)->GetString(), vec);
 	if (vec[0] != 237) {
 		std::stringstream ss;
 		ss << (int)vec[0] << " " << (int)vec[1] << " " << (int)vec[2];
@@ -136,8 +78,8 @@ static void onColorGChange(IConVar *var, const char* pOldValue, float fOldValue)
 	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
 		return;
 	}
-	std::vector<unsigned char> vec;
-	getColor(((ConVar*)var)->GetString(), vec);
+	CUtlVector<unsigned char> vec;
+	GhostUtils::getColor(((ConVar*)var)->GetString(), vec);
 	if (vec[0] != 237) {
 		std::stringstream ss;
 		ss << (int)vec[0] << " " << (int)vec[1] << " " << (int)vec[2];
@@ -170,14 +112,14 @@ unsigned char GhostEngine::getGhostType() {
 }
 
 void GhostEngine::initVars() {
-	std::vector<unsigned char> vec;
-	getColor(ghostColor.GetString(), vec);
+	CUtlVector<unsigned char> vec;
+	GhostUtils::getColor(ghostColor.GetString(), vec);
 	gpGlobals->ghostRed = vec[0];
 	gpGlobals->ghostGreen = vec[1];
 	gpGlobals->ghostBlue = vec[2];
 	Msg("Setting ghost color: R: %i, G: %i, B: %i\n", gpGlobals->ghostRed, gpGlobals->ghostGreen, gpGlobals->ghostBlue);
-	vec.clear();
-	getColor(spriteColor.GetString(), vec);
+	vec.RemoveAll();
+	GhostUtils::getColor(spriteColor.GetString(), vec);
 	gpGlobals->trailRed = vec[0];
 	gpGlobals->trailGreen = vec[1];
 	gpGlobals->trailBlue = vec[2];
@@ -189,19 +131,15 @@ void GhostEngine::initVars() {
 }
 
 //-----------------------------------------END VARS ----------------------------------------------------------------
+
+
+
 //Called before every level load to transfer the data of
 //the last ghost, for continuity's sake.
 void GhostEngine::transferGhostData() {
-	for (unsigned int i = 0; i < ghosts.size(); i++) {
+	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun * it = ghosts[i];
 		Msg("Transferring ghost data for %s!\n", it->ghostName);
-		if (!it->ent) {
-			it->inReset = true;
-			continue;
-		}
-		it->inReset = it->ent->inReset;
-		//Msg("In reset? %s\n", (it->inReset ? "yes" : "no"));
-		if (it->inReset) continue;
 		if (Q_strlen(it->ent->currentMap) != 0) {
 			Q_strcpy(it->currentMap, it->ent->currentMap);
 		} else {//this should never happen, just incase though
@@ -213,7 +151,7 @@ void GhostEngine::transferGhostData() {
 }
 
 GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
-	for (unsigned int i = 0; i < ghosts.size(); i++) {
+	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun* it = ghosts[i];
 		if (!it || !it->ent) continue;
 		if (it->ent == toGet) {
@@ -227,7 +165,7 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 //handler for Level transitions, not resetting the run.
 //This gets called after the level inits again.
 void GhostEngine::ResetGhosts(void) {
-	for (unsigned int i = 0; i < ghosts.size(); i++) {
+	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun* it = ghosts[i];
 		//Msg("Attempting to reset ghost: %s...\n", it->ghostName);
 		if (it) it->ResetGhost();
@@ -240,7 +178,7 @@ void GhostEngine::ResetGhosts(void) {
 //GhostRun's EndRun will call its GhostEntity's EndRun.
 void GhostEngine::EndRun(GhostRun* run) {
 	if (run) {
-		ghosts.erase(std::find(ghosts.begin(), ghosts.end(), run));
+		ghosts.FindAndRemove(run);
 	}
 }
 
@@ -253,7 +191,7 @@ void GhostEngine::StartRun(const char* fileName, bool shouldStart) {
 			if (shouldStart) {
 				run->StartRun();
 			}
-			ghosts.push_back(run);
+			ghosts.AddToTail(run);
 			Msg("Loaded run %s!\n",fileName);
 		}
 	}
@@ -265,34 +203,7 @@ void startRun_f (const CCommand &args) {
 	}
 }
 
-static int FileAutoComplete ( char const *partial, 
-							 char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-{
-	char fileDir[MAX_PATH];
-	int toReturn = 0;
-	char part[MAX_PATH];
-	char* toSearch[2] = {0};
-	strcpy(part, partial);
-	toSearch[0] = strtok(part, " ");
-	toSearch[1] = strtok(0, " ");
-	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
-		FileFindHandle_t findHandle; // note: FileFINDHandle
-		std::stringstream ss1;
-		ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
-		const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
-		for(int i = 0; pFilename; i++) {
-			std::stringstream ss;
-			ss << "gh_play " << pFilename;
-			Q_strcpy(commands[i], ss.str().c_str());
-			pFilename = filesystem->FindNext(findHandle);
-			toReturn = i + 1;
-		}
-		filesystem->FindClose(findHandle);
-	}
-	return toReturn; // number of entries
-}
-
-ConCommand start("gh_play", startRun_f, "Loads a ghost and immediately starts playing it.", 0, FileAutoComplete);
+ConCommand start("gh_play", startRun_f, "Loads a ghost and immediately starts playing it.", 0, GhostUtils::FileAutoComplete);
 
 void loadRun_f(const CCommand &args) {
 	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (Q_strcmp(args.Arg(1), "") != 0)) {
@@ -300,34 +211,7 @@ void loadRun_f(const CCommand &args) {
 	}
 }
 
-static int FileAutoCompleteLoad ( char const *partial, 
-								 char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-{
-	char fileDir[MAX_PATH];
-	int toReturn = 0;
-	char part[MAX_PATH];
-	char* toSearch[2] = {0};
-	strcpy(part, partial);
-	toSearch[0] = strtok(part, " ");
-	toSearch[1] = strtok(0, " ");
-	if (UTIL_GetModDir(fileDir, MAX_PATH)) {
-		FileFindHandle_t findHandle; // note: FileFINDHandle
-		std::stringstream ss1;
-		ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
-		const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
-		for(int i = 0; pFilename; i++) {
-			std::stringstream ss;
-			ss << "gh_load " << pFilename;
-			Q_strcpy(commands[i], ss.str().c_str());
-			pFilename = filesystem->FindNext(findHandle);
-			toReturn = i + 1;
-		}
-		filesystem->FindClose(findHandle);
-	}
-	return toReturn; // number of entries
-}
-
-ConCommand load("gh_load", loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", 0, FileAutoCompleteLoad);
+ConCommand load("gh_load", loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", 0, GhostUtils::FileAutoCompleteLoad);
 
 //Recursive until none left. 
 //Didn't want to bother with having the size of the vector change in mid-loop
@@ -342,11 +226,11 @@ void GhostEngine::restartAllGhosts() {
 	//So we have the data with a given start time, we need to reset the entity,
 	//but don't ruin the RunData in the GhostRun.
 	if (!isActive()) return;
-	for (unsigned int i = 0; i < ghosts.size(); i++) {
+	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun* it = ghosts[i];
 		if (it->ent && it->ent->isActive) {
 			Msg("Restarting ghost %s!\n",it->ghostName);
-			it->ent->EndRun(true);
+			it->ent->EndRun();
 			it->ent->clearRunData();
 			it->ent = NULL;
 			Q_strcpy(it->currentMap, it->RunData[0].map);
@@ -362,7 +246,7 @@ void GhostEngine::playAllGhosts() {
 	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
 	if (!isActive()) return;
 	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
-	for (unsigned int i = 0; i < ghosts.size(); i++) {
+	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun* it = ghosts[i];
 		Msg("Attempting to play ghost %s...\n", it->ghostName);
 		if(!(it->ent) || (!(it->ent->isActive))) {

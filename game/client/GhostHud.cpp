@@ -79,7 +79,6 @@ GhostHud::GhostHud(const char *pElementName) :
 	CHudElement(pElementName), Panel(NULL, "GhostHud")
 {
 	SetParent(g_pClientMode->GetViewport());
-	SetHiddenBits(HIDEHUD_PLAYERDEAD);
 }
 
 void GhostHud::Init()
@@ -94,8 +93,8 @@ void GhostHud::Init()
 void GhostHud::MsgFunc_GhostHud_RemoveGhost(bf_read &msg)  {
 	char string[256];
 	msg.ReadString(string, sizeof(string), true);
-	size_t ptr = atoi(string);
-	int size = ghosts.Size();
+	size_t ptr = Q_atoi(string);
+	int size = ghosts.Count();
 	for (int i = 0; i < size; i++) {
 		if (ghosts[i].runPtr == ptr) {
 			ghosts.Remove(i);
@@ -124,7 +123,7 @@ void GhostHud::MsgFunc_GhostHud_AddGhost(bf_read &msg) {
 	msg.ReadString(string, sizeof(string), true);
 	CUtlVector<const char*> vec;
 	splitByDelimiter(string, ":", vec);
-	size_t ptr = atoi(vec[0]);
+	size_t ptr = Q_atoi(vec[0]);
 	gd.runPtr = ptr;
 	Q_strcpy(gd.name, vec[1]);
 	Q_strcpy(gd.map, vec[2]);
@@ -138,12 +137,12 @@ void GhostHud::MsgFunc_GhostHud_UpdateGhost(bf_read &msg) {
 	msg.ReadString(string, sizeof(string), true);
 	CUtlVector<const char*> vec;
 	splitByDelimiter(string, ":", vec);
-	size_t ptr = atoi(vec[0]);
-	int size = ghosts.Size();
+	size_t ptr = Q_atoi(vec[0]);
+	int size = ghosts.Count();
 	for (int i = 0; i < size; i++ ) {
 		if (ghosts[i].runPtr == ptr) {
 			Q_strcpy(ghosts[i].map, vec[2]);
-			ghosts[i].step = atoi(vec[1]);
+			ghosts[i].step = Q_atoi(vec[1]);
 			break;
 		}
 	}
@@ -154,7 +153,7 @@ void GhostHud::Paint(void) {
 	surface()->DrawSetTextFont(m_hTextFont);
 	surface()->DrawSetTextColor(GetFgColor());
 	float yPos = text_ypos;
-	int size = ghosts.Size();
+	int size = ghosts.Count();
 	if (size > 0) {
 		if (size > 3) {
 			SetTall(initialTall + (15 * (size - 3)));

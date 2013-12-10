@@ -2868,7 +2868,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 				// FIXME: too many ss assume its safe to leave the npc is whatever sequence they were in before, so only slam their activity
 				//		  if they're playing a recognizable movement animation
 				//
-#ifdef HL2_EPISODIC
+/*#ifdef HL2_EPISODIC
 				// dvs: Check current activity rather than ideal activity. Since scripted NPCs early out in MaintainActivity,
 				//      they'll never reach their ideal activity if it's different from their current activity.
 				if ( GetActivity() == ACT_WALK || 
@@ -2878,7 +2878,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 				{
 					SetActivity( ACT_IDLE );
 				}
-#else
+#else*/
 				if ( GetIdealActivity() == ACT_WALK || 
 					 GetIdealActivity() == ACT_RUN || 
 					 GetIdealActivity() == ACT_WALK_AIM || 
@@ -2886,7 +2886,7 @@ void CAI_BaseNPC::StartTask( const Task_t *pTask )
 				{
 					SetActivity( ACT_IDLE );
 				}
-#endif // HL2_EPISODIC
+//#endif // HL2_EPISODIC
 			}
 			break;
 		}

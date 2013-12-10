@@ -16,7 +16,7 @@ using namespace vgui;
 
 #include "vgui_helpers.h"
 
-#define BUFSIZE (sizeof("00:00.0000")+1)
+#define BUFSIZE (sizeof("00:00:00.0000")+1)
 
 static ConVar bla_timer("gh_timer", "1",
 						FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DEMO, 
@@ -205,7 +205,7 @@ void CHudTimer::Reset()
 void CHudTimer::MsgFunc_BlaTimer_TimeToBeat(bf_read &msg)
 {
 	m_flSecondsRecord = msg.ReadFloat();
-	DevMsg("CHudTimer: map record is %02d:%02d.%04d\n",
+	DevMsg("CHudTimer: map record is %03d:%02d.%04d\n",
 		(int)(m_flSecondsRecord / 60), ((int)m_flSecondsRecord) % 60,
 		(int)((m_flSecondsRecord - (int)m_flSecondsRecord) * 10000));
 }
@@ -239,9 +239,11 @@ void CHudTimer::MsgFunc_BlaTimer_StateChange(bf_read &msg)
 void CHudTimer::Paint(void)
 {
 	// Convert the current time to a string.
-	Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d.%04d",
-		(int)(m_flSecondsTime / 60), ((int)m_flSecondsTime) % 60,
-		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));
+	Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
+		(int)(m_flSecondsTime / 3600),//hours
+		(int)(m_flSecondsTime / 60), //minutes
+		((int)m_flSecondsTime) % 60,//seconds
+		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));//millis
 
 	// msg.ReadString(m_pszString, sizeof(m_pszString));
 	g_pVGuiLocalize->ConvertANSIToUnicode(

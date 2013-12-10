@@ -1,12 +1,6 @@
 #include "cbase.h"
 #include "GhostEntity.h"
 #include "GhostEngine.h"
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <vector>
 #include "ghosthud.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -56,7 +50,7 @@ void GhostEntity::Spawn( void )
 	SetSolid( SOLID_NONE );
 	SetRenderMode(kRenderTransColor);
 	SetRenderColor(ghostRed, ghostGreen, ghostBlue);
-	SetRenderColorA(100);
+	SetRenderColorA(50);
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -65,6 +59,7 @@ void GhostEntity::StartRun() {
 	//Msg("Starting run with Rundata: %i, Step %i, Name %s, Starttime: %f, This: %i\n", RunData.size(), step, m_gName, startTime, this);
 	SetNextThink(gpGlobals->curtime + 0.005f);
 }
+
 void GhostEntity::CreateTrail(){
 	trail = CreateEntityByName("env_spritetrail");
 	trail->SetAbsOrigin(GetAbsOrigin());
@@ -74,15 +69,14 @@ void GhostEntity::CreateTrail(){
 	trail->KeyValue("lifetime", trailLength);
 	trail->SetRenderColor(trailRed, trailGreen, trailBlue);
 	//trail->KeyValue("rendercolor", spriteColor.GetString());
-	trail->KeyValue("renderamt", "255");
+	trail->KeyValue("renderamt", "50");
 	trail->KeyValue("startwidth", "9.5");
 	trail->KeyValue("endwidth", "1.05");
 	DispatchSpawn(trail);
 }
 
 void GhostEntity::updateStep() {
-	if (inReset) return;
-	const size_t runsize = RunData.size();
+	const size_t runsize = RunData.Count();
 	if (step < 0 || step >= runsize) {
 		currentStep = nextStep = NULL;
 		return;
@@ -123,14 +117,14 @@ void GhostEntity::Think( void )
 		updateStep();
 		HandleGhost();
 	} else {
-		EndRun(false);
+		EndRun();
 	}
 	SetNextThink( gpGlobals->curtime + 0.01f );
 }
 
 void GhostEntity::HandleGhost() {
 	if (currentStep == NULL) {		
-		if (!inReset) GhostEngine::getEngine()->getRun(this)->EndRun();
+		GhostEngine::getEngine()->getRun(this)->EndRun();
 	} 
 	else {	
 		if (!isActive) {
@@ -183,21 +177,16 @@ void GhostEntity::SetGhostModel(const char * newmodel) {
 	}
 }
 
-void GhostEntity::EndRun(bool reset) {
+void GhostEntity::EndRun() {
 	SetNextThink(0.0f);
 	if (trail) trail->Remove();
-	inReset = reset;
-	if (reset) {
-		step = 0;
-		startTime = 0.0f;
-	}
 	Remove();
 	isActive = false;
 }
 
-void GhostEntity::SetRunData(std::vector<RunLine>& toSet) {
+void GhostEntity::SetRunData(CUtlVector<RunLine>& toSet) {
 	RunData = toSet;
 }
 void GhostEntity::clearRunData() {
-	RunData.clear();	
+	RunData.RemoveAll();	
 }

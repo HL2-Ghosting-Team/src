@@ -3491,6 +3491,9 @@
     <ClInclude Include="ghosthud.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
+    <ClInclude Include="GhostUtils.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\choreoobjects.lib">

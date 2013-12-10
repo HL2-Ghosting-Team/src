@@ -1081,6 +1081,7 @@
     <ClInclude Include="GhostEntity.h" />
     <ClInclude Include="ghosthud.h" />
     <ClInclude Include="GhostRun.h" />
+    <ClInclude Include="GhostUtils.h" />
     <ClInclude Include="gib.h" />
     <ClInclude Include="globalstate.h" />
     <ClInclude Include="globalstate_private.h" />

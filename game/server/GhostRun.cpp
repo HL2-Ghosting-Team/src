@@ -1,14 +1,11 @@
 #include "cbase.h"
 #include "GhostRun.h"
-#include <string>
-#include <vector>
-#include <fstream>
-#include "stdio.h"
-#include <sstream>
 #include "GhostEngine.h"
 #include "filesystem.h"
-#include "tier0/memdbgon.h"
 #include "ghosthud.h"
+#include "GhostUtils.h"
+
+#include "tier0/memdbgon.h"
 
 
 GhostRun::GhostRun(){ent = NULL;}
@@ -25,47 +22,16 @@ bool GhostRun::openRun(const char* fileName) {
 		Msg("File is null!\n");
 		return false;
 	}
-	RunData.clear();
+	RunData.RemoveAll();
 	//--------------------------------------HEADER ---------------------------------------------
 	unsigned char firstByte;
-	filesystem->Read(&firstByte, sizeof(firstByte), myFile);
-	if (firstByte == 0xAF) {
-		//Msg("File is uncompressed!\n");
-	} //TODO add the compressed byte check
-	else {
-		Msg("File is malformed!\n");
+	if (!GhostUtils::readHeader(filesystem, myFile, firstByte, typeGhost, ghostRed, ghostGreen, ghostBlue, trailRed, trailGreen, trailBlue, trailLength)) {
 		return false;
 	}
-	filesystem->Read(&typeGhost, sizeof(typeGhost), myFile); 
-	filesystem->Read(&ghostRed, sizeof(ghostRed), myFile); 
-	filesystem->Read(&ghostGreen, sizeof(ghostGreen), myFile); 
-	filesystem->Read(&ghostBlue, sizeof(ghostBlue), myFile); 
-	filesystem->Read(&trailRed, sizeof(trailRed), myFile); 
-	filesystem->Read(&trailGreen, sizeof(trailGreen), myFile); 
-	filesystem->Read(&trailBlue, sizeof(trailBlue), myFile); 
-	filesystem->Read(&trailLength, sizeof(trailLength), myFile); 
 	//-------------------------------------END HEADER -----------------------------------------
 	while (!filesystem->EndOfFile(myFile)) {
-		struct RunLine l;
-		unsigned char mapNameLength;
-		filesystem->Read((void*)&mapNameLength, sizeof(mapNameLength), myFile);
-		char* mapName = new char[mapNameLength + 1];
-		filesystem->Read((void*)mapName, mapNameLength, myFile);
-		mapName[mapNameLength] = 0;
-		unsigned char nameLength;
-		filesystem->Read((void*)&nameLength, sizeof(nameLength), myFile);
-		char* playerName = new char[nameLength + 1];
-		filesystem->Read((void*)playerName, nameLength, myFile);
-		playerName[nameLength] = 0;
-		Q_strcpy(l.map, mapName);
-		Q_strcpy(l.name, playerName);
-		filesystem->Read(&l.tim, sizeof(l.tim), myFile);//time
-		filesystem->Read(&l.x, sizeof(l.x), myFile);//x
-		filesystem->Read(&l.y, sizeof(l.y), myFile);//y
-		filesystem->Read(&l.z, sizeof(l.z), myFile);//z
-		RunData.push_back(l);
-		delete[] mapName;
-		delete[] playerName;
+		struct RunLine l = GhostUtils::readLine(filesystem, myFile);
+		RunData.AddToTail(l);
 	}
 	Q_strcpy(currentMap, RunData[0].map);
 	Q_strcpy(ghostName, RunData[0].name);
@@ -127,9 +93,9 @@ void GhostRun::StartRun() {
 void GhostRun::EndRun() {
 	if (ent) {
 		ent->clearRunData();
-		ent->EndRun(false);
+		ent->EndRun();
 	}
 	GhostHud::hud()->RemoveGhost((size_t)this);
-	RunData.clear();
+	RunData.RemoveAll();
 	GhostEngine::getEngine()->EndRun(this);
 }

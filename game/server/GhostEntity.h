@@ -1,5 +1,4 @@
 #include "cbase.h"
-#include <vector>
 #include "runline.h"
 
 #pragma once
@@ -15,7 +14,6 @@ public:
 	const char* GetGhostModel();
 	unsigned int step;
 	bool isActive;
-	bool inReset;
 	
 	//convars
 	unsigned char trailLength;
@@ -28,12 +26,12 @@ public:
 	unsigned char ghostBlue;
 	float startTime;
 	char currentMap[32];
-	void SetRunData( std::vector<RunLine>& toSet);
+	void SetRunData(CUtlVector<RunLine>&);
 	void SetGhostName( const char* );
 	void SetGhostModel( const char* );
 	//Increments the steps intelligently.
 	void updateStep();
-	void EndRun(bool);
+	void EndRun();
 	void CreateTrail();
 	void StartRun();
 	void HandleGhost();
@@ -53,6 +51,6 @@ private:
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	CBaseEntity *trail;
-	std::vector<RunLine> RunData;
+	CUtlVector<RunLine> RunData;
 	
 };

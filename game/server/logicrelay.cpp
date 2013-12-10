@@ -15,6 +15,8 @@
 #include "eventqueue.h"
 #include "soundent.h"
 #include "logicrelay.h"
+#include "GhostEngine.h"
+#include "timer.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -142,8 +144,18 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 {
 	if ((!m_bDisabled) && (!m_bWaitForRefire))
 	{
+		//CREDIT TO NoFaTe a.k.a. OrfeasZ
+		const char* name = GetEntityName().ToCStr();
+		if (Q_strcmp(name, "logic_start_train") == 0) {//trainstation_01 (train starts moving)
+			BlaTimer::timer()->Start();											//start the timer,
+			GhostEngine::getEngine()->playAllGhosts();							//play the ghosts,			
+			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_record"); //and record
+		} 
+		else if (Q_strcmp(name, "logic_portal_final_end_2") == 0) {//breen_01 (slomo boom/teleport)
+			BlaTimer::timer()->Stop();//stop the timer
+			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_stop");//and stop recording
+		}
 		m_OnTrigger.FireOutput( inputdata.pActivator, this );
-		
 		if (m_spawnflags & SF_REMOVE_ON_FIRE)
 		{
 			UTIL_Remove(this);
