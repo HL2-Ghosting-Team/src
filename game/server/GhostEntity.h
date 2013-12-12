@@ -1,5 +1,6 @@
 #include "cbase.h"
 #include "runline.h"
+#include "GhostUtils.h"
 
 #pragma once
 class GhostEntity : public CBaseAnimating
@@ -14,19 +15,19 @@ public:
 	const char* GetGhostModel();
 	unsigned int step;
 	bool isActive;
+	GhostUtils::GhostData ghostData;
 	
 	//convars
-	unsigned char trailLength;
+	/*unsigned char trailLength;
 	unsigned char trailRed;
 	unsigned char trailGreen;
 	unsigned char trailBlue;
-	unsigned char typeGhost;//0 = solid, 1 = translucent
 	unsigned char ghostRed;
 	unsigned char ghostGreen;
-	unsigned char ghostBlue;
+	unsigned char ghostBlue;*/
 	float startTime;
 	char currentMap[32];
-	void SetRunData(CUtlVector<RunLine>&);
+	//void SetRunData(CUtlVector<RunLine>&);
 	void SetGhostName( const char* );
 	void SetGhostModel( const char* );
 	//Increments the steps intelligently.
@@ -51,6 +52,6 @@ private:
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	CBaseEntity *trail;
-	CUtlVector<RunLine> RunData;
+	//CUtlVector<RunLine> RunData;
 	
 };

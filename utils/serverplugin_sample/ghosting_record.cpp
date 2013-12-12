@@ -24,6 +24,7 @@
 #include "tier2/tier2.h"
 #include "game/server/iplayerinfo.h"
 #include "GhostEngine.h"
+#include "GhostUtils.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -45,8 +46,6 @@ bool mapNameDirty = true;
 bool playerNameDirty = true;
 bool firstTime = true;
 FileHandle_t myFile = NULL;
-std::vector<unsigned char> ghostColor;
-std::vector<unsigned char> trailColor;
 
 static void onNameChange(IConVar *var, const char* pOldValue, float fOldValue) {
 	if(Q_strcmp(((ConVar*)var)->GetString(), pOldValue) != 0) { 
@@ -93,11 +92,19 @@ public:
 
 	virtual int GetCommandIndex() { return m_iClientCommandIndex; }
 
+	static void record( const CCommand &args);
+	static void endRun(const CCommand &args);
+
+	static char playerName[256];
+	static char fileName[256];
+
 private:
 	int m_iClientCommandIndex;
-
-	void record( const CCommand &args);
+	
 };
+
+char GhostingRecord::playerName[256];
+char GhostingRecord::fileName[256];
 
 
 // 
@@ -161,8 +168,6 @@ void writeHeader() {
 	if (!myFile) return;
 	unsigned char first = 0xAF;
 	filesystem->Write(&first, sizeof(first), myFile); 
-	unsigned char gt = gpGlobals->ghostType;
-	filesystem->Write(&gt, sizeof(gt), myFile);//ghost type
 	unsigned char gr = gpGlobals->ghostRed;
 	filesystem->Write(&gr, sizeof(gr), myFile);//ghost red
 	unsigned char gg = gpGlobals->ghostGreen;
@@ -257,29 +262,57 @@ CON_COMMAND ( gh_stop, "Stop recording.") {
 	myFile = NULL;
 }
 
-
-int GetFileCount(const char *searchkey)
-{
-	std::stringstream sstr;
-	sstr << searchkey << "_*.run";
-	int toReturn = 0;
-	FileFindHandle_t findHandle; // note: FileFINDHandle
-	const char *pFilename = filesystem->FindFirstEx(sstr.str().c_str(), "MOD", &findHandle );
-	for(int i = 0; pFilename; i++) {
-		pFilename = filesystem->FindNext(findHandle);
-		toReturn = i + 1;
+static void splitByDelimeter(const char* toSplit, const char* delim, CUtlVector<const char*> &toCopyInto) {
+		char toBeSplit[1000];
+		Q_strcpy(toBeSplit, toSplit);
+		char* parts[100] = {0};
+		unsigned int index = 0;
+		parts[index] = strtok(toBeSplit, delim);
+		while(parts[index] != 0)
+		{
+			toCopyInto.AddToTail(parts[index]);
+			++index;
+			parts[index] = strtok(0, " ");
+		}  
 	}
-	filesystem->FindClose(findHandle);
-	return toReturn; // number of entries
+
+void GhostingRecord::endRun(const CCommand &args) {
+	shouldRecord = false;
+	if (myFile) {
+		Msg("Stopping recording\n");
+		filesystem->Close(myFile);
+	}
+	mapName[0] = 0;
+	CUtlVector<const char*> vec;
+	char newName[MAX_PATH];
+	V_StripExtension(fileName, newName, MAX_PATH);
+	splitByDelimeter(newName, "_", vec);//just incase it's a Ghost_###.run file
+	Q_strcpy(newName, vec[0]);
+	Q_strcat(newName, "-", MAX_PATH);
+	char finalTime[32];
+	GhostUtils::getFinalTime(NULL, fileName, true, false, finalTime);
+	Msg("Final time: %s\n", finalTime);
+	Q_strcat(newName, finalTime, MAX_PATH);
+	Q_strcat(newName, ".run", MAX_PATH);
+	Msg("File 1 %s     File 2 %s\n", fileName, newName);
+	//V_SetExtension(newName, ".run", MAX_PATH);
+	filesystem->PrintOpenedFiles();
+	if (filesystem->RenameFile(fileName, newName, "MOD")) {
+		Msg("File %s renamed to %s!\n",fileName, newName);
+	}
+	fileName[0] = 0;
+	myFile = NULL;
 }
 
-void record(const CCommand &args) {
+static ConCommand endRun("gh_endrun", GhostingRecord::endRun, 
+						 "Ends the recording of the run and names the file of your run based on your time.", FCVAR_HIDDEN);
+
+
+void GhostingRecord::record(const CCommand &args) {
 	if (shouldRecord) {
 		Msg("Already recording!\n");
 		return;
 	}
-	char playerName[256];
-	char fileName[256];
 	std::string test = std::string(ghName.GetString());
 	while (test.find(' ') != std::string::npos) {
 		Q_strcpy(playerName, test.replace(test.find(' '), 1, "").c_str());
@@ -289,19 +322,17 @@ void record(const CCommand &args) {
 	if (args.ArgC() > 1 && (Q_strcmp(args.Arg(1), "") != 0)) {
 		Q_strcpy(fileName, args.Arg(1));//specified name
 	} else {
-		std::stringstream sstr;
-		int count = GetFileCount(playerName);
-		char fileish[MAX_PATH];
-		std::sprintf(fileish, "%03d", (count + 1));
-		sstr << playerName << "_" << fileish;
-		Q_strcpy(fileName, sstr.str().c_str());
+		//gets the next avaliable filename for starting to record.
+		char fileNameGenerated[MAX_PATH];
+		GhostUtils::generateFileName(playerName, fileNameGenerated);
+		if (fileNameGenerated) {
+			Q_strcpy(fileName, fileNameGenerated);
+		}
 	}
-	char fileName2[256];
-	Q_strcpy(fileName2, fileName);
-	V_SetExtension(fileName2, ".run", sizeof(fileName2));
-	if (!(filesystem->FileExists(fileName2, "MOD"))) {
-		Msg("Recording to %s...\n", fileName2);
-		myFile = filesystem->Open(fileName2, "w+b", "MOD");
+	V_SetExtension(fileName, ".run", sizeof(fileName));
+	if (!(filesystem->FileExists(fileName, "MOD"))) {//this is for the user-specified file
+		Msg("Recording to %s...\n", fileName);
+		myFile = filesystem->Open(fileName, "w+b", "MOD");
 		shouldRecord = true;
 		firstTime = true;
 		startTime = (float) Plat_FloatTime();
@@ -313,7 +344,7 @@ void record(const CCommand &args) {
 	}
 }
 
-ConCommand rec( "gh_record", record, "Records a run.", 0);
+static ConCommand rec( "gh_record", GhostingRecord::record, "Records a run.", 0);
 
 
 //---------------------------------------------------------------------------------

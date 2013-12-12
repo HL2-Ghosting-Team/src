@@ -28,6 +28,11 @@ GhostEngine* GhostEngine::getEngine() {
 	return instance;
 }
 
+static void listRunC(const CCommand &args) {
+	GhostUtils::listRun(args.Arg(1));
+}
+
+static ConCommand listRun("gh_listrun", listRunC, "Gives an in-depth look at a ghost file.", 0, GhostUtils::FileAutoCompleteList);
 
 
 static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldValue) {
@@ -37,7 +42,7 @@ static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldV
 	if (toCheck < 0) {
 		var->SetValue(((ConVar*)var)->GetDefault());
 	}
-	gpGlobals->ghostType = (unsigned char)((ConVar*)var)->GetInt();
+	gpGlobals->trailLength = (unsigned char)((ConVar*)var)->GetInt();
 }
 static ConVar spriteLength("gh_trail_length", "5", 
 						   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
@@ -96,21 +101,6 @@ static ConVar ghostColor("gh_ghost_color", "237 133 60",
 						 "The R G B (0 - 255) values for color for your ghost.", onColorGChange);
 
 
-
-static void onGTypeChange(IConVar *var, const char* pOldValue, float fOldValue) {
-	int toCheck = ((ConVar*)var)->GetInt();
-	if (toCheck != 0 && toCheck != 1) {
-		var->SetValue(((ConVar*)var)->GetDefault());
-	}
-	gpGlobals->ghostType = (unsigned char)((ConVar*)var)->GetInt();
-}
-static ConVar ghostType("gh_ghost_type", "0", 
-						FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-						"Sets the type of ghost model.\n0 = Solid-fill arrow | 1 = Translucent-style arrow", onGTypeChange);
-unsigned char GhostEngine::getGhostType() {
-	return (unsigned char) ghostType.GetInt();
-}
-
 void GhostEngine::initVars() {
 	CUtlVector<unsigned char> vec;
 	GhostUtils::getColor(ghostColor.GetString(), vec);
@@ -124,8 +114,6 @@ void GhostEngine::initVars() {
 	gpGlobals->trailGreen = vec[1];
 	gpGlobals->trailBlue = vec[2];
 	Msg("Current trail color: R: %i, G: %i, B: %i\n", gpGlobals->trailRed, gpGlobals->trailGreen, gpGlobals->trailBlue);
-	gpGlobals->ghostType = (unsigned char)ghostType.GetInt();
-	Msg("Current ghost type: %i\n", gpGlobals->ghostType);
 	gpGlobals->trailLength = (unsigned char)spriteLength.GetInt();
 	Msg("Current trail length: %i\n", gpGlobals->trailLength);
 }
@@ -137,8 +125,12 @@ void GhostEngine::initVars() {
 //Called before every level load to transfer the data of
 //the last ghost, for continuity's sake.
 void GhostEngine::transferGhostData() {
-	for (int i = 0; i < ghosts.Count(); i++) {
+	int size = ghosts.Count();
+	for (int i = 0; i < size; i++) {
 		GhostRun * it = ghosts[i];
+		if (!it->ent) {//in user-reset
+			continue;
+		}
 		Msg("Transferring ghost data for %s!\n", it->ghostName);
 		if (Q_strlen(it->ent->currentMap) != 0) {
 			Q_strcpy(it->currentMap, it->ent->currentMap);
@@ -151,7 +143,8 @@ void GhostEngine::transferGhostData() {
 }
 
 GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
-	for (int i = 0; i < ghosts.Count(); i++) {
+	int size = ghosts.Count();
+	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];
 		if (!it || !it->ent) continue;
 		if (it->ent == toGet) {
@@ -168,7 +161,7 @@ void GhostEngine::ResetGhosts(void) {
 	for (int i = 0; i < ghosts.Count(); i++) {
 		GhostRun* it = ghosts[i];
 		//Msg("Attempting to reset ghost: %s...\n", it->ghostName);
-		if (it) it->ResetGhost();
+		if (it) it->StartRun(true);
 	}
 }
 
@@ -189,7 +182,7 @@ void GhostEngine::StartRun(const char* fileName, bool shouldStart) {
 	} else {
 		if (run->openRun(fileName)) {
 			if (shouldStart) {
-				run->StartRun();
+				run->StartRun(false);
 			}
 			ghosts.AddToTail(run);
 			Msg("Loaded run %s!\n",fileName);
@@ -226,14 +219,15 @@ void GhostEngine::restartAllGhosts() {
 	//So we have the data with a given start time, we need to reset the entity,
 	//but don't ruin the RunData in the GhostRun.
 	if (!isActive()) return;
-	for (int i = 0; i < ghosts.Count(); i++) {
+	int size = ghosts.Count();
+	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];
 		if (it->ent && it->ent->isActive) {
 			Msg("Restarting ghost %s!\n",it->ghostName);
 			it->ent->EndRun();
 			it->ent->clearRunData();
 			it->ent = NULL;
-			Q_strcpy(it->currentMap, it->RunData[0].map);
+			Q_strcpy(it->currentMap, it->ghostData.RunData[0].map);
 			GhostHud::hud()->UpdateGhost((size_t)it, 0, "Resetting...");
 		}
 	}
@@ -246,11 +240,12 @@ void GhostEngine::playAllGhosts() {
 	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
 	if (!isActive()) return;
 	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
-	for (int i = 0; i < ghosts.Count(); i++) {
+	int size = ghosts.Count();
+	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];
 		Msg("Attempting to play ghost %s...\n", it->ghostName);
 		if(!(it->ent) || (!(it->ent->isActive))) {
-			it->StartRun();
+			it->StartRun(false);
 		}
 	}
 }

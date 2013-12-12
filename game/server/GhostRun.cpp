@@ -13,75 +13,63 @@ GhostRun::GhostRun(){ent = NULL;}
 GhostRun::~GhostRun(void){}
 
 bool GhostRun::openRun(const char* fileName) {
-	if (!fileName) return false;//this is just incase
+	/*if (!fileName) return false;//this is just incase
 	char file[256];
 	Q_strcpy(file, fileName);
 	V_SetExtension(file, ".run", sizeof(file));
 	FileHandle_t myFile = filesystem->Open(file, "rb", "MOD");
 	if (myFile == NULL) {
-		Msg("File is null!\n");
+	Msg("File is null!\n");
+	return false;
+	}*/
+	ghostData.RunData.RemoveAll();
+	if (GhostUtils::openRun(fileName, &ghostData)) {
+		Q_strcpy(currentMap, ghostData.RunData[0].map);
+		Q_strcpy(ghostName, ghostData.RunData[0].name);
+		GhostHud::hud()->AddGhost((size_t)this, ghostName, currentMap);
+		//filesystem->Close(myFile);
+		return true;
+	} else {
+		Msg("Could not open run %s!\n", fileName);
 		return false;
 	}
-	RunData.RemoveAll();
+	/*//RunData.RemoveAll();
 	//--------------------------------------HEADER ---------------------------------------------
 	unsigned char firstByte;
-	if (!GhostUtils::readHeader(filesystem, myFile, firstByte, typeGhost, ghostRed, ghostGreen, ghostBlue, trailRed, trailGreen, trailBlue, trailLength)) {
-		return false;
+	if (!(GhostUtils::readHeader(filesystem, myFile, firstByte, ghostRed, ghostGreen, ghostBlue, trailRed, trailGreen, trailBlue, trailLength))) {
+	return false;
 	}
 	//-------------------------------------END HEADER -----------------------------------------
 	while (!filesystem->EndOfFile(myFile)) {
-		struct RunLine l = GhostUtils::readLine(filesystem, myFile);
-		RunData.AddToTail(l);
-	}
-	Q_strcpy(currentMap, RunData[0].map);
-	Q_strcpy(ghostName, RunData[0].name);
-	GhostHud::hud()->AddGhost((size_t)this, ghostName, currentMap);
-	filesystem->Close(myFile);
-	return true;
+	struct RunLine l = GhostUtils::readLine(filesystem, myFile);
+	RunData.AddToTail(l);
+	}*/
+
 }
 
-void GhostRun::ResetGhost() {
-	if (inReset) return;//if we've been reset by the user, ignore us
-	GhostEntity* tempGhost = static_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
-	tempGhost->typeGhost = typeGhost;
-	tempGhost->ghostRed = ghostRed;
-	tempGhost->ghostGreen = ghostGreen;
-	tempGhost->ghostBlue = ghostBlue;
-	tempGhost->trailRed = trailRed;
-	tempGhost->trailGreen = trailGreen;
-	tempGhost->trailBlue = trailBlue;
-	tempGhost->trailLength = trailLength;
-	tempGhost->SetRunData(RunData);
-	tempGhost->step = step;
-	tempGhost->SetGhostName(ghostName);
-	Q_strcpy(tempGhost->currentMap, currentMap);
-	if(DispatchSpawn(tempGhost) == 0) {
-		tempGhost->startTime = startTime;
-		tempGhost->StartRun();
-		ent = tempGhost;
-	}
-}
-
-void GhostRun::StartRun() {
+//The "resetGhost" boolean is for level transitions, as the settings for the new ghost
+//need to be updated. IT IS NOT RESTARTING THE RUN!
+void GhostRun::StartRun(bool resetGhost) {
 	GhostEntity * entity = static_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
 	if (entity) {
-		entity->typeGhost = typeGhost;
-		entity->ghostRed = ghostRed;
-		entity->ghostGreen = ghostGreen;
-		entity->ghostBlue = ghostBlue;
-		entity->trailRed = trailRed;
-		entity->trailGreen = trailGreen;
-		entity->trailBlue = trailBlue;
-		entity->trailLength = trailLength;
+		GhostUtils::copyGhostData(&ghostData, &entity->ghostData);
 		entity->SetGhostName(ghostName);
-		entity->SetRunData(RunData);
 		Q_strcpy(entity->currentMap, currentMap);
-		entity->SetAbsOrigin(Vector(RunData[0].x, RunData[0].y, RunData[0].z));
-		if (DispatchSpawn(entity) == 0) {
-			entity->startTime = (float) Plat_FloatTime();
-			entity->step = 0;
-			entity->StartRun();
-			ent = entity;
+		if (resetGhost) {
+			entity->step = step;
+			if(DispatchSpawn(entity) == 0) {
+				entity->startTime = startTime;
+				entity->StartRun();
+				ent = entity;
+			}
+		} else {
+			entity->SetAbsOrigin(Vector(ghostData.RunData[0].x, ghostData.RunData[0].y, ghostData.RunData[0].z));
+			if (DispatchSpawn(entity) == 0) {
+				entity->startTime = (float) Plat_FloatTime();
+				entity->step = 0;
+				entity->StartRun();
+				ent = entity;
+			}
 		}
 	}
 }
@@ -96,6 +84,6 @@ void GhostRun::EndRun() {
 		ent->EndRun();
 	}
 	GhostHud::hud()->RemoveGhost((size_t)this);
-	RunData.RemoveAll();
+	ghostData.RunData.RemoveAll();
 	GhostEngine::getEngine()->EndRun(this);
 }

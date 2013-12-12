@@ -41,7 +41,7 @@ void GhostEntity::Spawn( void )
 {
 	Precache();
 	if (shouldDraw.GetBool()) {
-		if (trailLength > 0) {
+		if (ghostData.trailLength > 0) {
 			CreateTrail();
 		}
 	}
@@ -49,7 +49,7 @@ void GhostEntity::Spawn( void )
 	SetModel("models/cone.mdl");
 	SetSolid( SOLID_NONE );
 	SetRenderMode(kRenderTransColor);
-	SetRenderColor(ghostRed, ghostGreen, ghostBlue);
+	SetRenderColor(ghostData.ghostRed, ghostData.ghostGreen, ghostData.ghostBlue);
 	SetRenderColorA(50);
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
@@ -66,8 +66,8 @@ void GhostEntity::CreateTrail(){
 	trail->SetParent(this);
 	trail->KeyValue("rendermode", "5");
 	trail->KeyValue("spritename", "materials/sprites/laser.vmt");
-	trail->KeyValue("lifetime", trailLength);
-	trail->SetRenderColor(trailRed, trailGreen, trailBlue);
+	trail->KeyValue("lifetime", ghostData.trailLength);
+	trail->SetRenderColor(ghostData.trailRed, ghostData.trailGreen, ghostData.trailBlue);
 	//trail->KeyValue("rendercolor", spriteColor.GetString());
 	trail->KeyValue("renderamt", "50");
 	trail->KeyValue("startwidth", "9.5");
@@ -76,26 +76,26 @@ void GhostEntity::CreateTrail(){
 }
 
 void GhostEntity::updateStep() {
-	const size_t runsize = RunData.Count();
+	const size_t runsize = ghostData.RunData.Count();
 	if (step < 0 || step >= runsize) {
 		currentStep = nextStep = NULL;
 		return;
 	}
-	currentStep = &RunData[step];
+	currentStep = &ghostData.RunData[step];
 	float currentTime = ((float)Plat_FloatTime() - startTime);
 	if (currentTime > currentStep->tim) {//catching up to a fast ghost, you came in late
 		unsigned int x = step + 1;
 		while (++x < runsize) {
-			if (Q_strlen(RunData[x].map) > 0) {
-				Q_strcpy(currentMap, RunData[x].map);
+			if (Q_strlen(ghostData.RunData[x].map) > 0) {
+				Q_strcpy(currentMap, ghostData.RunData[x].map);
 			}
-			if (currentTime < RunData[x].tim) {
+			if (currentTime < ghostData.RunData[x].tim) {
 				break;
 			}
 		}
 		step = x - 1;
 	}
-	currentStep = &RunData[step];//update it to the new step
+	currentStep = &ghostData.RunData[step];//update it to the new step
 	//here's where we can get current time: currentStep->tim
 	GhostRun* thisrun = GhostEngine::getEngine()->getRun(this);
 	GhostHud::hud()->UpdateGhost((size_t)thisrun, step, currentMap);
@@ -103,7 +103,7 @@ void GhostEntity::updateStep() {
 	if (step == (runsize - 1)) {//if it's on the last step
 		thisrun->EndRun();
 	} else {
-		nextStep = &RunData[step+1];
+		nextStep = &ghostData.RunData[step+1];
 	}
 }
 //-----------------------------------------------------------------------------
@@ -184,9 +184,6 @@ void GhostEntity::EndRun() {
 	isActive = false;
 }
 
-void GhostEntity::SetRunData(CUtlVector<RunLine>& toSet) {
-	RunData = toSet;
-}
 void GhostEntity::clearRunData() {
-	RunData.RemoveAll();	
+	ghostData.RunData.RemoveAll();	
 }
