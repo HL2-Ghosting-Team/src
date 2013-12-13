@@ -13,7 +13,6 @@ public:
 	void StartRun(bool);
 	//ends the run for good
 	void EndRun();
-	void addRunData(RunLine);
 	bool openRun(const char*);
 	GhostEntity* ent;
 	float startTime;
@@ -26,13 +25,4 @@ public:
 	bool inReset;
 
 	GhostUtils::GhostData ghostData;
-
-	//convars
-	/*unsigned char trailLength;
-	unsigned char trailRed;
-	unsigned char trailGreen;
-	unsigned char trailBlue;
-	unsigned char ghostRed;
-	unsigned char ghostGreen;
-	unsigned char ghostBlue;*/
 };

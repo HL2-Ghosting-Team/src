@@ -13,15 +13,6 @@ GhostRun::GhostRun(){ent = NULL;}
 GhostRun::~GhostRun(void){}
 
 bool GhostRun::openRun(const char* fileName) {
-	/*if (!fileName) return false;//this is just incase
-	char file[256];
-	Q_strcpy(file, fileName);
-	V_SetExtension(file, ".run", sizeof(file));
-	FileHandle_t myFile = filesystem->Open(file, "rb", "MOD");
-	if (myFile == NULL) {
-	Msg("File is null!\n");
-	return false;
-	}*/
 	ghostData.RunData.RemoveAll();
 	if (GhostUtils::openRun(fileName, &ghostData)) {
 		Q_strcpy(currentMap, ghostData.RunData[0].map);
@@ -33,18 +24,6 @@ bool GhostRun::openRun(const char* fileName) {
 		Msg("Could not open run %s!\n", fileName);
 		return false;
 	}
-	/*//RunData.RemoveAll();
-	//--------------------------------------HEADER ---------------------------------------------
-	unsigned char firstByte;
-	if (!(GhostUtils::readHeader(filesystem, myFile, firstByte, ghostRed, ghostGreen, ghostBlue, trailRed, trailGreen, trailBlue, trailLength))) {
-	return false;
-	}
-	//-------------------------------------END HEADER -----------------------------------------
-	while (!filesystem->EndOfFile(myFile)) {
-	struct RunLine l = GhostUtils::readLine(filesystem, myFile);
-	RunData.AddToTail(l);
-	}*/
-
 }
 
 //The "resetGhost" boolean is for level transitions, as the settings for the new ghost

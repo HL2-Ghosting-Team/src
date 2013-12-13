@@ -23,7 +23,6 @@
 #include "Color.h"
 #include "tier2/tier2.h"
 #include "game/server/iplayerinfo.h"
-#include "GhostEngine.h"
 #include "GhostUtils.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
@@ -100,25 +99,12 @@ public:
 
 private:
 	int m_iClientCommandIndex;
-	
+
 };
 
 char GhostingRecord::playerName[256];
 char GhostingRecord::fileName[256];
 
-
-// 
-// The plugin is a static singleton that is exported as an interface
-//
-GhostingRecord g_EmtpyServerPlugin;
-EXPOSE_SINGLE_INTERFACE_GLOBALVAR(GhostingRecord, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, g_EmtpyServerPlugin );
-
-//---------------------------------------------------------------------------------
-// Purpose: constructor/destructor
-//---------------------------------------------------------------------------------
-GhostingRecord::GhostingRecord(){m_iClientCommandIndex = 0;}
-
-GhostingRecord::~GhostingRecord(){}
 //---------------------------------------------------------------------------------
 // Purpose: called when the plugin is loaded, load the interface we need from the engine
 //---------------------------------------------------------------------------------
@@ -166,7 +152,7 @@ void writeLine(const char* map, const char* name, float ti, float x, float y, fl
 
 void writeHeader() {
 	if (!myFile) return;
-	unsigned char first = 0xAF;
+	unsigned char first = 0xAF;//This is HL2. 0xAE = portal.
 	filesystem->Write(&first, sizeof(first), myFile); 
 	unsigned char gr = gpGlobals->ghostRed;
 	filesystem->Write(&gr, sizeof(gr), myFile);//ghost red
@@ -189,9 +175,7 @@ void writeHeader() {
 //---------------------------------------------------------------------------------
 void GhostingRecord::LevelInit( char const *pMapName )
 {
-	if (shouldRecord) {
-		mapNameDirty = true;
-	}
+	mapNameDirty = true;
 }
 
 //---------------------------------------------------------------------------------
@@ -221,10 +205,10 @@ void GhostingRecord::GameFrame( bool simulating ) {
 					const char* mapToWrite = "";
 					const char* playerToWrite = "";
 					if (mapNameDirty) {
-						if(Q_strcmp(mapName, STRING(gpGlobals->mapname)) != 0) {
-							mapToWrite = STRING(gpGlobals->mapname);
-							Q_strcpy(mapName, mapToWrite);
-						}
+						//We used to double check to optimize file size, but
+						//now it's needed for load-less time detection.
+						mapToWrite = STRING(gpGlobals->mapname);
+						Q_strcpy(mapName, mapToWrite);
 						mapNameDirty = false;
 					}
 					if (playerNameDirty) {
@@ -252,10 +236,10 @@ void GhostingRecord::LevelShutdown( void ) // !!!!this can get called multiple t
 // Purpose: called when a client spawns into a server (i.e as they begin to play)
 //---------------------------------------------------------------------------------
 
-CON_COMMAND ( gh_stop, "Stop recording.") {
+CON_COMMAND ( gh_stop, "Stop recording your current run.") {
 	shouldRecord = false;
 	if (myFile) {
-		Msg("Stopping recording\n");
+		Msg("Stopping recording...\n");
 		filesystem->Close(myFile);
 	}
 	mapName[0] = 0;
@@ -263,45 +247,45 @@ CON_COMMAND ( gh_stop, "Stop recording.") {
 }
 
 static void splitByDelimeter(const char* toSplit, const char* delim, CUtlVector<const char*> &toCopyInto) {
-		char toBeSplit[1000];
-		Q_strcpy(toBeSplit, toSplit);
-		char* parts[100] = {0};
-		unsigned int index = 0;
-		parts[index] = strtok(toBeSplit, delim);
-		while(parts[index] != 0)
-		{
-			toCopyInto.AddToTail(parts[index]);
-			++index;
-			parts[index] = strtok(0, " ");
-		}  
-	}
+	char toBeSplit[1000];
+	Q_strcpy(toBeSplit, toSplit);
+	char* parts[100] = {0};
+	unsigned int index = 0;
+	parts[index] = strtok(toBeSplit, delim);
+	while(parts[index] != 0)
+	{
+		toCopyInto.AddToTail(parts[index]);
+		++index;
+		parts[index] = strtok(0, " ");
+	}  
+}
 
 void GhostingRecord::endRun(const CCommand &args) {
 	shouldRecord = false;
 	if (myFile) {
-		Msg("Stopping recording\n");
+		Msg("Stopping recording...\n");
+		filesystem->Flush(myFile);
 		filesystem->Close(myFile);
+		char newName[MAX_PATH];
+		//Due to the possibility of you getting the same time
+		//as another run, I must make the files have the number retained
+		//in the name, to provide uniqueness. You can remove it
+		//any time you want (which I really recommend).
+		V_StripExtension(fileName, newName, sizeof(newName));
+		Q_strcat(newName, "-", MAX_PATH);
+		char finalTime[32];
+		GhostUtils::getFinalTime(NULL, fileName, true, false, finalTime);
+		Q_strcat(newName, finalTime, MAX_PATH);
+		Q_strcat(newName, ".run", MAX_PATH);
+		filesystem->Close(myFile);
+		if (filesystem->RenameFile(fileName, newName, "MOD")) {
+			Msg("File %s renamed to %s!\n",fileName, newName);
+		}
+		fileName[0] = 0;
+		mapName[0] = 0;
+		myFile = NULL;
 	}
-	mapName[0] = 0;
-	CUtlVector<const char*> vec;
-	char newName[MAX_PATH];
-	V_StripExtension(fileName, newName, MAX_PATH);
-	splitByDelimeter(newName, "_", vec);//just incase it's a Ghost_###.run file
-	Q_strcpy(newName, vec[0]);
-	Q_strcat(newName, "-", MAX_PATH);
-	char finalTime[32];
-	GhostUtils::getFinalTime(NULL, fileName, true, false, finalTime);
-	Msg("Final time: %s\n", finalTime);
-	Q_strcat(newName, finalTime, MAX_PATH);
-	Q_strcat(newName, ".run", MAX_PATH);
-	Msg("File 1 %s     File 2 %s\n", fileName, newName);
-	//V_SetExtension(newName, ".run", MAX_PATH);
-	filesystem->PrintOpenedFiles();
-	if (filesystem->RenameFile(fileName, newName, "MOD")) {
-		Msg("File %s renamed to %s!\n",fileName, newName);
-	}
-	fileName[0] = 0;
-	myFile = NULL;
+
 }
 
 static ConCommand endRun("gh_endrun", GhostingRecord::endRun, 
@@ -367,3 +351,14 @@ void GhostingRecord::OnEdictFreed(const edict_t *edict){}
 void GhostingRecord::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax ){}
 void GhostingRecord::Pause( void ){}
 void GhostingRecord::UnPause( void ){}
+//---------------------------------------------------------------------------------
+// Purpose: constructor/destructor
+//---------------------------------------------------------------------------------
+GhostingRecord::GhostingRecord(){m_iClientCommandIndex = 0;}
+
+GhostingRecord::~GhostingRecord(){}
+// 
+// The plugin is a static singleton that is exported as an interface
+//
+GhostingRecord g_EmtpyServerPlugin;
+EXPOSE_SINGLE_INTERFACE_GLOBALVAR(GhostingRecord, IServerPluginCallbacks, INTERFACEVERSION_ISERVERPLUGINCALLBACKS, g_EmtpyServerPlugin );

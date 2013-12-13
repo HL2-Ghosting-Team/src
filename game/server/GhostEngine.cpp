@@ -158,7 +158,8 @@ GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 //handler for Level transitions, not resetting the run.
 //This gets called after the level inits again.
 void GhostEngine::ResetGhosts(void) {
-	for (int i = 0; i < ghosts.Count(); i++) {
+	int size = ghosts.Count();
+	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];
 		//Msg("Attempting to reset ghost: %s...\n", it->ghostName);
 		if (it) it->StartRun(true);

@@ -157,7 +157,7 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 		//breen_01 (slomo boom/teleport), stop the timer and the ghost recording
 		else if (Q_strcmp(name, "logic_portal_final_end_2") == 0) {
 			BlaTimer::timer()->Stop();
-			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_stop");
+			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_endrun");
 		}
 
 		/*For whatever fucking reason Episode 2's engine causes a softlock

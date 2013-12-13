@@ -238,12 +238,23 @@ void CHudTimer::MsgFunc_BlaTimer_StateChange(bf_read &msg)
 
 void CHudTimer::Paint(void)
 {
-	// Convert the current time to a string.
+	int hours = (int)(m_flSecondsTime / 3600.0f);
+	int minutes = (int)(((m_flSecondsTime / 3600.0f) - hours) * 60.0f);
+	int seconds = (int)(((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
+	int millis = (int)(((((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 1000.0f);
+
 	Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
+				hours,//hours
+				minutes, //minutes
+				seconds,//seconds
+				millis);//millis
+
+	// Convert the current time to a string.
+	/*Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
 		(int)(m_flSecondsTime / 3600),//hours
 		(int)(m_flSecondsTime / 60), //minutes
 		((int)m_flSecondsTime) % 60,//seconds
-		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));//millis
+		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));//millis*/
 
 	// msg.ReadString(m_pszString, sizeof(m_pszString));
 	g_pVGuiLocalize->ConvertANSIToUnicode(

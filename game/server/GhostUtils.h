@@ -57,14 +57,11 @@ public:
 		} else {
 			if (vec.Count() == 3) {
 				fixInts(vec);
-				//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
 			} else {
-				//Msg("Vector not full: size is %i ... Resetting to default!\n", vec.size());
 				vec.RemoveAll();
 				vec[0] = 237;
 				vec[1] = 133;
 				vec[2] = 60;
-				//Msg("Setting color to be: R: %i G: %i B: %i A: %i\n", atoi(vec[0]), atoi(vec[1]), atoi(vec[2]), atoi(vec[3]));
 			}
 		}
 	}
@@ -175,28 +172,26 @@ public:
 	}
 
 
-	static bool readHeader(IFileSystem* fs, FileHandle_t myFile, unsigned char& firstByte, 
-		unsigned char& ghostRed,unsigned char& ghostGreen, unsigned char& ghostBlue, 
-		unsigned char& trailRed,unsigned char& trailGreen, unsigned char& trailBlue, unsigned char& trailLength) {
+	static bool readHeader(IFileSystem* fs, FileHandle_t myFile, GhostData* data) {
 
-			fs->Read(&firstByte, sizeof(firstByte), myFile);
-			if (firstByte == 0xAF) {//HL2
-				fs->Read(&ghostRed, sizeof(ghostRed), myFile); 
-				fs->Read(&ghostGreen, sizeof(ghostGreen), myFile); 
-				fs->Read(&ghostBlue, sizeof(ghostBlue), myFile); 
-				fs->Read(&trailRed, sizeof(trailRed), myFile); 
-				fs->Read(&trailGreen, sizeof(trailGreen), myFile); 
-				fs->Read(&trailBlue, sizeof(trailBlue), myFile); 
-				fs->Read(&trailLength, sizeof(trailLength), myFile);
-				return true;
-			} else if (firstByte == 0xAE) {
-				Warning("This is a ghost file for Portal!\n");
-				return false;
-			}//Portal will be 0xAE
-			else {
-				Warning("File is malformed!\n");
-				return false;
-			}
+		fs->Read(&data->firstByte, sizeof(data->firstByte), myFile);
+		if (data->firstByte == 0xAF) {//HL2
+			fs->Read(&data->ghostRed, sizeof(data->ghostRed), myFile); 
+			fs->Read(&data->ghostGreen, sizeof(data->ghostGreen), myFile); 
+			fs->Read(&data->ghostBlue, sizeof(data->ghostBlue), myFile); 
+			fs->Read(&data->trailRed, sizeof(data->trailRed), myFile); 
+			fs->Read(&data->trailGreen, sizeof(data->trailGreen), myFile); 
+			fs->Read(&data->trailBlue, sizeof(data->trailBlue), myFile); 
+			fs->Read(&data->trailLength, sizeof(data->trailLength), myFile);
+			return true;
+		} else if (data->firstByte == 0xAE) {
+			Warning("This is a ghost file for Portal!\n");
+			return false;
+		}//Portal will be 0xAE
+		else {
+			Warning("File is malformed!\n");
+			return false;
+		}
 	}
 
 	static RunLine readLine(IFileSystem* fs, FileHandle_t myFile) {
@@ -235,10 +230,9 @@ public:
 			Warning("File is null!\n");
 			return false;
 		}
-		if (!(readHeader(filesystem, myFile, ghostData->firstByte, ghostData->ghostRed, ghostData->ghostGreen, ghostData->ghostBlue, 
-			ghostData->trailRed, ghostData->trailGreen, ghostData->trailBlue, ghostData->trailLength))) {
-				Warning("Could not read the header!\n");
-				return false;
+		if (!(readHeader(filesystem, myFile, ghostData))) {
+			Warning("Could not read the header!\n");
+			return false;
 		}
 		while (!filesystem->EndOfFile(myFile)) {
 			struct RunLine l = readLine(filesystem, myFile);
@@ -287,17 +281,21 @@ public:
 
 	static void formatTime(float m_flSecondsTime, bool isEndRun, char* into) {
 		char m_pszString[32];
+		int hours = (int)(m_flSecondsTime / 3600);
+		int minutes = (int)(((m_flSecondsTime / 3600) - hours) * 60);
+		int seconds = (int)(((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60);
 		if (isEndRun) {//for the filename
 			Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh%02dm%02ds",
-				(int)(m_flSecondsTime / 3600),//hours
-				(int)(m_flSecondsTime / 60), //minutes
-				((int)m_flSecondsTime) % 60);//seconds
+				hours,//hours
+				minutes, //minutes
+				seconds);//seconds
 		} else {
+			int millis = (int)(((((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60) - seconds) * 1000);
 			Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
-				(int)(m_flSecondsTime / 3600),//hours
-				(int)(m_flSecondsTime / 60), //minutes
-				((int)m_flSecondsTime) % 60,//seconds
-				(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));//millis
+				hours,//hours
+				minutes, //minutes
+				seconds,//seconds
+				millis);//millis
 		}
 		Q_strcpy(into, m_pszString);
 	}
@@ -305,52 +303,40 @@ public:
 	//the isEndRun boolean just makes it round off and use '-'s instead of ':'s
 	static void getFinalTime(GhostData* toReadFrom, const char* fileName, bool isEndRun, bool loadLess, char* into) {
 		char intoTime[32];
+		struct GhostData gd;
 		if (toReadFrom == NULL) {
-			struct GhostData gd;
 			if (openRun(fileName, &gd)) {
-				float finalTime = 0.0f;
-				if (loadLess) {
-					int size = gd.RunData.Count();
-					float offset = 0.0f;
-					for (int i = 0; i < (size - 1); i++) {
-						RunLine cS = gd.RunData[i];
-						RunLine nS = gd.RunData[i + 1];
-						float difference = (nS.tim - cS.tim);
-						if (difference >= 1.0f) {//this provides a rough detection of loads
-							offset += difference;
-						}
-					}
-					finalTime = gd.RunData[gd.RunData.Count() - 1].tim - offset;
-					//subtract the offsets from loads to get actual ingame time
-				} else {
-					finalTime = gd.RunData[gd.RunData.Count() - 1].tim;
-				}
-				formatTime(finalTime, isEndRun, intoTime);
-				Q_strcpy(into, intoTime);
+				toReadFrom = &gd;
+			} else {
+				Warning("Could not open run!\n");
+				return;
 			}
-		} else {
-			float finalTime = 0.0f;
-			if (loadLess) {
-				int size = toReadFrom->RunData.Count();
-				float offset = 0.0f;
-				for (int i = 0; i < (size - 1); i++) {
-					RunLine cS = toReadFrom->RunData[i];
-					RunLine nS = toReadFrom->RunData[i + 1];
-					float difference = (nS.tim - cS.tim);
-					if (difference >= 1.0f) {//this provides a rough detection of loads
+		}
+		float finalTime = 0.0f;
+		if (loadLess) {
+			int size = toReadFrom->RunData.Count();
+			float offset = 0.0f;
+			for (int i = 0; i < (size - 1); i++) {
+				RunLine cS = toReadFrom->RunData[i];
+				RunLine nS = toReadFrom->RunData[i + 1];
+				//we're only detecting loads, not pause time
+				//this means we're comparing the maps to see when they're different,
+				//indicating a load.
+				if (Q_strlen(cS.map) == 0) {
+					if (Q_strlen(nS.map) > 0) {
+						float difference = (nS.tim - cS.tim);
 						offset += difference;
 					}
 				}
-				finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim - offset;
-				//subtract the offsets from loads to get actual ingame time
-			} else {
-				finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim;
 			}
-			formatTime(finalTime, isEndRun, intoTime);
-			Q_strcpy(into, intoTime);
+			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim - offset;
+			//subtract the offsets from loads to get actual ingame time
+		} else {
+			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim;
 		}
+		formatTime(finalTime, isEndRun, intoTime);
+		Q_strcpy(into, intoTime);
 	}
-
 
 
 	static void listRun(const char* fileName) {
