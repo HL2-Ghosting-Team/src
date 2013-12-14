@@ -18,7 +18,7 @@ bool GhostEngine::isActive() {
 	return ghosts.Count() != 0;
 }
 
-GhostEngine * GhostEngine::instance = NULL;
+GhostEngine* GhostEngine::instance = NULL;
 
 GhostEngine* GhostEngine::getEngine() {
 	if (instance == NULL) {

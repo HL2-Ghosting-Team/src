@@ -249,13 +249,6 @@ void CHudTimer::Paint(void)
 				seconds,//seconds
 				millis);//millis
 
-	// Convert the current time to a string.
-	/*Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
-		(int)(m_flSecondsTime / 3600),//hours
-		(int)(m_flSecondsTime / 60), //minutes
-		((int)m_flSecondsTime) % 60,//seconds
-		(int)((m_flSecondsTime - (int)m_flSecondsTime) * 10000));//millis*/
-
 	// msg.ReadString(m_pszString, sizeof(m_pszString));
 	g_pVGuiLocalize->ConvertANSIToUnicode(
 		m_pszString, m_pwCurrentTime, sizeof(m_pwCurrentTime));

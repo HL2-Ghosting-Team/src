@@ -16,15 +16,6 @@ public:
 	unsigned int step;
 	bool isActive;
 	GhostUtils::GhostData ghostData;
-	
-	//convars
-	/*unsigned char trailLength;
-	unsigned char trailRed;
-	unsigned char trailGreen;
-	unsigned char trailBlue;
-	unsigned char ghostRed;
-	unsigned char ghostGreen;
-	unsigned char ghostBlue;*/
 	float startTime;
 	char currentMap[32];
 	//void SetRunData(CUtlVector<RunLine>&);
@@ -52,6 +43,5 @@ private:
 	RunLine* currentStep; 
 	RunLine* nextStep;
 	CBaseEntity *trail;
-	//CUtlVector<RunLine> RunData;
 	
 };

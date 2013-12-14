@@ -178,6 +178,40 @@ const QAngle &PrevMainViewAngles()
 {
 	return g_vecPrevRenderAngles;
 }
+//Credit to https://developer.valvesoftware.com/wiki/Rear_View_Mirror
+//whoever wrote that (Zevensoft?)
+void CViewRender::DrawMirror( const CViewSetup &viewSet )
+{
+	C_BasePlayer *localPlayer = C_BasePlayer::GetLocalPlayer();
+	if(!localPlayer)
+		return;
+ 
+	//Copy our current View.
+	CViewSetup mirrorView = viewSet;
+ 
+	//Get our camera render target.
+	ITexture *pRenderTarget = GetCameraTexture();
+ 
+	//Our view information, Origin, View Direction, window size
+	//	location on material, and visual ratios.
+	mirrorView.width = 256;
+	mirrorView.height = 128;
+	mirrorView.x = 0;
+	mirrorView.y = 0;
+	mirrorView.origin = localPlayer->EyePosition();//->GetAbsOrigin();// + Vector( 0, 0, 50);
+	mirrorView.angles = localPlayer->GetRenderAngles();
+	mirrorView.angles.x -= 15;
+	mirrorView.angles.y = AngleNormalize( mirrorView.angles.y + 180 );
+	mirrorView.fov = localPlayer->GetFOV();
+	mirrorView.m_bOrtho = false;
+	mirrorView.m_flAspectRatio = 1.0f;
+ 
+	//Set the view up and output the scene to our RenderTarget (Camera Material).
+ 	render->Push3DView( mirrorView, VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR,/* true, */pRenderTarget, m_Frustum );
+	ViewDrawScene( false, SKYBOX_3DSKYBOX_VISIBLE, mirrorView, 0, VIEW_MONITOR );
+ 	render->PopView( m_Frustum );//pop it like it's hot
+}
+
 
 //-----------------------------------------------------------------------------
 // Compute the world->camera transform

@@ -1500,6 +1500,12 @@
     <ClCompile Include="GhostHud.cpp">
       <Filter>Source Files\Ghost</Filter>
     </ClCompile>
+    <ClCompile Include="HudMirror.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="bla_speedmeter.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="achievement_notification_panel.h">
@@ -3256,6 +3262,9 @@
     </ClInclude>
     <ClInclude Include="game_controls\vguitextwindow.h">
       <Filter>game_controls Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HudMirror.h">
+      <Filter>Source Files\Ghost</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

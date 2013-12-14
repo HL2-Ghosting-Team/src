@@ -237,6 +237,7 @@
     <ClCompile Include="..\shared\beam_shared.cpp" />
     <ClCompile Include="beamdraw.cpp" />
     <ClCompile Include="..\..\public\bone_accessor.cpp" />
+    <ClCompile Include="bla_speedmeter.cpp" />
     <ClCompile Include="bone_merge_cache.cpp" />
     <ClCompile Include="..\..\public\bone_setup.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -426,6 +427,7 @@
     <ClCompile Include="history_resource.cpp" />
     <ClCompile Include="hltvcamera.cpp" />
     <ClCompile Include="hud.cpp" />
+    <ClCompile Include="HudMirror.cpp" />
     <ClCompile Include="hud_animationinfo.cpp" />
     <ClCompile Include="hl2\hud_autoaim.cpp" />
     <ClCompile Include="hud_basechat.cpp" />
@@ -858,6 +860,7 @@
     <ClInclude Include="..\shared\particle_parse.h" />
     <ClInclude Include="..\shared\particle_property.h" />
     <ClInclude Include="..\shared\point_bonusmaps_accessor.h" />
+    <ClInclude Include="HudMirror.h" />
     <ClInclude Include="vgui_avatarimage.h" />
     <ClInclude Include="viewdebug.h" />
     <ClInclude Include="viewpostprocess.h" />

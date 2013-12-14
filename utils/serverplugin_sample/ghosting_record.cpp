@@ -47,8 +47,22 @@ bool firstTime = true;
 FileHandle_t myFile = NULL;
 
 static void onNameChange(IConVar *var, const char* pOldValue, float fOldValue) {
-	if(Q_strcmp(((ConVar*)var)->GetString(), pOldValue) != 0) { 
+	if (!((ConVar*)var)->GetString()) return;
+	if (!pOldValue) return;
+	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
+		return;
+	}
+	std::string test = std::string(((ConVar*)var)->GetString());
+	char playerNameTest[32];
+	bool changedName = false;
+	while (test.find(' ') != std::string::npos) {
+		Q_strcpy(playerNameTest, test.replace(test.find(' '), 1, "").c_str());
+		changedName = true;
+	}
+	
+	if (changedName) { 
 		playerNameDirty = true;
+		var->SetValue(playerNameTest);
 	}
 }
 static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_DEMO, "Sets the name of your ghost.\nThis can also be used as the base name of your files!", onNameChange);

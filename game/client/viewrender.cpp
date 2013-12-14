@@ -49,6 +49,8 @@
 #include "renderparm.h"
 #include "con_nprint.h"
 
+#include "HudMirror.h"
+
 #ifdef PORTAL
 //#include "C_Portal_Player.h"
 #include "portal_render_targets.h"
@@ -1874,6 +1876,10 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 			DrawMonitors( view );	
 		}
 	#endif
+
+		if(g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 70 && CHudMirror::shouldDrawMirror()) {
+			DrawMirror( view );
+		}
 
 		g_bRenderingView = true;
 
