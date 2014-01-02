@@ -437,6 +437,7 @@
     <ClCompile Include="genericmonster.cpp" />
     <ClCompile Include="GhostEngine.cpp" />
     <ClCompile Include="GhostEntity.cpp" />
+    <ClCompile Include="GhostRecord.cpp" />
     <ClCompile Include="GhostRun.cpp" />
     <ClCompile Include="gib.cpp" />
     <ClCompile Include="globals.cpp" />
@@ -1080,6 +1081,7 @@
     <ClInclude Include="GhostEngine.h" />
     <ClInclude Include="GhostEntity.h" />
     <ClInclude Include="ghosthud.h" />
+    <ClInclude Include="GhostRecord.h" />
     <ClInclude Include="GhostRun.h" />
     <ClInclude Include="GhostUtils.h" />
     <ClInclude Include="gib.h" />
@@ -1124,6 +1126,7 @@
     <ClInclude Include="networkstringtable_gamedll.h" />
     <ClInclude Include="..\..\public\networkstringtabledefs.h" />
     <ClInclude Include="..\shared\obstacle_pushaway.h" />
+    <ClInclude Include="OnlineGhostRun.h" />
     <ClInclude Include="particle_fire.h" />
     <ClInclude Include="particle_light.h" />
     <ClInclude Include="..\shared\particle_parse.h" />

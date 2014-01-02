@@ -15,7 +15,7 @@
 
 //Is the engine supporting any ghosts right now?
 bool GhostEngine::isActive() {
-	return ghosts.Count() != 0;
+	return (ghosts.Count() != 0);// || (onlineGhosts.Count() != 0);
 }
 
 GhostEngine* GhostEngine::instance = NULL;
@@ -27,6 +27,15 @@ GhostEngine* GhostEngine::getEngine() {
 	}
 	return instance;
 }
+
+bool GhostEngine::isOnline() {
+	return isOnlineMode;
+}
+
+void GhostEngine::setOnlineMode(bool newBool) {
+	isOnlineMode = newBool;
+}
+
 
 static void listRunC(const CCommand &args) {
 	GhostUtils::listRun(args.Arg(1));
@@ -128,10 +137,10 @@ void GhostEngine::transferGhostData() {
 	int size = ghosts.Count();
 	for (int i = 0; i < size; i++) {
 		GhostRun * it = ghosts[i];
-		if (!it->ent) {//in user-reset
+		Msg("Transferring ghost data for %s!\n", it->ghostName);
+		if (!it->ent || !it->isPlaying) {//in user-reset or not started
 			continue;
 		}
-		Msg("Transferring ghost data for %s!\n", it->ghostName);
 		if (Q_strlen(it->ent->currentMap) != 0) {
 			Q_strcpy(it->currentMap, it->ent->currentMap);
 		} else {//this should never happen, just incase though
@@ -161,8 +170,8 @@ void GhostEngine::ResetGhosts(void) {
 	int size = ghosts.Count();
 	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];
-		//Msg("Attempting to reset ghost: %s...\n", it->ghostName);
-		if (it) it->StartRun(true);
+		Msg("Attempting to reset ghost: %s...\n", it->ghostName, it->step);
+		if (it && it->isPlaying) it->StartRun(true);
 	}
 }
 
@@ -228,6 +237,9 @@ void GhostEngine::restartAllGhosts() {
 			it->ent->EndRun();
 			it->ent->clearRunData();
 			it->ent = NULL;
+			it->isPlaying = false;
+			it->step = 0;
+			it->startTime = 0.0f;
 			Q_strcpy(it->currentMap, it->ghostData.RunData[0].map);
 			GhostHud::hud()->UpdateGhost((size_t)it, 0, "Resetting...");
 		}
@@ -240,7 +252,6 @@ void GhostEngine::restartAllGhosts() {
 void GhostEngine::playAllGhosts() {
 	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
 	if (!isActive()) return;
-	//Msg("Attempting to play all ghosts: %i...\n", ghosts.size());
 	int size = ghosts.Count();
 	for (int i = 0; i < size; i++) {
 		GhostRun* it = ghosts[i];

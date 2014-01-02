@@ -168,6 +168,10 @@ void writeHeader() {
 	if (!myFile) return;
 	unsigned char first = 0xAF;//This is HL2. 0xAE = portal.
 	filesystem->Write(&first, sizeof(first), myFile); 
+	unsigned char version = 0x00;
+	filesystem->Write(&version, sizeof(version), myFile); 
+	unsigned char game = 0x00;//HL2
+	filesystem->Write(&game, sizeof(game), myFile);
 	unsigned char gr = gpGlobals->ghostRed;
 	filesystem->Write(&gr, sizeof(gr), myFile);//ghost red
 	unsigned char gg = gpGlobals->ghostGreen;

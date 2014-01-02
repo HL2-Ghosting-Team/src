@@ -46,11 +46,11 @@ void GhostEntity::Spawn( void )
 		}
 	}
 	RemoveEffects(EF_NODRAW);
-	SetModel("models/cone.mdl");
+	SetModel(MODEL);
 	SetSolid( SOLID_NONE );
 	SetRenderMode(kRenderTransColor);
 	SetRenderColor(ghostData.ghostRed, ghostData.ghostGreen, ghostData.ghostBlue);
-	SetRenderColorA(50);
+	SetRenderColorA(75);
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -69,7 +69,7 @@ void GhostEntity::CreateTrail(){
 	trail->KeyValue("lifetime", ghostData.trailLength);
 	trail->SetRenderColor(ghostData.trailRed, ghostData.trailGreen, ghostData.trailBlue);
 	//trail->KeyValue("rendercolor", spriteColor.GetString());
-	trail->KeyValue("renderamt", "50");
+	trail->KeyValue("renderamt", "75");
 	trail->KeyValue("startwidth", "9.5");
 	trail->KeyValue("endwidth", "1.05");
 	DispatchSpawn(trail);
@@ -112,13 +112,14 @@ void GhostEntity::updateStep() {
 void GhostEntity::Think( void )
 {
 	CBaseAnimating::Think();
-	if (Q_strlen(m_gName) != 0) {
-		if (!IsEffectActive(EF_NODRAW)) EntityText(0, m_gName, 0);
-		updateStep();
-		HandleGhost();
-	} else {
-		EndRun();
-	}
+
+		if (Q_strlen(m_gName) != 0) {
+			if (!IsEffectActive(EF_NODRAW)) EntityText(0, m_gName, 0);
+			updateStep();
+			HandleGhost();
+		} else {
+			EndRun();
+		}
 	SetNextThink( gpGlobals->curtime + 0.01f );
 }
 

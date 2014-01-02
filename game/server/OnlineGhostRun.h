@@ -5,10 +5,10 @@
 
 #pragma once
 
-class GhostRun {
+class OnlineGhostRun {
 public:
-	GhostRun(void);
-	~GhostRun(void);
+	OnlineGhostRun(void);
+	~OnlineGhostRun(void);
 
 	void StartRun(bool);
 	//ends the run for good
@@ -16,13 +16,13 @@ public:
 	bool openRun(const char*);
 	GhostEntity* ent;
 	float startTime;
+	//CUtlVector<RunLine> RunData;
 	unsigned int step;
 	//Not very subject to change, however, it can.
 	char ghostName[32];
 	//Subject to change, since this is a placeholder for the map the ghost.
 	char currentMap[32];
 	bool inReset;
-	bool isPlaying;
 
 	GhostUtils::GhostData ghostData;
 };

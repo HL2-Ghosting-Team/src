@@ -17,8 +17,10 @@ bool GhostRun::openRun(const char* fileName) {
 	if (GhostUtils::openRun(fileName, &ghostData)) {
 		Q_strcpy(currentMap, ghostData.RunData[0].map);
 		Q_strcpy(ghostName, ghostData.RunData[0].name);
-		GhostHud::hud()->AddGhost((size_t)this, ghostName, currentMap);
-		//filesystem->Close(myFile);
+		startTime = 0.0f;
+		step = 0;
+		isPlaying = false;
+		GhostHud::hud()->AddGhost((size_t)this, ghostName, "Not playing yet!");
 		return true;
 	} else {
 		Msg("Could not open run %s!\n", fileName);
@@ -42,6 +44,7 @@ void GhostRun::StartRun(bool resetGhost) {
 				ent = entity;
 			}
 		} else {
+			isPlaying = true;
 			entity->SetAbsOrigin(Vector(ghostData.RunData[0].x, ghostData.RunData[0].y, ghostData.RunData[0].z));
 			if (DispatchSpawn(entity) == 0) {
 				entity->startTime = (float) Plat_FloatTime();
@@ -64,5 +67,6 @@ void GhostRun::EndRun() {
 	}
 	GhostHud::hud()->RemoveGhost((size_t)this);
 	ghostData.RunData.RemoveAll();
+	step = 0;
 	GhostEngine::getEngine()->EndRun(this);
 }

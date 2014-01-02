@@ -149,6 +149,8 @@ public:
 	}
 
 	static struct GhostData {
+		unsigned char version;
+		unsigned char game;
 		unsigned char trailLength;
 		unsigned char trailRed;
 		unsigned char trailGreen;
@@ -161,6 +163,8 @@ public:
 	};
 
 	static void copyGhostData(GhostData* old, GhostData* newG) {
+		newG->version = old->version;
+		newG->game = old->game;
 		newG->ghostBlue = old->ghostBlue;
 		newG->ghostGreen = old->ghostGreen;
 		newG->ghostRed = old->ghostRed;
@@ -173,9 +177,10 @@ public:
 
 
 	static bool readHeader(IFileSystem* fs, FileHandle_t myFile, GhostData* data) {
-
-		fs->Read(&data->firstByte, sizeof(data->firstByte), myFile);
-		if (data->firstByte == 0xAF) {//HL2
+		fs->Read(&data->firstByte, sizeof(data->firstByte), myFile);//useless
+		fs->Read(&data->version, sizeof(data->version), myFile);
+		fs->Read(&data->game, sizeof(data->game), myFile);
+		if (data->game == 0x00) {//HL2
 			fs->Read(&data->ghostRed, sizeof(data->ghostRed), myFile); 
 			fs->Read(&data->ghostGreen, sizeof(data->ghostGreen), myFile); 
 			fs->Read(&data->ghostBlue, sizeof(data->ghostBlue), myFile); 
@@ -184,10 +189,10 @@ public:
 			fs->Read(&data->trailBlue, sizeof(data->trailBlue), myFile); 
 			fs->Read(&data->trailLength, sizeof(data->trailLength), myFile);
 			return true;
-		} else if (data->firstByte == 0xAE) {
+		} else if (data->game == 0x01) {
 			Warning("This is a ghost file for Portal!\n");
 			return false;
-		}//Portal will be 0xAE
+		}
 		else {
 			Warning("File is malformed!\n");
 			return false;
@@ -285,12 +290,50 @@ public:
 		int minutes = (int)(((m_flSecondsTime / 3600) - hours) * 60);
 		int seconds = (int)(((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60);
 		if (isEndRun) {//for the filename
-			Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh%02dm%02ds",
-				hours,//hours
-				minutes, //minutes
-				seconds);//seconds
+			if (hours > 0) {
+				if (minutes > 0) {
+					if (seconds > 0) {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh%02dm%02ds",
+							hours,//hours
+							minutes, //minutes
+							seconds);//seconds
+					} else {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh%02dm",
+						hours,//hours
+						minutes); //minutes
+					}
+				} else {
+					if (seconds > 0) {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh%02ds",
+							hours,//hours
+							seconds);//seconds
+					} else {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dh",
+						hours);//hours
+					}
+				}
+			} else {//hours is 0
+				if (minutes > 0) {
+					if (seconds > 0) {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dm%02ds",
+							minutes, //minutes
+							seconds);//seconds
+					} else {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02dm",
+						minutes); //minutes
+					}
+				} else {
+					if (seconds > 0) {
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%02ds",
+							seconds);//seconds
+					} else {
+						int millis = (int)(((((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60) - seconds) * 10000);
+						Q_snprintf(m_pszString, sizeof(m_pszString), "%04dmillis", millis);
+					}
+				}
+			}
 		} else {
-			int millis = (int)(((((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60) - seconds) * 1000);
+			int millis = (int)(((((((m_flSecondsTime / 3600) - hours) * 60) - minutes) * 60) - seconds) * 10000);
 			Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
 				hours,//hours
 				minutes, //minutes

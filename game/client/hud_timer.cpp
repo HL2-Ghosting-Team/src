@@ -241,7 +241,7 @@ void CHudTimer::Paint(void)
 	int hours = (int)(m_flSecondsTime / 3600.0f);
 	int minutes = (int)(((m_flSecondsTime / 3600.0f) - hours) * 60.0f);
 	int seconds = (int)(((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);
-	int millis = (int)(((((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 1000.0f);
+	int millis = (int)(((((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f) - seconds) * 10000.0f);
 
 	Q_snprintf(m_pszString, sizeof(m_pszString), "%02d:%02d:%02d.%04d",
 				hours,//hours
@@ -260,7 +260,7 @@ void CHudTimer::Paint(void)
 
 	//surface()->DrawPrintText(L"TIME", wcslen(L"TIME"));
 	// Draw current time.
-	//surface()->DrawSetTextFont(surface()->GetFontTall(m_hTextFont));
+	surface()->DrawSetTextFont(surface()->GetFontTall(m_hTextFont));
 	surface()->DrawSetTextPos(digit_xpos, digit_ypos);
 	surface()->DrawPrintText(m_pwCurrentTime, wcslen(m_pwCurrentTime));
 }

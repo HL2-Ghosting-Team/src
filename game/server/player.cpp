@@ -596,6 +596,7 @@ CBasePlayer::CBasePlayer( )
 CBasePlayer::~CBasePlayer( )
 {
 	VPhysicsDestroyObject();
+	delete STRING(pl.netname);
 }
 
 //-----------------------------------------------------------------------------

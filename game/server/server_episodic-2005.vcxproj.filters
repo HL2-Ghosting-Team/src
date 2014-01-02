@@ -1755,6 +1755,9 @@
     <ClCompile Include="GhostRun.cpp">
       <Filter>Source Files\Ghost</Filter>
     </ClCompile>
+    <ClCompile Include="GhostRecord.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\achievement_saverestore.h">
@@ -3492,6 +3495,12 @@
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
     <ClInclude Include="GhostUtils.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="OnlineGhostRun.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostRecord.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
   </ItemGroup>

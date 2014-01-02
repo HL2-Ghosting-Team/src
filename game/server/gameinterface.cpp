@@ -89,6 +89,7 @@
 //ghosting
 #include "GhostEngine.h"
 #include "timer.h"
+#include "GhostRecord.h"
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 #include "bot/bot.h"
@@ -1049,6 +1050,7 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 			EndCheckChainedActivate( !( pClass->GetEFlags() & EFL_KILLME ) ); 
 		}
 	}
+	GhostRecord::mapNameDirty = true;
 	GhostEngine::getEngine()->ResetGhosts();
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
@@ -1139,6 +1141,36 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 	// FIXME:  Should this only occur on the final tick?
 	UpdateAllClientData();
+
+	if (GhostRecord::shouldRecord) {
+		CBasePlayer* player = UTIL_GetLocalPlayer();
+		if (player) {
+			float timet = (((float)Plat_FloatTime()) - GhostRecord::startTime);
+				Vector loc = player->EyePosition();
+				if( GhostRecord::firstTime) {
+					GhostRecord::writeHeader();
+					GhostRecord::firstTime = false;
+				}
+				if ( timet >= GhostRecord::nextTime ) {//see if we should update again
+					const char* mapToWrite = "";
+					const char* playerToWrite = "";
+					if (GhostRecord::mapNameDirty) {
+						//We used to double check to optimize file size, but
+						//now it's needed for load-less time detection.
+						mapToWrite = STRING(gpGlobals->mapname);
+						Q_strcpy(GhostRecord::mapName, mapToWrite);
+						GhostRecord::mapNameDirty = false;
+					}
+					if (GhostRecord::playerNameDirty) {
+						playerToWrite = GhostRecord::playerName;
+						GhostRecord::playerNameDirty = false;
+					}
+					GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z); 
+					GhostRecord::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
+				}
+		}
+	}
+
 
 	if ( g_pGameRules )
 	{

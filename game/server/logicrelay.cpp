@@ -17,6 +17,7 @@
 #include "logicrelay.h"
 #include "GhostEngine.h"
 #include "timer.h"
+#include "GhostRecord.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -157,7 +158,7 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 		//breen_01 (slomo boom/teleport), stop the timer and the ghost recording
 		else if (Q_strcmp(name, "logic_portal_final_end_2") == 0) {
 			BlaTimer::timer()->Stop();
-			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_endrun");
+			GhostRecord::endRun();
 		}
 
 		/*For whatever fucking reason Episode 2's engine causes a softlock
