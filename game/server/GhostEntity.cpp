@@ -15,8 +15,7 @@ BEGIN_DATADESC(GhostEntity)
 
 	END_DATADESC()
 
-static ConVar shouldDraw("gh_draw_trails", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_DEMO,
-	"Toggles global drawing of trails on (1) or off (0).");
+
 
 const char* GhostEntity::GetGhostName() {
 	return m_gName;
@@ -40,7 +39,7 @@ const char* GhostEntity::GetGhostModel() {
 void GhostEntity::Spawn( void )
 {
 	Precache();
-	if (shouldDraw.GetBool()) {
+	if (GhostEngine::getEngine()->shouldDrawTrails()) {
 		if (ghostData.trailLength > 0) {
 			CreateTrail();
 		}

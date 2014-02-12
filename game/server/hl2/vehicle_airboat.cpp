@@ -1175,7 +1175,6 @@ void CPropAirboat::Think(void)
 	{
 		RechargeAmmo();
 	}
-
 	UpdateSound();
 	UpdatePropeller();
 	UpdateGauge();

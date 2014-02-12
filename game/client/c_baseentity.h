@@ -1261,6 +1261,8 @@ public:
 
 	float							m_flSimulationTime;
 	float							m_flOldSimulationTime;
+
+	float m_VehicleSpeed;
 	
 
 private:

@@ -37,6 +37,9 @@ void GhostRecord::onNameChange(IConVar *var, const char* pOldValue, float fOldVa
 
 static ConVar ghName("gh_name", "Ghost", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_DEMO, "Sets the name of your ghost.\nThis can also be used as the base name of your files!", GhostRecord::onNameChange);
 
+const char* GhostRecord::getGhostName() {
+	return ghName.GetString();
+}
 
 void GhostRecord::writeLine(const char* map, const char* name, float ti, float x, float y, float z) {
 	if (!myFile) return;

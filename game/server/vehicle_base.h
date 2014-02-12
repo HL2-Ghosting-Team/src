@@ -264,6 +264,7 @@ public:
 	CNetworkVector( m_vecGunCrosshair );
 	CNetworkVar( bool, m_bUnableToFire );
 	CNetworkVar( bool, m_bHasGun );
+	CNetworkVar( float, m_AirBoatSpeed);
 
 	CNetworkVar( bool, m_nScannerDisabledWeapons );
 	CNetworkVar( bool, m_nScannerDisabledVehicle );

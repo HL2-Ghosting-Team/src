@@ -276,6 +276,7 @@ public:
 
 	// Vehicles...
 	IClientVehicle			*GetVehicle();
+	C_BaseEntity            *GetVehicleEntity();
 
 	bool			IsInAVehicle() const	{ return ( NULL != m_hVehicle.Get() ) ? true : false; }
 	virtual void	SetVehicleRole( int nRole );
@@ -367,6 +368,7 @@ public:
 	
 	// Data for only the local player
 	CNetworkVarEmbedded( CPlayerLocalData, m_Local );
+	CNetworkVar(float, m_VehicleSpeed);
 
 	// Data common to all other players, too
 	CPlayerState			pl;
@@ -398,6 +400,8 @@ public:
 	float			m_flConstraintRadius;
 	float			m_flConstraintWidth;
 	float			m_flConstraintSpeedFactor;
+
+	
 
 protected:
 
@@ -610,6 +614,10 @@ inline IClientVehicle *C_BasePlayer::GetVehicle()
 { 
 	C_BaseEntity *pVehicleEnt = m_hVehicle.Get();
 	return pVehicleEnt ? pVehicleEnt->GetClientVehicle() : NULL;
+}
+
+inline C_BaseEntity *C_BasePlayer::GetVehicleEntity() {
+	return m_hVehicle.Get();
 }
 
 inline bool C_BasePlayer::IsObserver() const 

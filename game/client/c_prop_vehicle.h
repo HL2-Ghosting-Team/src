@@ -77,6 +77,7 @@ public:
 public:
 
 	bool	IsRunningEnterExitAnim( void ) { return m_bEnterAnimOn || m_bExitAnimOn; }
+	float     GetSpeed() {return m_AirBoatSpeed;}
 
 protected:
 
@@ -88,6 +89,7 @@ protected:
 
 	CHandle<C_BasePlayer>		m_hPlayer;
 	int							m_nSpeed;
+	float						m_AirBoatSpeed;
 	int							m_nRPM;
 	float						m_flThrottle;
 	int							m_nBoostTimeLeft;

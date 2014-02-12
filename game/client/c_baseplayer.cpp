@@ -92,6 +92,7 @@ void RecvProxy_LocalVelocityY( const CRecvProxyData *pData, void *pStruct, void 
 void RecvProxy_LocalVelocityZ( const CRecvProxyData *pData, void *pStruct, void *pOut );
 
 void RecvProxy_ObserverTarget( const CRecvProxyData *pData, void *pStruct, void *pOut );
+void RecvProxy_VehicleSpeed( const CRecvProxyData * pData, void *pStruct, void *pOut);
 
 // -------------------------------------------------------------------------------- //
 // RecvTable for CPlayerState.
@@ -253,7 +254,6 @@ END_RECV_TABLE()
 		RecvPropEHandle	(RECVINFO(m_hObserverTarget), RecvProxy_ObserverTarget ),
 		RecvPropArray	( RecvPropEHandle( RECVINFO( m_hViewModel[0] ) ), m_hViewModel ),
 		
-
 		RecvPropString( RECVINFO(m_szLastPlaceName) ),
 
 		RecvPropInt( RECVINFO( m_ubEFNoInterpParity ) ),

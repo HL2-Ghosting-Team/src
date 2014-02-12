@@ -25,6 +25,8 @@ public:
 
 	static void endRun();
 
+	static const char* getGhostName();
+
 	static void record(const CCommand&);
 	static void stop(const CCommand&);
 

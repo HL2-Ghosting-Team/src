@@ -1282,7 +1282,7 @@ IPhysicsObject *CBaseEntity::VPhysicsInitShadow( bool allowPhysicsMovement, bool
 	const Vector &origin = GetAbsOrigin();
 	QAngle angles = GetAbsAngles();
 	IPhysicsObject *pPhysicsObject = NULL;
-
+	
 	if ( GetSolid() == SOLID_BBOX )
 	{
 		// adjust these so the game tracing epsilons match the physics minimum separation distance

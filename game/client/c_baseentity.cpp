@@ -435,7 +435,6 @@ BEGIN_RECV_TABLE_NOBASE( C_BaseEntity, DT_PredictableId )
 END_RECV_TABLE()
 #endif
 
-
 BEGIN_RECV_TABLE_NOBASE(C_BaseEntity, DT_BaseEntity)
 	RecvPropDataTable( "AnimTimeMustBeFirst", 0, 0, &REFERENCE_RECV_TABLE(DT_AnimTimeMustBeFirst) ),
 	RecvPropInt( RECVINFO(m_flSimulationTime), 0, RecvProxy_SimulationTime ),

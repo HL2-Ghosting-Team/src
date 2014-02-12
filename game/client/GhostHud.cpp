@@ -156,7 +156,7 @@ void GhostHud::Paint(void) {
 	int size = ghosts.Count();
 	if (size > 0) {
 		if (size > 3) {
-			SetTall(initialTall + (15 * (size - 3)));
+			SetTall(initialTall + (25 * (size - 3)));
 		} else {
 			SetTall(initialTall);
 		}

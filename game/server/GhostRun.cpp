@@ -33,7 +33,7 @@ bool GhostRun::openRun(const char* fileName) {
 void GhostRun::StartRun(bool resetGhost) {
 	GhostEntity * entity = static_cast<GhostEntity*>(CreateEntityByName("ghost_entity"));
 	if (entity) {
-		GhostUtils::copyGhostData(&ghostData, &entity->ghostData);
+		entity->ghostData = ghostData;
 		entity->SetGhostName(ghostName);
 		Q_strcpy(entity->currentMap, currentMap);
 		if (resetGhost) {

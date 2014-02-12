@@ -2216,7 +2216,7 @@ void CGameMovement::PlaySwimSound()
 }
 //Credit: CZF
 static ConVar bla_pogo("bla_pogo", "0",
-              FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
+					   FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_CHEAT,
               "Keep jumping when jump button is down. This removes "
               "the need for external scripts like AutoHotkey."
 			  "\n0 = off, 1 = on");

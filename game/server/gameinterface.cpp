@@ -90,6 +90,7 @@
 #include "GhostEngine.h"
 #include "timer.h"
 #include "GhostRecord.h"
+#include "GhostOnlineEngine.h"
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 #include "bot/bot.h"
@@ -272,7 +273,7 @@ bool UTIL_GetModDir( char *lpszTextOut, unsigned int nSize )
 	{
 		// Strip the last directory off (which will be our game dir)
 		Q_StripLastDir( lpszTextOut, nSize );
-		
+
 		// Find the difference in string lengths and take that difference from the original string as the mod dir
 		int dirlen = Q_strlen( lpszTextOut );
 		Q_strncpy( lpszTextOut, pGameDir + dirlen, Q_strlen( pGameDir ) - dirlen + 1 );
@@ -312,7 +313,7 @@ void DrawMeasuredSections(void)
 		char str[256];
 		Q_snprintf(str,sizeof(str),"%s",p->GetName());
 		NDebugOverlay::ScreenText( 0.01,0.51+(row*rowheight),str, 255,255,255,255, 0.0 );
-		
+
 		Q_snprintf(str,sizeof(str),"%5.2f\n",p->GetTime().GetMillisecondsF());
 		//Q_snprintf(str,sizeof(str),"%3.3f\n",p->GetTime().GetSeconds() * 100.0 / engine->Time());
 		NDebugOverlay::ScreenText( 0.28,0.51+(row*rowheight),str, 255,255,255,255, 0.0 );
@@ -408,7 +409,7 @@ void DrawAllDebugOverlays( void )
 					Vector endPos	= g_pBigAINet->GetNode(pAILink->m_iDestID)->GetPosition(g_pAINetworkManager->GetEditOps()->m_iHullDrawNum);
 					Vector linkDir	= startPos-endPos;
 					float linkLen = VectorNormalize( linkDir );
-					
+
 					// Draw in green if link that's been turned off
 					if (pAILink->m_LinkInfo & bits_LINK_OFF)
 					{
@@ -522,9 +523,9 @@ static void MountAdditionalContent()
 	Q_StripTrailingSlash( gamePath );
 
 	int nExtraContentId = -1;
-	
+
 	pMainFile = new KeyValues( "gameinfo.txt" );
-//On linux because of case sensitiviy we need to check for both.
+	//On linux because of case sensitiviy we need to check for both.
 #ifdef _LINUX
 	if ( pMainFile->LoadFromFile( filesystem, UTIL_VarArgs("%s/GameInfo.txt", gamePath), "MOD" ) )
 	{
@@ -534,25 +535,25 @@ static void MountAdditionalContent()
 	}
 	else
 #endif
-	if ( pMainFile->LoadFromFile( filesystem, UTIL_VarArgs("%s/gameinfo.txt", gamePath), "MOD" ) )
-	{
-		pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
-		if (pFileSystemInfo)
-			nExtraContentId = pFileSystemInfo->GetInt( "AdditionalContentId", -1 );
-	}
-	pMainFile->deleteThis();
+		if ( pMainFile->LoadFromFile( filesystem, UTIL_VarArgs("%s/gameinfo.txt", gamePath), "MOD" ) )
+		{
+			pFileSystemInfo = pMainFile->FindKey( "FileSystem" );
+			if (pFileSystemInfo)
+				nExtraContentId = pFileSystemInfo->GetInt( "AdditionalContentId", -1 );
+		}
+		pMainFile->deleteThis();
 
-	if (nExtraContentId != -1)
-	{
-		if( filesystem->MountSteamContent(-nExtraContentId) != FILESYSTEM_MOUNT_OK )
-			Warning("Unable to mount extra content with appId: %i\n", nExtraContentId);
-	}
+		if (nExtraContentId != -1)
+		{
+			if( filesystem->MountSteamContent(-nExtraContentId) != FILESYSTEM_MOUNT_OK )
+				Warning("Unable to mount extra content with appId: %i\n", nExtraContentId);
+		}
 }
 
 
 bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory, 
-		CreateInterfaceFn physicsFactory, CreateInterfaceFn fileSystemFactory, 
-		CGlobalVars *pGlobals)
+							 CreateInterfaceFn physicsFactory, CreateInterfaceFn fileSystemFactory, 
+							 CGlobalVars *pGlobals)
 {
 	ConnectTier1Libraries( &appSystemFactory, 1 );
 	ConnectTier2Libraries( &appSystemFactory, 1 );
@@ -628,7 +629,7 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	gpGlobals = pGlobals;
 
 	g_pSharedChangeInfo = engine->GetSharedEdictChangeInfo();
-	
+
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );
 
 	// save these in case other system inits need them
@@ -643,7 +644,7 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 
 	// init the cvar list first in case inits want to reference them
 	InitializeCvars();
-	
+
 	// Initialize the particle system
 	if ( !g_pParticleSystemMgr->Init( g_pParticleSystemQuery ) )
 	{
@@ -673,7 +674,7 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 
 	// Physics must occur before the sound envelope manager
 	IGameSystem::Add( PhysicsGameSystem() );
-	
+
 	// Used to service deferred navigation queries for NPCs
 	IGameSystem::Add( (IGameSystem *) PostFrameNavigationSystem() );
 
@@ -781,7 +782,7 @@ float CServerGameDLL::GetTickInterval( void ) const
 	tickinterval *= 2;
 #endif
 
-// Ignoring this for now, server ops are abusing it
+	// Ignoring this for now, server ops are abusing it
 #if !defined( TF_DLL )
 	// override if tick rate specified in command line
 	if ( CommandLine()->CheckParm( "-tickrate" ) )
@@ -841,7 +842,7 @@ void EndRestoreEntities()
 {
 	if ( !g_InRestore )
 		return;
-		
+
 	// The entire hierarchy is restored, so we can call GetAbsOrigin again.
 	//CBaseEntity::SetAbsQueriesValid( true );
 
@@ -1012,15 +1013,15 @@ bool g_bCheckForChainedActivate;
 #define BeginCheckChainedActivate() if (0) ; else { g_bCheckForChainedActivate = true; g_bReceivedChainedActivate = false; }
 #define EndCheckChainedActivate( bCheck )	\
 	if (0) ; else \
-	{ \
-		if ( bCheck ) \
-		{ \
-			char msg[ 1024 ];	\
-			Q_snprintf( msg, sizeof( msg ),  "Entity (%i/%s/%s) failed to call base class Activate()\n", pClass->entindex(), pClass->GetClassname(), STRING( pClass->GetEntityName() ) );	\
-			AssertMsg( g_bReceivedChainedActivate == true, msg ); \
-		} \
-		g_bCheckForChainedActivate = false; \
-	}
+{ \
+	if ( bCheck ) \
+{ \
+	char msg[ 1024 ];	\
+	Q_snprintf( msg, sizeof( msg ),  "Entity (%i/%s/%s) failed to call base class Activate()\n", pClass->entindex(), pClass->GetClassname(), STRING( pClass->GetEntityName() ) );	\
+	AssertMsg( g_bReceivedChainedActivate == true, msg ); \
+} \
+	g_bCheckForChainedActivate = false; \
+}
 #else
 #define BeginCheckChainedActivate()			((void)0)
 #define EndCheckChainedActivate( bCheck )	((void)0)
@@ -1045,13 +1046,15 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 
 			BeginCheckChainedActivate();
 			pClass->Activate();
-			
+
 			// We don't care if it finished activating if it decided to remove itself.
 			EndCheckChainedActivate( !( pClass->GetEFlags() & EFL_KILLME ) ); 
 		}
 	}
+	GhostOnlineEngine::mapNameDirty = true;
 	GhostRecord::mapNameDirty = true;
 	GhostEngine::getEngine()->ResetGhosts();
+	GhostOnlineEngine::getEngine()->ResetGhosts();
 	IGameSystem::LevelInitPostEntityAllSystems();
 	// No more precaching after PostEntityAllSystems!!!
 	CBaseEntity::SetAllowPrecache( false );
@@ -1070,7 +1073,7 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 	TheBots->ServerActivate();
 #endif
 
-//Tony; call activate on the gamerules
+	//Tony; call activate on the gamerules
 #if defined ( SDK_DLL )
 	SDKGameRules()->ServerActivate();
 #endif
@@ -1129,7 +1132,7 @@ void CServerGameDLL::GameFrame( bool simulating )
 
 	g_pServerBenchmark->UpdateBenchmark();
 	Physics_RunThinkFunctions( simulating );
-	
+
 	IGameSystem::FrameUpdatePostEntityThinkAllSystems();
 
 	// UNDONE: Make these systems IGameSystems and move these calls into FrameUpdatePostEntityThink()
@@ -1146,28 +1149,47 @@ void CServerGameDLL::GameFrame( bool simulating )
 		CBasePlayer* player = UTIL_GetLocalPlayer();
 		if (player) {
 			float timet = (((float)Plat_FloatTime()) - GhostRecord::startTime);
-				Vector loc = player->EyePosition();
-				if( GhostRecord::firstTime) {
-					GhostRecord::writeHeader();
-					GhostRecord::firstTime = false;
+			Vector loc = player->EyePosition();
+			if( GhostRecord::firstTime) {
+				GhostRecord::writeHeader();
+				GhostRecord::firstTime = false;
+			}
+			if ( timet >= GhostRecord::nextTime ) {//see if we should update again
+				const char* mapToWrite = "";
+				const char* playerToWrite = "";
+				if (GhostRecord::mapNameDirty) {
+					//We used to double check to optimize file size, but
+					//now it's needed for load-less time detection.
+					mapToWrite = STRING(gpGlobals->mapname);
+					Q_strcpy(GhostRecord::mapName, mapToWrite);
+					GhostRecord::mapNameDirty = false;
 				}
-				if ( timet >= GhostRecord::nextTime ) {//see if we should update again
-					const char* mapToWrite = "";
-					const char* playerToWrite = "";
-					if (GhostRecord::mapNameDirty) {
-						//We used to double check to optimize file size, but
-						//now it's needed for load-less time detection.
-						mapToWrite = STRING(gpGlobals->mapname);
-						Q_strcpy(GhostRecord::mapName, mapToWrite);
-						GhostRecord::mapNameDirty = false;
-					}
-					if (GhostRecord::playerNameDirty) {
-						playerToWrite = GhostRecord::playerName;
+				if (GhostRecord::playerNameDirty) {
+					playerToWrite = GhostRecord::playerName;
+					if (!GhostOnlineEngine::getEngine()->shouldAct)//let the online version reset it if it's running
 						GhostRecord::playerNameDirty = false;
-					}
-					GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z); 
-					GhostRecord::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 				}
+				GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z); 
+				GhostRecord::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
+			}
+		}
+	}
+	if (GhostOnlineEngine::getEngine()) {
+		if (GhostOnlineEngine::getEngine()->shouldAct && !GhostOnlineEngine::getEngine()->inTransition) {
+			CBasePlayer* player = UTIL_GetLocalPlayer();
+			if (player) {
+				float timet = (((float)Plat_FloatTime()) - GhostRecord::startTime);
+				Vector loc = player->EyePosition();
+				loc.IsValid();
+				if( GhostOnlineEngine::firstTime) {
+					GhostOnlineEngine::getEngine()->sendFirstData();
+				}
+				if ( timet >= GhostOnlineEngine::nextTime ) {//see if we should update again
+					RunLine l = GhostUtils::createLine(GhostRecord::getGhostName(), STRING(gpGlobals->mapname), loc.x, loc.y, loc.z);
+					GhostOnlineEngine::getEngine()->sendLine(l); 
+					GhostOnlineEngine::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
+				}
+			}
 		}
 	}
 
@@ -1212,14 +1234,14 @@ void CServerGameDLL::PreClientUpdate( bool simulating )
 	/*
 	if (game_speeds.GetInt())
 	{
-		DrawMeasuredSections();
+	DrawMeasuredSections();
 	}
 	*/
 
-//#ifdef _DEBUG  - allow this in release for now
+	//#ifdef _DEBUG  - allow this in release for now
 	DrawAllDebugOverlays();
-//#endif
-	
+	//#endif
+
 	IGameSystem::PreClientUpdateAllSystems();
 
 	if ( sv_showhitboxes.GetInt() == -1 )
@@ -1285,8 +1307,9 @@ void CServerGameDLL::OnQueryCvarValueFinished( QueryCvarCookie_t iCookie, edict_
 void CServerGameDLL::LevelShutdown( void )
 {
 	MDLCACHE_CRITICAL_SECTION();
-	
+
 	GhostEngine::getEngine()->transferGhostData();
+	GhostOnlineEngine::getEngine()->inTransition = true;
 	if (BlaTimer::timer()->IsRunning()) {
 		BlaTimer::timer()->SetLevelLoad(true);
 		float tim = gpGlobals->realtime;
@@ -1337,11 +1360,11 @@ void CServerGameDLL::CreateNetworkStringTables( void )
 	g_pStringTableClientSideChoreoScenes = networkstringtable->CreateStringTable( "Scenes", MAX_CHOREO_SCENES_STRINGS );
 
 	Assert( g_pStringTableParticleEffectNames &&
-			g_pStringTableEffectDispatch &&
-			g_pStringTableVguiScreen &&
-			g_pStringTableMaterials &&
-			g_pStringTableInfoPanel &&
-			g_pStringTableClientSideChoreoScenes );
+		g_pStringTableEffectDispatch &&
+		g_pStringTableVguiScreen &&
+		g_pStringTableMaterials &&
+		g_pStringTableInfoPanel &&
+		g_pStringTableClientSideChoreoScenes );
 
 	// Need this so we have the error material always handy
 	PrecacheMaterial( "debug/debugempty" );
@@ -1534,7 +1557,7 @@ static TITLECOMMENT gTitleComments[] =
 
 	{ "d1_trainstation_05", "#HL2_Chapter2_Title" },
 	{ "d1_trainstation_06", "#HL2_Chapter2_Title" },
-	
+
 	{ "d1_trainstation_", "#HL2_Chapter1_Title" },
 
 	{ "d1_canals_06", "#HL2_Chapter4_Title" },
@@ -1542,7 +1565,7 @@ static TITLECOMMENT gTitleComments[] =
 	{ "d1_canals_08", "#HL2_Chapter4_Title" },
 	{ "d1_canals_09", "#HL2_Chapter4_Title" },
 	{ "d1_canals_1", "#HL2_Chapter4_Title" },
-	
+
 	{ "d1_canals_0", "#HL2_Chapter3_Title" },
 
 	{ "d1_eli_", "#HL2_Chapter5_Title" },
@@ -1592,20 +1615,20 @@ static TITLECOMMENT gTitleComments[] =
 	{ "ep2_outland_03", "#ep2_Chapter2_Title" },
 	{ "ep2_outland_04", "#ep2_Chapter2_Title" },
 	{ "ep2_outland_05", "#ep2_Chapter3_Title" },
-	
+
 	{ "ep2_outland_06a", "#ep2_Chapter4_Title" },
 	{ "ep2_outland_06", "#ep2_Chapter3_Title" },
 
 	{ "ep2_outland_07", "#ep2_Chapter4_Title" },
 	{ "ep2_outland_08", "#ep2_Chapter4_Title" },
 	{ "ep2_outland_09", "#ep2_Chapter5_Title" },
-	
+
 	{ "ep2_outland_10a", "#ep2_Chapter5_Title" },
 	{ "ep2_outland_10", "#ep2_Chapter5_Title" },
 
 	{ "ep2_outland_11a", "#ep2_Chapter6_Title" },
 	{ "ep2_outland_11", "#ep2_Chapter6_Title" },
-	
+
 	{ "ep2_outland_12a", "#ep2_Chapter7_Title" },
 	{ "ep2_outland_12", "#ep2_Chapter6_Title" },
 #endif
@@ -1644,7 +1667,7 @@ void CServerGameDLL::GetSaveComment( char *text, int maxlength, float flMinutes,
 			break;
 		}
 	}
-	
+
 	// If we didn't get one, use the designer's map name, or the BSP name itself
 	if ( !pName )
 	{
@@ -1750,8 +1773,8 @@ static bool IsValidPath( const char *pszFilename )
 	}
 
 	if ( Q_strlen( pszFilename ) <= 0    ||
-		 Q_IsAbsolutePath( pszFilename ) || // to protect absolute paths
-		 Q_strstr( pszFilename, ".." ) )    // to protect relative paths
+		Q_IsAbsolutePath( pszFilename ) || // to protect absolute paths
+		Q_strstr( pszFilename, ".." ) )    // to protect relative paths
 	{
 		return false;
 	}
@@ -1831,7 +1854,7 @@ void UpdateChapterRestrictions( const char *mapname )
 
 	// make sure the specified chapter title is unlocked
 	strlwr( chapterTitle );
-	
+
 	// Get our active mod directory name
 	char modDir[MAX_PATH];
 	if ( UTIL_GetModDir( modDir, sizeof(modDir) ) == false )
@@ -1965,7 +1988,7 @@ int GetMaterialIndex( const char *pMaterialName )
 	if (pMaterialName)
 	{
 		int nIndex = g_pStringTableMaterials->FindStringIndex( pMaterialName );
-		
+
 		if (nIndex != INVALID_STRING_INDEX )
 		{
 			return nIndex;
@@ -2102,16 +2125,16 @@ CBaseEntity* CServerGameEnts::EdictToBaseEntity( edict_t *pEdict )
 // inlining it gives a nice speedup.
 inline void CServerNetworkProperty::CheckTransmit( CCheckTransmitInfo *pInfo )
 {
-	// If we have a transmit proxy, let it hook our ShouldTransmit return value.
-	if ( m_pTransmitProxy )
-	{
-		nShouldTransmit = m_pTransmitProxy->ShouldTransmit( pInfo, nShouldTransmit );
-	}
+// If we have a transmit proxy, let it hook our ShouldTransmit return value.
+if ( m_pTransmitProxy )
+{
+nShouldTransmit = m_pTransmitProxy->ShouldTransmit( pInfo, nShouldTransmit );
+}
 
-	if ( m_pOuter->ShouldTransmit( pInfo ) )
-	{
-		m_pOuter->SetTransmit( pInfo );
-	}
+if ( m_pOuter->ShouldTransmit( pInfo ) )
+{
+m_pOuter->SetTransmit( pInfo );
+}
 } */
 
 void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdicts )
@@ -2128,7 +2151,7 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 	Assert( pRecipientEntity && pRecipientEntity->IsPlayer() );
 	if ( !pRecipientEntity )
 		return;
-	
+
 	MDLCACHE_CRITICAL_SECTION();
 	CBasePlayer *pRecipientPlayer = static_cast<CBasePlayer*>( pRecipientEntity );
 	const int skyBoxArea = pRecipientPlayer->m_Local.m_skybox3d.area;
@@ -2151,11 +2174,11 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 		// entity needs no transmit
 		if ( nFlags & FL_EDICT_DONTSEND )
 			continue;
-		
+
 		// entity is already marked for sending
 		if ( pInfo->m_pTransmitEdict->Get( iEdict ) )
 			continue;
-		
+
 		if ( nFlags & FL_EDICT_ALWAYS )
 		{
 			// FIXME: Hey! Shouldn't this be using SetTransmit so as 
@@ -2164,7 +2187,7 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 			{
 				// mark entity for sending
 				pInfo->m_pTransmitEdict->Set( iEdict );
-	
+
 #ifndef _X360
 				if ( bIsHLTV )
 				{
@@ -2249,7 +2272,7 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 
 		// BUG BUG:  I think it might be better to build up a list of edict indices which "depend" on other answers and then
 		// resolve them in a second pass.  Not sure what happens if an entity has two parents who both request PVS check?
-        while ( check )
+		while ( check )
 		{
 			int checkIndex = check->entindex();
 
@@ -2302,7 +2325,7 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 		}
 	}
 
-//	Msg("A:%i, N:%i, F: %i, P: %i\n", always, dontSend, fullCheck, PVS );
+	//	Msg("A:%i, N:%i, F: %i, P: %i\n", always, dontSend, fullCheck, PVS );
 }
 
 
@@ -2332,7 +2355,7 @@ bool CServerGameClients::ClientConnect( edict_t *pEdict, const char *pszName, co
 void CServerGameClients::ClientActive( edict_t *pEdict, bool bLoadGame )
 {
 	MDLCACHE_CRITICAL_SECTION();
-	
+
 	::ClientActive( pEdict, bLoadGame );
 
 	// If we just loaded from a save file, call OnRestore on valid entities
@@ -2382,7 +2405,7 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 				}
 			}
 
-		// since the edict doesn't get deleted, fix it so it doesn't interfere.
+			// since the edict doesn't get deleted, fix it so it doesn't interfere.
 			player->RemoveFlag( FL_AIMTARGET ); // don't attract autoaim
 			player->AddFlag( FL_DONTTOUCH );	// stop it touching anything
 			player->AddFlag( FL_NOTARGET );	// stop NPCs noticing it
@@ -2438,19 +2461,19 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 		return;
 
 	CBasePlayer *player = ( CBasePlayer * )CBaseEntity::Instance( pEdict );
-	
+
 	if ( !player )
 		return;
 
 #define QUICKGETCVARVALUE(v) (engine->GetClientConVarValue( player->entindex(), v ))
 
 	// get network setting for prediction & lag compensation
-	
+
 	// Unfortunately, we have to duplicate the code in cdll_bounded_cvars.cpp here because the client
 	// doesn't send the virtualized value up (because it has no way to know when the virtualized value
 	// changes). Possible todo: put the responsibility on the bounded cvar to notify the engine when
 	// its virtualized value has changed.		
-	
+
 	player->m_nUpdateRate = Q_atoi( QUICKGETCVARVALUE("cl_updaterate") );
 	static const ConVar *pMinUpdateRate = g_pCVar->FindVar( "sv_minupdaterate" );
 	static const ConVar *pMaxUpdateRate = g_pCVar->FindVar( "sv_maxupdaterate" );
@@ -2483,7 +2506,7 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 	{
 		player->m_fLerpTime = 0.0f;
 	}
-	
+
 #if !defined( NO_ENTITY_PREDICTION )
 	bool usePrediction = Q_atoi( QUICKGETCVARVALUE("cl_predict")) != 0;
 
@@ -2498,7 +2521,7 @@ void CServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 		player->m_bPredictWeapons  = false;
 		player->m_bLagCompensation = false;
 	}
-	
+
 
 #undef QUICKGETCVARVALUE
 
@@ -2544,7 +2567,7 @@ int TestAreaPortalVisibilityThroughPortals ( CFuncAreaPortalBase* pAreaPortal, e
 			}
 		}
 	}
-	
+
 	return 0;
 }
 #endif
@@ -2596,7 +2619,7 @@ void CServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *p
 
 	unsigned char portalBits[MAX_AREA_PORTAL_STATE_BYTES];
 	memset( portalBits, 0, sizeof( portalBits ) );
-	
+
 	int portalNums[512];
 	int isOpen[512];
 	int iOutPortal = 0;
@@ -2606,7 +2629,7 @@ void CServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *p
 		CFuncAreaPortalBase *pCur = g_AreaPortals[i];
 
 		bool bIsOpenOnClient = true;
-		
+
 		// Update our array of which portals are open and flush it if necessary.		
 		portalNums[iOutPortal] = pCur->m_portalNumber;
 		isOpen[iOutPortal] = pCur->UpdateVisibility( org, fovDistanceAdjustFactor, bIsOpenOnClient );
@@ -2675,7 +2698,7 @@ void CServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *p
 #define CMD_MAXBACKUP 64
 
 float CServerGameClients::ProcessUsercmds( edict_t *player, bf_read *buf, int numcmds, int totalcmds,
-	int dropped_packets, bool ignore, bool paused )
+										  int dropped_packets, bool ignore, bool paused )
 {
 	int				i;
 	CUserCmd		*from, *to;
@@ -2685,7 +2708,7 @@ float CServerGameClients::ProcessUsercmds( edict_t *player, bf_read *buf, int nu
 	CUserCmd cmds[ CMD_MAXBACKUP ];  
 
 	CUserCmd		cmdNull;  // For delta compression
-	
+
 	Assert( numcmds >= 0 );
 	Assert( ( totalcmds - numcmds ) >= 0 );
 
@@ -2864,7 +2887,7 @@ void UserMessageBegin( IRecipientFilter& filter, const char *messagename )
 	Assert( messagename );
 
 	int msg_type = usermessages->LookupUserMessage( messagename );
-	
+
 	if ( msg_type == -1 )
 	{
 		Error( "UserMessageBegin:  Unregistered message '%s'\n", messagename );
@@ -2992,7 +3015,7 @@ void MessageWriteEHandle( CBaseEntity *pEntity )
 		Error( "WriteEHandle called with no active message\n" );
 
 	long iEncodedEHandle;
-	
+
 	if( pEntity )
 	{
 		EHANDLE hEnt = pEntity;
@@ -3004,7 +3027,7 @@ void MessageWriteEHandle( CBaseEntity *pEntity )
 	{
 		iEncodedEHandle = INVALID_NETWORKED_EHANDLE_VALUE;
 	}
-	
+
 	g_pMsgBuffer->WriteLong( iEncodedEHandle );
 }
 

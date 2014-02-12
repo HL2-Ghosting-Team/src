@@ -227,6 +227,7 @@ void SendProxy_Angles( const SendProp *pProp, const void *pStruct, const void *p
 	pOut->m_Vector[ 2 ] = anglemod( a->z );
 }
 
+
 // This table encodes the CBaseEntity data.
 IMPLEMENT_SERVERCLASS_ST_NOBASE( CBaseEntity, DT_BaseEntity )
 	SendPropDataTable( "AnimTimeMustBeFirst", 0, &REFERENCE_SEND_TABLE(DT_AnimTimeMustBeFirst), SendProxy_ClientSideAnimation ),

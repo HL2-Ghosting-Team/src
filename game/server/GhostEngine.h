@@ -18,15 +18,22 @@ public:
 	bool isActive();
 	//convars
 	void initVars();
-	unsigned char getGhostType();
-	unsigned char shouldDrawTrails();
+	bool shouldDrawTrails();
 	unsigned char getTrailLength();
+	unsigned char getGhostColorRed();
+	unsigned char getGhostColorGreen();
+	unsigned char getGhostColorBlue();
+	unsigned char getTrailColorRed();
+	unsigned char getTrailColorGreen();
+	unsigned char getTrailColorBlue();
 	void EndRun(GhostRun*);
 	void StartRun(const char*, bool);
 	void ResetGhosts(void);
 	void restartAllGhosts(void);
 	void playAllGhosts();
 	void transferGhostData(void);
+
+	
 	GhostRun* getRun(GhostEntity*);
 	void stopAllRuns();	
 	

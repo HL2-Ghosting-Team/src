@@ -160,21 +160,38 @@ public:
 		unsigned char ghostBlue;
 		unsigned char firstByte;
 		CUtlVector<RunLine> RunData;
+
+		GhostData(){};
+
+		GhostData(const GhostData& other) {
+			firstByte = other.firstByte;
+			version = other.version;
+			game = other.game;
+			ghostRed = other.ghostRed;
+			ghostGreen = other.ghostGreen;
+			ghostBlue = other.ghostBlue;
+			trailLength = other.trailLength;
+			trailRed = other.trailRed;
+			trailGreen = other.trailGreen;
+			trailBlue = other.trailBlue;
+			RunData = other.RunData;
+		};
+
+		GhostData& operator=(const GhostData& other) {
+			firstByte = other.firstByte;
+			version = other.version;
+			game = other.game;
+			ghostRed = other.ghostRed;
+			ghostGreen = other.ghostGreen;
+			ghostBlue = other.ghostBlue;
+			trailLength = other.trailLength;
+			trailRed = other.trailRed;
+			trailGreen = other.trailGreen;
+			trailBlue = other.trailBlue;
+			RunData = other.RunData;
+			return *this;
+		};
 	};
-
-	static void copyGhostData(GhostData* old, GhostData* newG) {
-		newG->version = old->version;
-		newG->game = old->game;
-		newG->ghostBlue = old->ghostBlue;
-		newG->ghostGreen = old->ghostGreen;
-		newG->ghostRed = old->ghostRed;
-		newG->trailBlue = old->trailBlue;
-		newG->trailGreen = old->trailGreen;
-		newG->trailRed = old->trailRed;
-		newG->trailLength = old->trailLength;
-		newG->RunData = old->RunData;
-	}
-
 
 	static bool readHeader(IFileSystem* fs, FileHandle_t myFile, GhostData* data) {
 		fs->Read(&data->firstByte, sizeof(data->firstByte), myFile);//useless
@@ -219,6 +236,17 @@ public:
 		fs->Read(&l.z, sizeof(l.z), myFile);//z
 		delete[] mapName;
 		delete[] playerName;
+		return l;
+	}
+
+	static RunLine createLine(const char* name, const char* map, float x, float y, float z) {
+		struct RunLine l;
+		Q_strcpy(l.name, name);
+		Q_strcpy(l.map, map);
+		l.tim = 0;
+		l.x = x;
+		l.y = y;
+		l.z = z;
 		return l;
 	}
 

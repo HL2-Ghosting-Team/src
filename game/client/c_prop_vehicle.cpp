@@ -24,10 +24,10 @@ int ScreenTransform( const Vector& point, Vector& screen );
 extern ConVar default_fov;
 extern ConVar joy_response_move_vehicle;
 
-
 IMPLEMENT_CLIENTCLASS_DT(C_PropVehicleDriveable, DT_PropVehicleDriveable, CPropVehicleDriveable)
 	RecvPropEHandle( RECVINFO(m_hPlayer) ),
 	RecvPropInt( RECVINFO( m_nSpeed ) ),
+	RecvPropFloat( RECVINFO( m_AirBoatSpeed)),
 	RecvPropInt( RECVINFO( m_nRPM ) ),
 	RecvPropFloat( RECVINFO( m_flThrottle ) ),
 	RecvPropInt( RECVINFO( m_nBoostTimeLeft ) ),
@@ -211,6 +211,7 @@ void C_PropVehicleDriveable::GetVehicleClipPlanes( float &flZNear, float &flZFar
 	// FIXME: Need something a better long-term, this fixes the buggy.
 	flZNear = 6;
 }
+
 
 	
 //-----------------------------------------------------------------------------

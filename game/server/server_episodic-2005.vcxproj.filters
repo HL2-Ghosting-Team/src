@@ -1758,6 +1758,15 @@
     <ClCompile Include="GhostRecord.cpp">
       <Filter>Source Files\Ghost</Filter>
     </ClCompile>
+    <ClCompile Include="GhostOnlineEntity.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="GhostOnlineEngine.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="GhostOnlineRun.cpp">
+      <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\achievement_saverestore.h">
@@ -3497,10 +3506,16 @@
     <ClInclude Include="GhostUtils.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
-    <ClInclude Include="OnlineGhostRun.h">
+    <ClInclude Include="GhostRecord.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
-    <ClInclude Include="GhostRecord.h">
+    <ClInclude Include="GhostOnlineEntity.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostOnlineEngine.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="GhostOnlineRun.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
   </ItemGroup>

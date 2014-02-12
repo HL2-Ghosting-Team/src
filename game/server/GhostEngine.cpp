@@ -125,6 +125,7 @@ void GhostEngine::initVars() {
 	Msg("Current trail color: R: %i, G: %i, B: %i\n", gpGlobals->trailRed, gpGlobals->trailGreen, gpGlobals->trailBlue);
 	gpGlobals->trailLength = (unsigned char)spriteLength.GetInt();
 	Msg("Current trail length: %i\n", gpGlobals->trailLength);
+	Msg("Name for the person is %s\n", engine->GetClientConVarValue(0, "gh_name"));
 }
 
 //-----------------------------------------END VARS ----------------------------------------------------------------
@@ -137,10 +138,10 @@ void GhostEngine::transferGhostData() {
 	int size = ghosts.Count();
 	for (int i = 0; i < size; i++) {
 		GhostRun * it = ghosts[i];
-		Msg("Transferring ghost data for %s!\n", it->ghostName);
 		if (!it->ent || !it->isPlaying) {//in user-reset or not started
 			continue;
 		}
+		Msg("Transferring ghost data for %s!\n", it->ghostName);
 		if (Q_strlen(it->ent->currentMap) != 0) {
 			Q_strcpy(it->currentMap, it->ent->currentMap);
 		} else {//this should never happen, just incase though
@@ -225,6 +226,7 @@ void GhostEngine::stopAllRuns() {
 	stopAllRuns();
 }
 
+//The void for user-enduced reset (a la "gh_restart_runs")
 void GhostEngine::restartAllGhosts() {
 	//So we have the data with a given start time, we need to reset the entity,
 	//but don't ruin the RunData in the GhostRun.
@@ -280,6 +282,13 @@ ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if th
 ConCommand restart("gh_restart_runs", restartG, "Restarts the run(s) back to the first step. Use gh_play_all_ghosts in order to play them again.", 0);
 ConCommand playAll("gh_play_all_ghosts", playAllG, "Plays back all ghosts that are loaded, but not currently playing.", 0);
 
+static ConVar shouldDraw("gh_draw_trails", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_DEMO,
+	"Toggles global drawing of trails on (1) or off (0).");
+
+bool GhostEngine::shouldDrawTrails() {
+	return shouldDraw.GetBool();
+}
+
 
 //timer
 void startTimer() {
@@ -292,3 +301,7 @@ void stopTimer() {
 
 ConCommand startTimer_c("gh_timer_start", startTimer, "Starts the timer.", 0);
 ConCommand stopTimer_c("gh_timer_stop", stopTimer, "Stops the timer.", 0);
+
+
+
+

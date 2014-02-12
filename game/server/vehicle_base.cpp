@@ -314,6 +314,7 @@ IMPLEMENT_SERVERCLASS_ST(CPropVehicleDriveable, DT_PropVehicleDriveable)
 	SendPropEHandle(SENDINFO(m_hPlayer)),
 //	SendPropFloat(SENDINFO_DT_NAME(m_controls.throttle, m_throttle), 8,	SPROP_ROUNDUP,	0.0f,	1.0f),
 	SendPropInt(SENDINFO(m_nSpeed),	8),
+	SendPropFloat(SENDINFO(m_AirBoatSpeed), -1, SPROP_CHANGES_OFTEN),
 	SendPropInt(SENDINFO(m_nRPM), 13),
 	SendPropFloat(SENDINFO(m_flThrottle), 0, SPROP_NOSCALE ),
 	SendPropInt(SENDINFO(m_nBoostTimeLeft), 8),
@@ -347,6 +348,7 @@ BEGIN_DATADESC( CPropVehicleDriveable )
 
 	DEFINE_EMBEDDEDBYREF( m_pServerVehicle ),
 	DEFINE_FIELD( m_nSpeed, FIELD_INTEGER ),
+	DEFINE_FIELD( m_AirBoatSpeed,  FIELD_FLOAT   ),
 	DEFINE_FIELD( m_nRPM, FIELD_INTEGER ),
 	DEFINE_FIELD( m_flThrottle, FIELD_FLOAT ),
 	DEFINE_FIELD( m_nBoostTimeLeft, FIELD_INTEGER ),
@@ -760,6 +762,11 @@ void CPropVehicleDriveable::Think()
 
 			UTIL_Remove( m_hKeepUpright );
 		}
+	}
+	if (VPhysicsGetObject()) {
+		Vector toAdd(0, 0, 0);
+		VPhysicsGetObject()->GetVelocity(&toAdd, NULL);
+		m_AirBoatSpeed.Set(toAdd.Length());
 	}
 }
 
