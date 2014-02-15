@@ -71,17 +71,20 @@ static unsigned ReceiveThread(void *params) {
 	return 0;
 }
 
+void GhostOnlineEngine::addRun(GhostOnlineRun* run) {
+	if (run) ghosts.AddToTail(run);
+}
 
-void GhostOnlineEngine::handleEvent(sf::Packet* toRead) {
+
+void GhostOnlineEngine::handleEvent(sf::Packet *toRead) {
 	if (getEngine()->inTransition) return;
 	unsigned char firstByte;
 	*toRead >> firstByte;
 	switch (firstByte) {
-	case 0x00: 
+	case 0x00://connect packet
 		handleConnect(toRead);
 		break;
-	case 0x01:
-		//runline from some other person
+	case 0x01://runline from some other person
 		handleLine(toRead);
 		break;
 	case 0x02://race start
@@ -100,13 +103,13 @@ void GhostOnlineEngine::handleEvent(sf::Packet* toRead) {
 	}
 }
 
-void GhostOnlineEngine::handleDisconnect(sf::Packet* toRead) {
+void GhostOnlineEngine::handleDisconnect(sf::Packet *toRead) {
 	Msg("Received user disconnect packet!\n");
 	//user disconnect (bye bye)
-	std::string userName;
+	char userName[64];
 	*toRead >> userName;
-	Msg("%s is disconnecting!\n", userName.c_str());
-	GhostOnlineRun* run = getRun(userName.c_str());
+	Msg("%s is disconnecting!\n", userName);
+	GhostOnlineRun* run = getRun(userName);
 	if (run) run->EndRun();
 }
 
@@ -114,45 +117,36 @@ void GhostOnlineEngine::handleConnect(sf::Packet* toRead) {
 	Msg("Received user connect packet!\n");
 	//sends each player and their name, ghost color, trail color, and trail length
 	//ONE BY ONE
-	std::string name;
-	//unsigned char tl, tr, tg, tb, gr, gg, gb;
-	*toRead >> name;
-	Msg("%s is connecting!\n", name.c_str());
-	if (getRun(name.c_str())) return;//IMPERSONATOR! (or the person is most likely reconnecting)
+	char playerName[64];
+	*toRead >> playerName;
+	Msg("%s is connecting!\n", playerName);
+	if (getRun(playerName)) return;//IMPERSONATOR! (or the person is most likely reconnecting)
 	GhostUtils::GhostData data;
 	*toRead >> data;
-	GhostOnlineRun* run = new GhostOnlineRun(name.c_str(), data);
+	GhostOnlineRun* run = new GhostOnlineRun(playerName, data);
 	run->StartRun();
-	Msg("Started run for %s!\n", name.c_str());
+	Msg("Started run for %s!\n", playerName);
 	ghosts.AddToTail(run);
 }
 
-
-
-void GhostOnlineEngine::handleLine(sf::Packet *toRead) {
-	std::string playerName;
-	std::string map;
-	float x, y, z;
-	if (*toRead >> playerName) {
-		if (*toRead >> map) {
-			if (*toRead >> x) {
-				if (*toRead >> y) {
-					if (*toRead >> z) {
-						RunLine l = GhostUtils::createLine(playerName.c_str(), map.c_str(), x, y, z);
-						//make this the current step for the ghost.
-						GhostOnlineRun* run = getRun(playerName.c_str());
-						if (run) {
-							if (!run->IsStarted()) {
-								///Msg("Restarting the run since it wasn't started\n");
-								run->StartRun();
-							}
-							//Msg("Updating %s to map %s at pos %f %f %f\n", playerName, map, x, y, z);
-							run->updateStep(l);
-						}
-					}
-				}
-			}
+void GhostOnlineEngine::handleLine(sf::Packet* toRead) {
+	if (!(toRead->getDataSize() > 0)) return;
+	char playerName[64];
+	char map[64];
+	float tim, x, y, z;
+	*toRead >> playerName;
+	*toRead >> map;
+	*toRead >> tim;
+	*toRead >> x;
+	*toRead >> y;
+	*toRead >> z;
+	RunLine l = GhostUtils::createLine(playerName, map, tim, x, y, z);
+	GhostOnlineRun* run = getRun(playerName);
+	if (run) {
+		if (!run->IsStarted()) {
+			run->StartRun();
 		}
+		run->updateStep(l);
 	}
 }
 
@@ -161,6 +155,16 @@ GhostOnlineRun* GhostOnlineEngine::getRun(const char* nameOfGhost) {
 	for (unsigned int i = 0; i < size; i++) {
 		if (Q_strcmp(ghosts[i]->ghostName, nameOfGhost) == 0) {
 			return ghosts[i];
+		}
+	}
+	return NULL;
+}
+
+GhostOnlineRun* GhostOnlineEngine::getRun(GhostOnlineEntity* ent) {
+	size_t size = ghosts.Count();
+	for (unsigned int i = 0; i < size; i++) {
+		if (ghosts[i]->ent) {
+			if (ghosts[i]->ent == ent) return ghosts[i];
 		}
 	}
 	return NULL;
@@ -265,6 +269,6 @@ void GhostOnlineEngine::sendFirstData() {
 void GhostOnlineEngine::sendLine(RunLine l) {
 	if (!shouldAct) return;
 	sf::Packet pack;
-	pack << "l" << l.name << l.map << l.tim << l.x << l.y <<l.z;
+	pack << "l" << l.name << l.map << l.tim << l.x << l.y << l.z;
 	sendSock.send(pack, serverIPAddress, 4445);
 }

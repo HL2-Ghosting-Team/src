@@ -28,7 +28,7 @@ public:
 
 	void sendFirstData();
 
-	void handleEvent(sf::Packet*);
+	
 
 	static float nextTime;
 	static bool shouldAct;
@@ -38,16 +38,19 @@ public:
 	static void connect(void);//bind the socket, make the thread
 	static void disconnect(void);//close the socket, remove all ghost entities (clear the vector)
 
-
 	static sf::UdpSocket sendSock;
 
 	static sf::UdpSocket receiveSock;
 	static sf::IpAddress serverIPAddress;
 
+	void handleEvent(sf::Packet*);
 	void handleLine(sf::Packet*);
 	void handleDisconnect(sf::Packet*);
 	void handleConnect(sf::Packet*);
-	GhostOnlineRun* getRun(const char*);//TODO make this by name, the recieve thread is going to use this heavily!
+
+	void addRun(GhostOnlineRun*);
+	GhostOnlineRun* getRun(const char*);//by name, the recieve thread uses this heavily!
+	GhostOnlineRun* getRun(GhostOnlineEntity*);//this is by entity, used for interpolation
 	void stopAllRuns();	
 	void sendLine(RunLine);
 	bool inTransition;

@@ -33,9 +33,8 @@ public:
 
 	//The name of the ghost for the other person. The engine will search for this.
 	//this will never change.
-	char ghostName[32];
-	//Subject to change, since this is a placeholder for the map the ghost.
-	char currentMap[32];
+	char ghostNameHud[512];
+	char ghostName[512];
 
 	GhostUtils::GhostData ghostData;
 

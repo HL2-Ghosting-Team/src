@@ -239,11 +239,11 @@ public:
 		return l;
 	}
 
-	static RunLine createLine(const char* name, const char* map, float x, float y, float z) {
+	static RunLine createLine(const char* name, const char* map, float tim, float x, float y, float z) {
 		struct RunLine l;
 		Q_strcpy(l.name, name);
 		Q_strcpy(l.map, map);
-		l.tim = 0;
+		l.tim = tim;
 		l.x = x;
 		l.y = y;
 		l.z = z;

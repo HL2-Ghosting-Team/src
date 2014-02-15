@@ -1178,14 +1178,13 @@ void CServerGameDLL::GameFrame( bool simulating )
 		if (GhostOnlineEngine::getEngine()->shouldAct && !GhostOnlineEngine::getEngine()->inTransition) {
 			CBasePlayer* player = UTIL_GetLocalPlayer();
 			if (player) {
-				float timet = (((float)Plat_FloatTime()) - GhostRecord::startTime);
+				float timet = (float) Plat_FloatTime();
 				Vector loc = player->EyePosition();
-				loc.IsValid();
 				if( GhostOnlineEngine::firstTime) {
 					GhostOnlineEngine::getEngine()->sendFirstData();
 				}
 				if ( timet >= GhostOnlineEngine::nextTime ) {//see if we should update again
-					RunLine l = GhostUtils::createLine(GhostRecord::getGhostName(), STRING(gpGlobals->mapname), loc.x, loc.y, loc.z);
+					RunLine l = GhostUtils::createLine(GhostRecord::getGhostName(), STRING(gpGlobals->mapname), timet, loc.x, loc.y, loc.z);
 					GhostOnlineEngine::getEngine()->sendLine(l); 
 					GhostOnlineEngine::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 				}

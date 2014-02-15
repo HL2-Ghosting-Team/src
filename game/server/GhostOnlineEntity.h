@@ -38,6 +38,8 @@ private:
 	char  m_gModel[256];
 	char  m_gName[256];
 	RunLine currentStep; 
+	RunLine nextStep;
+	float startTime;
 	CBaseEntity *trail;
 	
 };
