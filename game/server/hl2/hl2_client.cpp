@@ -23,7 +23,6 @@
 #include "game.h"
 #include "player_resource.h"
 #include "engine/IEngineSound.h"
-#include "timer.h"
 
 #include "tier0/vprof.h"
 
@@ -65,11 +64,6 @@ void ClientActive( edict_t *pEdict, bool bLoadGame )
 	if ( !bLoadGame )
 	{
 		pPlayer->Spawn();
-	}
-	//Msg("Should be loading the timer now...%f\n", gpGlobals->realtime);
-	if (BlaTimer::timer()->GetOffsetBefore() != 0.0f) {
-		BlaTimer::timer()->Init(gpGlobals->realtime);
-		BlaTimer::timer()->SetRunning(true);
 	}
 }
 

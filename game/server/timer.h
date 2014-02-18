@@ -21,6 +21,8 @@ public:
 	{
 		inLevelLoad = false;
 		curTime = 0.0f;
+		totalTicks = 0.0f;
+		startTick = 0;
 		offset = 0.0f;
 		offsetBefore = 0.0f;
 		startTime = 0.0f;
@@ -37,8 +39,8 @@ public:
 
 	void Init(float offsetAfterLoad)
 	{
-		offset = offsetAfterLoad - offsetBefore;
-		//Msg("Offset after level load is: %f!\n", offset);
+		//offset = offsetAfterLoad - offsetBefore;
+		startTick = offsetAfterLoad;
 		SetLevelLoad(false);
 		//m_bIsRunning = false;
 		/*
@@ -75,9 +77,11 @@ public:
 
 	void Start()
 	{
-		offsetBefore = 0.0f;
-		offset = 0.0f;
-		startTime = gpGlobals->realtime;
+		//offsetBefore = 0.0f;
+		//offset = 0.0f;
+		//startTime = gpGlobals->realtime;
+		totalTicks = 0;
+		startTick = gpGlobals->tickcount;
 		//Msg("Starttime: %f\n", startTime);
 		SetRunning(true);
 		//DispatchStateChangeMessage();
@@ -96,6 +100,7 @@ public:
 		//m_ftTimer->End();
 		SetOffsetBefore(0.0f);
 		SetRunning(false);
+		totalTicks = 0;
 		//DispatchStateChangeMessage();
 		/*float flSecondsTime = GetCurrentTime();
 		if (flSecondsTime < m_flSecondsRecord || m_flSecondsRecord == 0.0f)
@@ -123,8 +128,11 @@ public:
 		else
 			ccCycles = m_ftTimer->GetDuration();
 		curTime = static_cast<float>(ccCycles.GetSeconds());*/
-		curTime = gpGlobals->realtime;
-		return ((curTime - offset) - startTime);
+		curTime = (float) gpGlobals->tickcount;
+		totalTicks += curTime - startTick;
+		startTick = curTime;
+		return totalTicks;
+		//return ((curTime - offset) - startTime);
 	}
 
 	void DispatchTimeToBeatMessage()
@@ -176,6 +184,10 @@ private:
 	float offsetBefore;
 	float curTime;
 	float startTime;
+
+	float totalTicks;//to be sent to the hud and converted into HH:MM:SS
+	float startTick;//the tick in which the level/reload started
+
 
 	// Inform the HUD about status changes of the timer so it can fire up some
 	// fancy animation effects.

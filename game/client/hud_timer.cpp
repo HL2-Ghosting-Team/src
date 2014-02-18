@@ -124,6 +124,7 @@ private:
 	int initialTall;
 	float m_flSecondsRecord;
 	float m_flSecondsTime;
+	float totalTicks;
 	wchar_t m_pwCurrentTime[BUFSIZE];
 	char m_pszString[BUFSIZE];
 	CUtlMap<const char*, float> map;
@@ -177,6 +178,7 @@ void CHudTimer::Init()
 void CHudTimer::Reset()
 {
 	m_flSecondsTime = 0.0f;
+	totalTicks = 0;
 }
 
 /*int CHudTimer::getPos(const char* map) {
@@ -212,7 +214,7 @@ void CHudTimer::MsgFunc_BlaTimer_TimeToBeat(bf_read &msg)
 
 void CHudTimer::MsgFunc_BlaTimer_Time(bf_read &msg)
 {
-	m_flSecondsTime = msg.ReadFloat();
+	totalTicks = msg.ReadFloat();
 }
 
 void CHudTimer::MsgFunc_BlaTimer_StateChange(bf_read &msg)
@@ -238,6 +240,7 @@ void CHudTimer::MsgFunc_BlaTimer_StateChange(bf_read &msg)
 
 void CHudTimer::Paint(void)
 {
+	m_flSecondsTime = totalTicks * 0.015;
 	int hours = (int)(m_flSecondsTime / 3600.0f);
 	int minutes = (int)(((m_flSecondsTime / 3600.0f) - hours) * 60.0f);
 	int seconds = (int)(((((m_flSecondsTime / 3600.0f) - hours) * 60.0f) - minutes) * 60.0f);

@@ -858,7 +858,6 @@ void EndRestoreEntities()
 	}
 
 	g_RestoredEntities.Purge();
-
 	IGameSystem::OnRestoreAllSystems();
 
 	g_InRestore = false;
@@ -1091,7 +1090,6 @@ void CServerGameDLL::GameFrame( bool simulating )
 	// Don't run frames until fully restored
 	if ( g_InRestore )
 		return;
-
 	if ( CBaseEntity::IsSimulatingOnAlternateTicks() )
 	{
 		// only run simulation on even numbered ticks
@@ -1103,8 +1101,16 @@ void CServerGameDLL::GameFrame( bool simulating )
 		// If we're skipping frames, then the frametime is 2x the normal tick
 		gpGlobals->frametime *= 2.0f;
 	}
-	if (BlaTimer::timer()->IsRunning() && !BlaTimer::timer()->InLevelLoad()) {
-		BlaTimer::timer()->DispatchTimeMessage();
+	if (BlaTimer::timer()->IsRunning()) {
+		if (BlaTimer::timer()->InLevelLoad()) {
+			CBasePlayer* player = UTIL_GetLocalPlayer();
+			if (player) {
+				//Msg("Found the player at tick %f!\n", (float) gpGlobals->tickcount);
+				BlaTimer::timer()->Init((float) gpGlobals->tickcount);
+				BlaTimer::timer()->SetRunning(true);
+			}
+		}
+		if (!BlaTimer::timer()->InLevelLoad()) BlaTimer::timer()->DispatchTimeMessage();
 	}
 	float oldframetime = gpGlobals->frametime;
 
@@ -1311,11 +1317,7 @@ void CServerGameDLL::LevelShutdown( void )
 	GhostOnlineEngine::getEngine()->inTransition = true;
 	if (BlaTimer::timer()->IsRunning()) {
 		BlaTimer::timer()->SetLevelLoad(true);
-		float tim = gpGlobals->realtime;
-		//Msg("LEVELSHUTDOWN: Setting offset to %f!\n", tim);
-		BlaTimer::timer()->SetOffsetBefore(tim);
 	}
-
 	IGameSystem::LevelShutdownPreEntityAllSystems();
 	// YWB:
 	// This entity pointer is going away now and is corrupting memory on level transitions/restarts
@@ -2373,11 +2375,6 @@ void CServerGameClients::ClientActive( edict_t *pEdict, bool bLoadGame )
 	CBasePlayer *pPlayer = ( CBasePlayer * )CBaseEntity::Instance( pEdict );
 	CSoundEnvelopeController::GetController().CheckLoopingSoundsForPlayer( pPlayer );
 	SceneManager_ClientActive( pPlayer );
-	//Msg("Should be active 2...%f\n",gpGlobals->realtime);
-	if (BlaTimer::timer()->GetOffsetBefore() != 0.0f) {
-		BlaTimer::timer()->Init(gpGlobals->realtime);
-		BlaTimer::timer()->SetRunning(true);
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -2416,12 +2413,6 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 				gamestats->Event_PlayerDisconnected( player );
 			}
 		}
-		if (BlaTimer::timer()->IsRunning()) {
-			BlaTimer::timer()->SetLevelLoad(true);
-			float tim = gpGlobals->realtime;
-			//Msg("CSERVERGAME ENTS: Setting offset to %f!\n", tim);
-			BlaTimer::timer()->SetOffsetBefore(tim);
-		}
 		// Make sure all Untouch()'s are called for this client leaving
 		CBaseEntity::PhysicsRemoveTouchedList( player );
 		CBaseEntity::PhysicsRemoveGroundList( player );
@@ -2430,6 +2421,9 @@ void CServerGameClients::ClientDisconnect( edict_t *pEdict )
 		// Make sure anything we "own" is simulated by the server from now on
 		player->ClearPlayerSimulationList();
 #endif
+		if (BlaTimer::timer()->IsRunning()) {
+			BlaTimer::timer()->SetLevelLoad(true);
+		}
 	}
 }
 
