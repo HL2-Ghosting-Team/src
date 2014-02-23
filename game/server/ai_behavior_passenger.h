@@ -13,7 +13,9 @@
 #include "ai_speech.h"
 #include "ai_behavior.h"
 #include "ai_utils.h"
+#ifdef HL2_EPISODIC
 #include "vehicle_jeep_episodic.h"
+#endif
 
 #define STOPPED_VELOCITY_THRESHOLD		32.0f
 #define	STOPPED_VELOCITY_THRESHOLD_SQR	(STOPPED_VELOCITY_THRESHOLD*STOPPED_VELOCITY_THRESHOLD)
@@ -130,7 +132,9 @@ public:
 	virtual string_t GetRoleName( void ) { return MAKE_STRING( "passenger" ); }
 
 	// Enable/disable code
+#ifdef HL2_EPISODIC
 	void	Enable( CPropJeepEpisodic *pVehicle, bool bImmediateEntrance = false );
+#endif
 	void	Disable( void );
 	bool	IsEnabled( void ) const { return m_bEnabled; }
 

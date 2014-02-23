@@ -79,6 +79,7 @@ public:
 		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 			FileFindHandle_t findHandle; // note: FileFINDHandle
 			std::stringstream ss1;
+			ss1 << "runs/";
 			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
 			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
 			for(int i = 0; pFilename; i++) {
@@ -107,6 +108,7 @@ public:
 		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 			FileFindHandle_t findHandle; // note: FileFINDHandle
 			std::stringstream ss1;
+			ss1 << "runs/";
 			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
 			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
 			for(int i = 0; pFilename; i++) {
@@ -134,6 +136,7 @@ public:
 		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
 			FileFindHandle_t findHandle; // note: FileFINDHandle
 			std::stringstream ss1;
+			ss1 << "runs/";
 			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
 			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
 			for(int i = 0; pFilename; i++) {

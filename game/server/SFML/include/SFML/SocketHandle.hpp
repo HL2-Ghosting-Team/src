@@ -22,18 +22,36 @@
 //
 ////////////////////////////////////////////////////////////
 
+#ifndef SFML_SOCKETHANDLE_HPP
+#define SFML_SOCKETHANDLE_HPP
+
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Config.hpp>
-
+#include "Config.hpp"
 
 #if defined(SFML_SYSTEM_WINDOWS)
+    #include <basetsd.h>
+#endif
 
-    #include <SFML/Network/Win32/SocketImpl.hpp>
+
+namespace sf
+{
+////////////////////////////////////////////////////////////
+// Define the low-level socket handle type, specific to
+// each platform
+////////////////////////////////////////////////////////////
+#if defined(SFML_SYSTEM_WINDOWS)
+
+    typedef UINT_PTR SocketHandle;
 
 #else
 
-    #include <SFML/Network/Unix/SocketImpl.hpp>
+    typedef int SocketHandle;
 
 #endif
+
+} // namespace sf
+
+
+#endif // SFML_SOCKETHANDLE_HPP

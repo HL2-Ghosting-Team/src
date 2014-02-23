@@ -1353,9 +1353,6 @@
     <ClCompile Include="hl2\c_vehicle_crane.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="episodic\c_vehicle_jeep_episodic.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\c_vehicle_prisoner_pod.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>

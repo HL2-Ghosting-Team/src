@@ -498,10 +498,10 @@ bool CWeaponStriderBuster::StickToEntity( CBaseEntity *pOther )
 				CNPC_Strider *pStrider = dynamic_cast<CNPC_Strider *>(pFollowParent);
 				if ( pStrider == NULL )
 					return false;
-
+#ifdef HL2_EPISODIC
 				// Notify the strider we're attaching to him
 				pStrider->StriderBusterAttached( this );
-				
+#endif
 				m_OnAttachToStrider.FireOutput( this, this );
 
 				// Start the ping sound.
@@ -675,7 +675,7 @@ void CWeaponStriderBuster::Detonate( void )
 	// Go to bits!
 	Shatter( pVictim );
 }
-
+#ifdef HL2_EPISODIC
 //-----------------------------------------------------------------------------
 // Purpose: Intercept damage and decide whether or not we want to trigger
 // Input  : &info - 

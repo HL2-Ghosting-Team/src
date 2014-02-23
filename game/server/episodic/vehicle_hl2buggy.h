@@ -43,8 +43,9 @@ public:
 	virtual void	Precache( void );
 	virtual void	EnterVehicle( CBaseCombatCharacter *pPassenger );
 	virtual void	ExitVehicle( int nRole );
+#ifdef HL2_EPISODIC
 	virtual bool	AllowBlockedExit( CBaseCombatCharacter *pPassenger, int nRole );
-	
+#endif
 	// Passengers take no damage except what we pass them
 	virtual bool	PassengerShouldReceiveDamage( CTakeDamageInfo &info ) 
 	{ 

@@ -168,7 +168,7 @@ bool g_bCacheLegacyFlashlightStatus = true;
 bool g_bUseLegacyFlashlight;
 bool Flashlight_UseLegacyVersion( void )
 {
-	// If this is the first run through, cache off what the answer should be (cannot change during a session)
+	/*// If this is the first run through, cache off what the answer should be (cannot change during a session)
 	if ( g_bCacheLegacyFlashlightStatus )
 	{
 		char modDir[MAX_PATH];
@@ -179,9 +179,18 @@ bool Flashlight_UseLegacyVersion( void )
 
 		g_bCacheLegacyFlashlightStatus = false;
 	}
+	Msg("Use legacy flashlight? %s\n", (g_bUseLegacyFlashlight ? "yes" : "no"));*/
+	
+	//So I don't know why Valve does the above to determine this, when you can simply:
+#ifdef HL2_EPISODIC
+	return false;
+#else
+	return true;
+#endif // HL2_EPISODIC
+
 
 	// Return the results
-	return g_bUseLegacyFlashlight;
+	//return g_bUseLegacyFlashlight;
 }
 
 //-----------------------------------------------------------------------------

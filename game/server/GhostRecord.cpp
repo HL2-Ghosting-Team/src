@@ -118,14 +118,15 @@ void GhostRecord::record(const CCommand &args) {
 		ghName.SetValue(playerName);
 	}
 	Q_strcpy(playerName, ghName.GetString());
+	Q_strcpy(fileName, "runs/");
 	if (args.ArgC() > 1 && (Q_strcmp(args.Arg(1), "") != 0)) {
-		Q_strcpy(fileName, args.Arg(1));//specified name
+		Q_strcat(fileName, args.Arg(1), sizeof(fileName));//specified name
 	} else {
 		//gets the next avaliable filename for starting to record.
 		char fileNameGenerated[MAX_PATH];
 		GhostUtils::generateFileName(playerName, fileNameGenerated);
 		if (fileNameGenerated) {
-			Q_strcpy(fileName, fileNameGenerated);
+			Q_strcat(fileName, fileNameGenerated, sizeof(fileName));
 		}
 	}
 	V_SetExtension(fileName, ".run", sizeof(fileName));

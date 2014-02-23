@@ -31,6 +31,15 @@
     <Filter Include="Source Files\Ghost">
       <UniqueIdentifier>{18bf4293-08b0-4f3c-8969-2e2de8b92a06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\SFML">
+      <UniqueIdentifier>{21410b79-cf01-4ffe-9243-f5d169e527ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SFML\include">
+      <UniqueIdentifier>{b27161e2-6d3c-41c8-970d-f90ab2dbae39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SFML\Impl">
+      <UniqueIdentifier>{c91091f8-f055-4b81-8b29-5ab308f8b99f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\shared\achievement_saverestore.cpp">
@@ -1314,12 +1323,6 @@
     <ClCompile Include="ai_behavior_passenger.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="episodic\ai_behavior_passenger_companion.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="episodic\ai_behavior_passenger_zombie.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\ai_behavior_police.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1467,13 +1470,7 @@
     <ClCompile Include="episodic\npc_advisor.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="hl2\npc_alyx_episodic.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\npc_antlion.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="hl2\npc_antliongrub.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
     <ClCompile Include="hl2\npc_antlionguard.cpp">
@@ -1551,9 +1548,6 @@
     <ClCompile Include="hl2\npc_headcrab.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="episodic\npc_hunter.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\npc_ichthyosaur.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1611,9 +1605,6 @@
     <ClCompile Include="hl2\npc_turret_ground.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="hl2\npc_vortigaunt_episodic.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\npc_zombie.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1657,9 +1648,6 @@
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
     <ClCompile Include="hl2\vehicle_jeep.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
-    <ClCompile Include="episodic\vehicle_jeep_episodic.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
     <ClCompile Include="hl2\vehicle_prisoner_pod.cpp">
@@ -1713,9 +1701,6 @@
     <ClCompile Include="hl2\weapon_smg1.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
-    <ClCompile Include="episodic\weapon_striderbuster.cpp">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClCompile>
     <ClCompile Include="hl2\weapon_stunstick.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
@@ -1766,6 +1751,30 @@
     </ClCompile>
     <ClCompile Include="GhostOnlineRun.cpp">
       <Filter>Source Files\Ghost</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\npc_alyx.cpp">
+      <Filter>Source Files\HL2 DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\String.cpp">
+      <Filter>Source Files\SFML</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\IpAddress.cpp">
+      <Filter>Source Files\SFML</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\Packet.cpp">
+      <Filter>Source Files\SFML</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\Socket.cpp">
+      <Filter>Source Files\SFML</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\UdpSocket.cpp">
+      <Filter>Source Files\SFML</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML\SocketImpl.cpp">
+      <Filter>Source Files\SFML\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="hl2\npc_vortigaunt_episodic.cpp">
+      <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2618,12 +2627,6 @@
     <ClInclude Include="ai_behavior_passenger.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
-    <ClInclude Include="episodic\ai_behavior_passenger_companion.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="episodic\ai_behavior_passenger_zombie.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
     <ClInclude Include="hl2\ai_behavior_police.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
@@ -2729,9 +2732,6 @@
     <ClInclude Include="..\shared\episodic\npc_advisor_shared.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
-    <ClInclude Include="hl2\npc_alyx_episodic.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
     <ClInclude Include="hl2\npc_antlion.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
@@ -2765,9 +2765,6 @@
     <ClInclude Include="hl2\npc_headcrab.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
-    <ClInclude Include="episodic\npc_hunter.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
     <ClInclude Include="hl2\npc_manhack.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
@@ -2792,9 +2789,6 @@
     <ClInclude Include="npc_talker.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
-    <ClInclude Include="hl2\npc_vortigaunt_episodic.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
     <ClInclude Include="hl2\prop_combine_ball.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
@@ -2813,9 +2807,6 @@
     <ClInclude Include="episodic\vehicle_hl2buggy.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
-    <ClInclude Include="episodic\vehicle_jeep_episodic.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
     <ClInclude Include="hl2\weapon_alyxgun.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
@@ -2832,9 +2823,6 @@
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
     <ClInclude Include="hl2\weapon_rpg.h">
-      <Filter>Source Files\HL2 DLL</Filter>
-    </ClInclude>
-    <ClInclude Include="episodic\weapon_striderbuster.h">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClInclude>
     <ClInclude Include="hl2\weapon_stunstick.h">
@@ -3518,6 +3506,87 @@
     <ClInclude Include="GhostOnlineRun.h">
       <Filter>Source Files\Ghost</Filter>
     </ClInclude>
+    <ClInclude Include="hl2\npc_alyx.h">
+      <Filter>Source Files\HL2 DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Config.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Network.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\System.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Export.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\ExportNetwork.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Ftp.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Http.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\InputStream.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\IpAddress.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\NonCopyable.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Packet.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Socket.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\SocketHandle.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\SocketSelector.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\String.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\TcpListener.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\TcpSocket.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\UdpSocket.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Utf.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Vector2.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Vector3.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\NetworkSocketImpl.hpp">
+      <Filter>Source Files\SFML\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\NetworkWin32SocketImpl.hpp">
+      <Filter>Source Files\SFML\Impl</Filter>
+    </ClInclude>
+    <ClInclude Include="hl2\vehicle_jeep.h">
+      <Filter>Source Files\HL2 DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="hl2\npc_vortigaunt_episodic.h">
+      <Filter>Source Files\HL2 DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML\include\SFML\Time.hpp">
+      <Filter>Source Files\SFML\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\choreoobjects.lib">
@@ -3554,6 +3623,18 @@
   <ItemGroup>
     <None Include="server_episodic.vpc">
       <Filter>Resources</Filter>
+    </None>
+    <None Include="SFML\include\SFML\String.inl">
+      <Filter>Source Files\SFML\include</Filter>
+    </None>
+    <None Include="SFML\include\SFML\Utf.inl">
+      <Filter>Source Files\SFML\include</Filter>
+    </None>
+    <None Include="SFML\include\SFML\Vector2.inl">
+      <Filter>Source Files\SFML\include</Filter>
+    </None>
+    <None Include="SFML\include\SFML\Vector3.inl">
+      <Filter>Source Files\SFML\include</Filter>
     </None>
   </ItemGroup>
 </Project>

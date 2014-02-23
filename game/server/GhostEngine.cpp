@@ -187,16 +187,23 @@ void GhostEngine::EndRun(GhostRun* run) {
 }
 
 void GhostEngine::StartRun(const char* fileName, bool shouldStart) {
-	GhostRun * run = new GhostRun();
-	if (!filesystem->FileExists(fileName, "MOD")) {
+	if (!fileName) {
+		Warning("Run does not exist!\n");
+		return;
+	}
+	GhostRun* run = new GhostRun();
+	char filePath[256];
+	Q_strcpy(filePath, "runs/");
+	Q_strcat(filePath, fileName, sizeof(filePath));
+	if (!filesystem->FileExists(filePath, "MOD")) {
 		Msg("Run does not exist!\n");
 	} else {
-		if (run->openRun(fileName)) {
+		if (run->openRun(filePath)) {
 			if (shouldStart) {
 				run->StartRun(false);
 			}
 			ghosts.AddToTail(run);
-			Msg("Loaded run %s!\n",fileName);
+			Msg("Loaded run %s!\n", filePath);
 		}
 	}
 }

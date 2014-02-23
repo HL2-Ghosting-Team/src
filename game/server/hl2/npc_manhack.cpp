@@ -2803,6 +2803,7 @@ void CNPC_Manhack::UpdateOnRemove( void )
 //-----------------------------------------------------------------------------
 bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseCombatCharacter* sourceEnt)
 {
+#ifdef HL2_EPISODIC
 	if (interactionType == g_interactionVortigauntClaw)
 	{
 		// Freeze so vortigaunt and hit me easier
@@ -2813,6 +2814,7 @@ bool CNPC_Manhack::HandleInteraction(int interactionType, void* data, CBaseComba
 		m_fForceMoveTime   = gpGlobals->curtime + 2.0;
 		return false;
 	}
+#endif
 
 	return false;
 }

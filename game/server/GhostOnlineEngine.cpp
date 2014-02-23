@@ -3,7 +3,7 @@
 #include "GhostOnlineEngine.h"
 #include "GhostEngine.h"
 #include "GhostRecord.h"
-#include <SFML/Network.hpp>
+#include "SFML\include\SFML\Network.hpp"
 #include <WS2tcpip.h>
 
 #include "tier0/memdbgon.h"
@@ -13,9 +13,7 @@ GhostOnlineEngine* GhostOnlineEngine::instance = NULL;
 float GhostOnlineEngine::nextTime = 0.0f;
 bool GhostOnlineEngine::shouldAct = false;
 bool GhostOnlineEngine::firstTime = true;
-bool GhostOnlineEngine::mapNameDirty = true;
 sf::UdpSocket GhostOnlineEngine::sendSock;
-sf::UdpSocket GhostOnlineEngine::receiveSock;
 sf::IpAddress GhostOnlineEngine::serverIPAddress;
 
 GhostOnlineEngine* GhostOnlineEngine::getEngine() {
@@ -60,7 +58,7 @@ static unsigned ReceiveThread(void *params) {
 			sf::Packet pack;
 			sf::IpAddress sender;
 			unsigned short port;
-			if ((GhostOnlineEngine::receiveSock.receive(pack, sender, port) == sf::Socket::Done) && (pack.getDataSize() > 0)) {
+			if ((GhostOnlineEngine::sendSock.receive(pack, sender, port) == sf::Socket::Done) && (pack.getDataSize() > 0)) {
 				if (port == 4446) {
 					GhostOnlineEngine::getEngine()->handleEvent(&pack);
 				}
@@ -182,11 +180,6 @@ void GhostOnlineEngine::connect() {
 	struct sockaddr_in recTemp;
 	if (inet_pton(AF_INET, serverIP.GetString(), &recTemp) == 1) {
 		serverIPAddress = serverIP.GetString();
-		if (receiveSock.bind(4446) != sf::Socket::Done) {
-			Msg("Failed to bind receiving port!\n");
-			sendSock.unbind();
-			return;
-		}
 		CreateSimpleThread(ReceiveThread, NULL);
 		firstTime = true;
 		shouldAct = true;
@@ -243,9 +236,7 @@ void GhostOnlineEngine::disconnect() {
 	Sleep(60);
 #endif
 	sendSock.unbind();
-	receiveSock.unbind();
 	nextTime = 0.0f;
-	mapNameDirty = true;
 
 	getEngine()->stopAllRuns();
 }

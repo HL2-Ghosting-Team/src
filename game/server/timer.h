@@ -98,8 +98,8 @@ public:
 	void Stop()
 	{
 		//m_ftTimer->End();
+		m_bIsRunning = false;
 		SetOffsetBefore(0.0f);
-		SetRunning(false);
 		totalTicks = 0;
 		//DispatchStateChangeMessage();
 		/*float flSecondsTime = GetCurrentTime();
@@ -120,19 +120,16 @@ public:
 		m_bIsRunning = newb;
 	}
 
-	float GetCurrentTime()
-	{
-		/*CCycleCount ccCycles;
-		if (m_bIsRunning)
-			ccCycles = m_ftTimer->GetDurationInProgress();
-		else
-			ccCycles = m_ftTimer->GetDuration();
-		curTime = static_cast<float>(ccCycles.GetSeconds());*/
+	void CalcTime() {
 		curTime = (float) gpGlobals->tickcount;
 		totalTicks += curTime - startTick;
 		startTick = curTime;
+	}
+
+	float GetCurrentTime()
+	{
+		if (m_bIsRunning) CalcTime();
 		return totalTicks;
-		//return ((curTime - offset) - startTime);
 	}
 
 	void DispatchTimeToBeatMessage()

@@ -3073,9 +3073,9 @@ bool CNPC_PlayerCompanion::ShouldAlwaysTransition( void )
 	if ( IsInPlayerSquad() ) return true;
 
 	//Barney
-	if (Classify() == CLASS_PLAYER_ALLY_VITAL) {
-		return (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_10a") == 0) || (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_09") == 0);
-	}
+	//if (Classify() == CLASS_PLAYER_ALLY_VITAL) {
+	//	return (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_10a") == 0) || (Q_strcmp(gpGlobals->mapname.ToCStr(), "d3_c17_09") == 0);
+	//}
 
 	// If we're following the player, then come along
 	if ( GetFollowBehavior().GetFollowTarget() && GetFollowBehavior().GetFollowTarget()->IsPlayer() ) return true;

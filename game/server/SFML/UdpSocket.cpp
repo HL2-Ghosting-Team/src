@@ -25,11 +25,11 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Network/UdpSocket.hpp>
-#include <SFML/Network/IpAddress.hpp>
-#include <SFML/Network/Packet.hpp>
-#include <SFML/Network/SocketImpl.hpp>
-#include <SFML/System/Err.hpp>
+#include "cbase.h"
+#include "include\SFML\UdpSocket.hpp"
+#include "include\SFML\IpAddress.hpp"
+#include "include\SFML\Packet.hpp"
+#include "NetworkSocketImpl.hpp"
 #include <algorithm>
 
 
@@ -73,7 +73,7 @@ Socket::Status UdpSocket::bind(unsigned short port)
     sockaddr_in address = priv::SocketImpl::createAddress(INADDR_ANY, port);
     if (::bind(getHandle(), reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1)
     {
-        err() << "Failed to bind socket to port " << port << std::endl;
+        Warning("Failed to bind socket to port %i\n", port);
         return Error;
     }
 
@@ -98,8 +98,7 @@ Socket::Status UdpSocket::send(const void* data, std::size_t size, const IpAddre
     // Make sure that all the data will fit in one datagram
     if (size > MaxDatagramSize)
     {
-        err() << "Cannot send data over the network "
-              << "(the number of bytes to send is greater than sf::UdpSocket::MaxDatagramSize)" << std::endl;
+		Warning("Cannot send data over the network (the number of bytes to send is greater than sf::UdpSocket::MaxDatagramSize)\n");
         return Error;
     }
 
@@ -128,7 +127,7 @@ Socket::Status UdpSocket::receive(void* data, std::size_t size, std::size_t& rec
     // Check the destination buffer
     if (!data)
     {
-        err() << "Cannot receive data from the network (the destination buffer is invalid)" << std::endl;
+        Warning("Cannot receive data from the network (the destination buffer is invalid)\n");
         return Error;
     }
 
@@ -137,7 +136,7 @@ Socket::Status UdpSocket::receive(void* data, std::size_t size, std::size_t& rec
 
     // Receive a chunk of bytes
     priv::SocketImpl::AddrLength addressSize = sizeof(address);
-    int sizeReceived = recvfrom(getHandle(), static_cast<char*>(data), static_cast<int>(size), 0, reinterpret_cast<sockaddr*>(&address), &addressSize);
+    int sizeReceived = VCRHook_recvfrom(getHandle(), static_cast<char*>(data), static_cast<int>(size), 0, reinterpret_cast<sockaddr*>(&address), &addressSize);
 
     // Check for errors
     if (sizeReceived < 0)

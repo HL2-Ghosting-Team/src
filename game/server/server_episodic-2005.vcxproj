@@ -143,8 +143,8 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>F:\Ghosting\src\SFML\SFML-2.1\include;..\..\common;..\..\public;..\..\public\tier0;..\..\public\tier1;.\;..\..\game\shared;..\..\utils\common;..\..\game\shared\hl2;..\..\game\shared\episodic;.\hl2;.\episodic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;GAME_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES;PROTECTED_THINGS_ENABLE;fopen=dont_use_fopen;sprintf=use_Q_snprintf_instead_of_sprintf;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead;HL2_DLL;HL2_EPISODIC;SP_SDK;USES_SAVERESTORE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\common;..\..\public;..\..\public\tier0;..\..\public\tier1;.\;..\..\game\shared;..\..\utils\common;..\..\game\shared\hl2;..\..\game\shared\episodic;.\hl2;.\episodic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;GAME_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES;PROTECTED_THINGS_ENABLE;fopen=dont_use_fopen;sprintf=use_Q_snprintf_instead_of_sprintf;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead;HL2_DLL;SP_SDK;USES_SAVERESTORE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling />
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -171,11 +171,11 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;ws2_32.lib;sfml-network.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
       <OutputFile>$(OutDir)Server.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>F:\Ghosting\src\SFML\SFML-2.1\lib;..\..\lib\common;..\..\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\lib\common;..\..\lib\public;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libc;libcd;libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
@@ -446,6 +446,8 @@
     <ClCompile Include="globalstate.cpp" />
     <ClCompile Include="grenadethrown.cpp" />
     <ClCompile Include="guntarget.cpp" />
+    <ClCompile Include="hl2\npc_alyx.cpp" />
+    <ClCompile Include="hl2\npc_vortigaunt_episodic.cpp" />
     <ClCompile Include="h_ai.cpp" />
     <ClCompile Include="h_cycler.cpp" />
     <ClCompile Include="h_export.cpp">
@@ -635,6 +637,12 @@
     </ClCompile>
     <ClCompile Include="serverbenchmark_base.cpp" />
     <ClCompile Include="ServerNetworkProperty.cpp" />
+    <ClCompile Include="SFML\IpAddress.cpp" />
+    <ClCompile Include="SFML\Packet.cpp" />
+    <ClCompile Include="SFML\Socket.cpp" />
+    <ClCompile Include="SFML\SocketImpl.cpp" />
+    <ClCompile Include="SFML\String.cpp" />
+    <ClCompile Include="SFML\UdpSocket.cpp" />
     <ClCompile Include="shadowcontrol.cpp" />
     <ClCompile Include="..\shared\sheetsimulator.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -777,8 +785,6 @@
     <ClCompile Include="hl2\ai_behavior_holster.cpp" />
     <ClCompile Include="hl2\ai_behavior_operator.cpp" />
     <ClCompile Include="ai_behavior_passenger.cpp" />
-    <ClCompile Include="episodic\ai_behavior_passenger_companion.cpp" />
-    <ClCompile Include="episodic\ai_behavior_passenger_zombie.cpp" />
     <ClCompile Include="hl2\ai_behavior_police.cpp" />
     <ClCompile Include="hl2\ai_goal_police.cpp" />
     <ClCompile Include="hl2\ai_spotlight.cpp" />
@@ -838,9 +844,7 @@
     <ClCompile Include="hl2\look_door.cpp" />
     <ClCompile Include="hl2\monster_dummy.cpp" />
     <ClCompile Include="episodic\npc_advisor.cpp" />
-    <ClCompile Include="hl2\npc_alyx_episodic.cpp" />
     <ClCompile Include="hl2\npc_antlion.cpp" />
-    <ClCompile Include="hl2\npc_antliongrub.cpp" />
     <ClCompile Include="hl2\npc_antlionguard.cpp" />
     <ClCompile Include="hl2\npc_apcdriver.cpp" />
     <ClCompile Include="hl2\npc_attackchopper.cpp" />
@@ -866,7 +870,6 @@
     <ClCompile Include="hl2\npc_fisherman.cpp" />
     <ClCompile Include="hl2\npc_gman.cpp" />
     <ClCompile Include="hl2\npc_headcrab.cpp" />
-    <ClCompile Include="episodic\npc_hunter.cpp" />
     <ClCompile Include="hl2\npc_ichthyosaur.cpp" />
     <ClCompile Include="hl2\npc_kleiner.cpp" />
     <ClCompile Include="hl2\npc_launcher.cpp" />
@@ -886,7 +889,6 @@
     <ClCompile Include="hl2\npc_turret_ceiling.cpp" />
     <ClCompile Include="hl2\npc_turret_floor.cpp" />
     <ClCompile Include="hl2\npc_turret_ground.cpp" />
-    <ClCompile Include="hl2\npc_vortigaunt_episodic.cpp" />
     <ClCompile Include="hl2\npc_zombie.cpp" />
     <ClCompile Include="hl2\npc_zombine.cpp" />
     <ClCompile Include="hl2\point_apc_controller.cpp" />
@@ -902,7 +904,6 @@
     <ClCompile Include="hl2\vehicle_crane.cpp" />
     <ClCompile Include="episodic\vehicle_hl2buggy.cpp" />
     <ClCompile Include="hl2\vehicle_jeep.cpp" />
-    <ClCompile Include="episodic\vehicle_jeep_episodic.cpp" />
     <ClCompile Include="hl2\vehicle_prisoner_pod.cpp" />
     <ClCompile Include="hl2\vehicle_viewcontroller.cpp" />
     <ClCompile Include="hl2\weapon_357.cpp" />
@@ -920,7 +921,6 @@
     <ClCompile Include="hl2\weapon_rpg.cpp" />
     <ClCompile Include="hl2\weapon_shotgun.cpp" />
     <ClCompile Include="hl2\weapon_smg1.cpp" />
-    <ClCompile Include="episodic\weapon_striderbuster.cpp" />
     <ClCompile Include="hl2\weapon_stunstick.cpp" />
     <ClCompile Include="hl2\grenade_beam.cpp" />
     <ClCompile Include="hl2\grenade_homer.cpp" />
@@ -1093,6 +1093,9 @@
     <ClInclude Include="globalstate.h" />
     <ClInclude Include="globalstate_private.h" />
     <ClInclude Include="grenadethrown.h" />
+    <ClInclude Include="hl2\npc_alyx.h" />
+    <ClInclude Include="hl2\npc_vortigaunt_episodic.h" />
+    <ClInclude Include="hl2\vehicle_jeep.h" />
     <ClInclude Include="h_cycler.h" />
     <ClInclude Include="hierarchy.h" />
     <ClInclude Include="..\shared\hintmessage.h" />
@@ -1184,6 +1187,30 @@
     <ClInclude Include="..\shared\simtimer.h" />
     <ClInclude Include="..\shared\singleplay_gamerules.h" />
     <ClInclude Include="..\shared\solidsetdefaults.h" />
+    <ClInclude Include="SFML\include\SFML\Config.hpp" />
+    <ClInclude Include="SFML\include\SFML\Export.hpp" />
+    <ClInclude Include="SFML\include\SFML\ExportNetwork.hpp" />
+    <ClInclude Include="SFML\include\SFML\Ftp.hpp" />
+    <ClInclude Include="SFML\include\SFML\Http.hpp" />
+    <ClInclude Include="SFML\include\SFML\InputStream.hpp" />
+    <ClInclude Include="SFML\include\SFML\IpAddress.hpp" />
+    <ClInclude Include="SFML\include\SFML\Network.hpp" />
+    <ClInclude Include="SFML\include\SFML\NonCopyable.hpp" />
+    <ClInclude Include="SFML\include\SFML\Packet.hpp" />
+    <ClInclude Include="SFML\include\SFML\Socket.hpp" />
+    <ClInclude Include="SFML\include\SFML\SocketHandle.hpp" />
+    <ClInclude Include="SFML\include\SFML\SocketSelector.hpp" />
+    <ClInclude Include="SFML\include\SFML\String.hpp" />
+    <ClInclude Include="SFML\include\SFML\System.hpp" />
+    <ClInclude Include="SFML\include\SFML\TcpListener.hpp" />
+    <ClInclude Include="SFML\include\SFML\TcpSocket.hpp" />
+    <ClInclude Include="SFML\include\SFML\Time.hpp" />
+    <ClInclude Include="SFML\include\SFML\UdpSocket.hpp" />
+    <ClInclude Include="SFML\include\SFML\Utf.hpp" />
+    <ClInclude Include="SFML\include\SFML\Vector2.hpp" />
+    <ClInclude Include="SFML\include\SFML\Vector3.hpp" />
+    <ClInclude Include="SFML\NetworkSocketImpl.hpp" />
+    <ClInclude Include="SFML\NetworkWin32SocketImpl.hpp" />
     <ClInclude Include="soundent.h" />
     <ClInclude Include="soundscape.h" />
     <ClInclude Include="spark.h" />
@@ -1227,8 +1254,6 @@
     <ClInclude Include="hl2\ai_behavior_holster.h" />
     <ClInclude Include="hl2\ai_behavior_operator.h" />
     <ClInclude Include="ai_behavior_passenger.h" />
-    <ClInclude Include="episodic\ai_behavior_passenger_companion.h" />
-    <ClInclude Include="episodic\ai_behavior_passenger_zombie.h" />
     <ClInclude Include="hl2\ai_behavior_police.h" />
     <ClInclude Include="hl2\ai_goal_police.h" />
     <ClInclude Include="hl2\ai_interactions.h" />
@@ -1264,7 +1289,6 @@
     <ClInclude Include="hl2\info_darknessmode_lightsource.h" />
     <ClInclude Include="hl2\item_dynamic_resupply.h" />
     <ClInclude Include="..\shared\episodic\npc_advisor_shared.h" />
-    <ClInclude Include="hl2\npc_alyx_episodic.h" />
     <ClInclude Include="hl2\npc_antlion.h" />
     <ClInclude Include="hl2\npc_attackchopper.h" />
     <ClInclude Include="hl2\npc_barnacle.h" />
@@ -1276,7 +1300,6 @@
     <ClInclude Include="hl2\npc_combines.h" />
     <ClInclude Include="hl2\npc_crow.h" />
     <ClInclude Include="hl2\npc_headcrab.h" />
-    <ClInclude Include="episodic\npc_hunter.h" />
     <ClInclude Include="hl2\npc_manhack.h" />
     <ClInclude Include="hl2\npc_metropolice.h" />
     <ClInclude Include="hl2\npc_playercompanion.h" />
@@ -1285,21 +1308,18 @@
     <ClInclude Include="hl2\npc_stalker.h" />
     <ClInclude Include="hl2\npc_strider.h" />
     <ClInclude Include="npc_talker.h" />
-    <ClInclude Include="hl2\npc_vortigaunt_episodic.h" />
     <ClInclude Include="hl2\prop_combine_ball.h" />
     <ClInclude Include="hl2\rotorwash.h" />
     <ClInclude Include="hl2\script_intro.h" />
     <ClInclude Include="hl2\vehicle_apc.h" />
     <ClInclude Include="hl2\vehicle_crane.h" />
     <ClInclude Include="episodic\vehicle_hl2buggy.h" />
-    <ClInclude Include="episodic\vehicle_jeep_episodic.h" />
     <ClInclude Include="hl2\weapon_alyxgun.h" />
     <ClInclude Include="hl2\weapon_ar2.h" />
     <ClInclude Include="hl2\weapon_citizenpackage.h" />
     <ClInclude Include="hl2\weapon_crowbar.h" />
     <ClInclude Include="hl2\weapon_physcannon.h" />
     <ClInclude Include="hl2\weapon_rpg.h" />
-    <ClInclude Include="episodic\weapon_striderbuster.h" />
     <ClInclude Include="hl2\weapon_stunstick.h" />
     <ClInclude Include="hl2\grenade_beam.h" />
     <ClInclude Include="hl2\grenade_homer.h" />
@@ -1531,6 +1551,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="server_episodic.vpc" />
+    <None Include="SFML\include\SFML\String.inl" />
+    <None Include="SFML\include\SFML\Utf.inl" />
+    <None Include="SFML\include\SFML\Vector2.inl" />
+    <None Include="SFML\include\SFML\Vector3.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

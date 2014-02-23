@@ -25,9 +25,10 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <SFML/Network/IpAddress.hpp>
-#include <SFML/Network/Http.hpp>
-#include <SFML/Network/SocketImpl.hpp>
+#include "include\SFML\IpAddress.hpp"
+#include "cbase.h"
+#include "include\SFML\Http.hpp"
+#include "NetworkSocketImpl.hpp"
 #include <cstring>
 
 
@@ -73,9 +74,9 @@ namespace
 namespace sf
 {
 ////////////////////////////////////////////////////////////
-const IpAddress IpAddress::None;
-const IpAddress IpAddress::LocalHost(127, 0, 0, 1);
-const IpAddress IpAddress::Broadcast(255, 255, 255, 255);
+//const IpAddress IpAddress::None;
+//const IpAddress IpAddress::LocalHost(127, 0, 0, 1);
+//const IpAddress IpAddress::Broadcast(255, 255, 255, 255);
 
 
 ////////////////////////////////////////////////////////////
@@ -172,7 +173,7 @@ IpAddress IpAddress::getLocalAddress()
     return localAddress;
 }
 
-
+/*
 ////////////////////////////////////////////////////////////
 IpAddress IpAddress::getPublicAddress(Time timeout)
 {
@@ -191,7 +192,7 @@ IpAddress IpAddress::getPublicAddress(Time timeout)
     // Something failed: return an invalid address
     return IpAddress();
 }
-
+*/
 
 ////////////////////////////////////////////////////////////
 bool operator ==(const IpAddress& left, const IpAddress& right)

@@ -7,7 +7,12 @@
 #include "cbase.h"
 #include "vehicle_hl2buggy.h"
 #include "collisionutils.h"
+#ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
+#else
+#include "vehicle_jeep.h"
+#include "npc_alyx.h"
+#endif
 #include "particle_parse.h"
 #include "particle_system.h"
 #include "hl2_player.h"
@@ -20,8 +25,9 @@
 #include "ai_dynamiclink.h"
 
 extern ConVar phys_upimpactforcescale;
-
+#ifdef HL2_EPISODIC
 extern ConVar jalopy_blocked_exit_max_speed;
+#endif
 
 #define JEEP_AMMOCRATE_HITGROUP		5
 #define	JEEP_AMMO_CRATE_CLOSE_DELAY	2.0f
@@ -427,13 +433,14 @@ void CPropHL2Buggy::Think( void )
 {
 	BaseClass::Think();
 
+#ifdef HL2_EPISODIC
 	// If our passenger is transitioning, then don't let the player drive off
 	CNPC_Alyx *pAlyx = CNPC_Alyx::GetAlyx();
 	if ( pAlyx && pAlyx->GetPassengerState() == PASSENGER_STATE_EXITING )
 	{
 		m_throttleDisableTime = gpGlobals->curtime + 0.25f;		
 	}
-
+#endif
 
 	// See if the wheel dust should be on or off
 	UpdateWheelDust();	
@@ -760,7 +767,7 @@ void CPropHL2Buggy::InputDestroyLinkController( inputdata_t &data )
 	}
 }
 
-
+#ifdef HL2_EPISODIC
 bool CPropHL2Buggy::AllowBlockedExit( CBaseCombatCharacter *pPassenger, int nRole )
 {
 	// Wait until we've settled down before we resort to blocked exits.
@@ -768,4 +775,5 @@ bool CPropHL2Buggy::AllowBlockedExit( CBaseCombatCharacter *pPassenger, int nRol
 	// sticking the player through player clips or into geometry.
 	return GetSmoothedVelocity().IsLengthLessThan( jalopy_blocked_exit_max_speed.GetFloat() );
 }
+#endif
 

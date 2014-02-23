@@ -590,6 +590,7 @@ void CFuncPlat::HitTop( void )
 //-----------------------------------------------------------------------------
 void CFuncPlat::Blocked( CBaseEntity *pOther )
 {
+	if (!pOther) return;
 	DevMsg( 2, "%s Blocked by %s\n", GetClassname(), pOther->GetClassname() );
 
 	// Hurt the blocker a little
@@ -790,6 +791,7 @@ END_DATADESC()
 //-----------------------------------------------------------------------------
 void CFuncTrain::Blocked( CBaseEntity *pOther )
 {
+	if (!pOther) return;
 	if ( gpGlobals->curtime < m_flNextBlockTime )
 		return;
 
@@ -1615,6 +1617,7 @@ static CBaseEntity *FindPhysicsBlockerForHierarchy( CBaseEntity *pParentEntity )
 //-----------------------------------------------------------------------------
 void CFuncTrackTrain::Blocked( CBaseEntity *pOther )
 {
+	if (!pOther) return;
 	// Blocker is on-ground on the train
 	if ( ( pOther->GetFlags() & FL_ONGROUND ) && pOther->GetGroundEntity() == this )
 	{

@@ -2085,6 +2085,7 @@ bool CBaseHeadcrab::HandleInteraction(int interactionType, void *data, CBaseComb
 		// Die instantly
 		return false;
 	}
+#ifdef HL2_EPISODIC
 	else if (interactionType ==	g_interactionVortigauntStomp)
 	{
 		SetIdealState( NPC_STATE_PRONE );
@@ -2130,7 +2131,7 @@ bool CBaseHeadcrab::HandleInteraction(int interactionType, void *data, CBaseComb
 
 		return true;
 	}
-
+#endif
 	return BaseClass::HandleInteraction( interactionType, data, sourceEnt );
 }
 

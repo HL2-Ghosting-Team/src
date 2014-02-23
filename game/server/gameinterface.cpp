@@ -716,6 +716,8 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	// init the gamestatsupload connection
 	gamestatsuploader->InitConnection();
 #endif
+	filesystem->CreateDirHierarchy("runs", "MOD");
+	filesystem->CreateDirHierarchy("runs/demos", "MOD");
 
 	return true;
 }
@@ -1050,7 +1052,6 @@ void CServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int cl
 			EndCheckChainedActivate( !( pClass->GetEFlags() & EFL_KILLME ) ); 
 		}
 	}
-	GhostOnlineEngine::mapNameDirty = true;
 	GhostRecord::mapNameDirty = true;
 	GhostEngine::getEngine()->ResetGhosts();
 	GhostOnlineEngine::getEngine()->ResetGhosts();
@@ -1109,8 +1110,9 @@ void CServerGameDLL::GameFrame( bool simulating )
 				BlaTimer::timer()->Init((float) gpGlobals->tickcount);
 				BlaTimer::timer()->SetRunning(true);
 			}
+		} else {
+			BlaTimer::timer()->DispatchTimeMessage();
 		}
-		if (!BlaTimer::timer()->InLevelLoad()) BlaTimer::timer()->DispatchTimeMessage();
 	}
 	float oldframetime = gpGlobals->frametime;
 
@@ -1172,8 +1174,7 @@ void CServerGameDLL::GameFrame( bool simulating )
 				}
 				if (GhostRecord::playerNameDirty) {
 					playerToWrite = GhostRecord::playerName;
-					if (!GhostOnlineEngine::getEngine()->shouldAct)//let the online version reset it if it's running
-						GhostRecord::playerNameDirty = false;
+					GhostRecord::playerNameDirty = false;
 				}
 				GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z); 
 				GhostRecord::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
