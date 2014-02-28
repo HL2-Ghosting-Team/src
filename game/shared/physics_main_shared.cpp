@@ -75,7 +75,9 @@ ConVar debug_touchlinks( "debug_touchlinks", "0", 0, "Spew touch link activity" 
 #define DebugTouchlinks() false
 #endif
 
-
+// YaLTeR Start
+ConVar y_wallclimb_autoregrab("y_wallclimb_autoregrab", "0", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_CHEAT, "If set to 1, automatically regrabs the prop after it falls down if a player jumps from it.");
+// YaLTeR End
 
 //-----------------------------------------------------------------------------
 // Portal-specific hack designed to eliminate re-entrancy in touch functions
@@ -2114,6 +2116,13 @@ void CBaseEntity::SetGroundEntity( CBaseEntity *ground )
 			if ( pPhysGround->GetGameFlags() & FVPHYSICS_PLAYER_HELD )
 			{
 				pPlayer->ForceDropOfCarriedPhysObjects( ground );
+
+				// YaLTeR Start
+				if (y_wallclimb_autoregrab.GetBool())
+				{
+					pPlayer->m_bShouldRegrab = true;
+				}
+				// YaLTeR End
 			}
 		}
 	}

@@ -2798,8 +2798,16 @@ bool CHL2_Player::ClientCommand( const CCommand &args )
 void CHL2_Player::PlayerUse ( void )
 {
 	// Was use pressed or released?
-	if ( ! ((m_nButtons | m_afButtonPressed | m_afButtonReleased) & IN_USE) )
+	if ( !((m_nButtons | m_afButtonPressed | m_afButtonReleased) & IN_USE) && !m_bShouldRegrab ) // YaLTeR - added the boolean into the condition.
 		return;
+
+	// YaLTeR Start
+	if (m_bShouldRegrab)
+	{
+		m_bShouldRegrab = false;
+		m_bShouldRegrabSearching = true;
+	}
+	// YaLTeR End
 
 	if ( m_afButtonPressed & IN_USE )
 	{
@@ -2855,7 +2863,7 @@ void CHL2_Player::PlayerUse ( void )
 		int caps = pUseEntity->ObjectCaps();
 		variant_t emptyVariant;
 
-		if ( m_afButtonPressed & IN_USE )
+		if ( (m_afButtonPressed & IN_USE) || m_bShouldRegrabSearching ) // YaLTeR - add the boolean into the condition.
 		{
 			// Robin: Don't play sounds for NPCs, because NPCs will allow respond with speech.
 			if ( !pUseEntity->MyNPCPointer() )
@@ -2865,7 +2873,7 @@ void CHL2_Player::PlayerUse ( void )
 		}
 
 		if ( ( (m_nButtons & IN_USE) && (caps & FCAP_CONTINUOUS_USE) ) ||
-			 ( (m_afButtonPressed & IN_USE) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) )
+			 ( ( (m_afButtonPressed & IN_USE) || m_bShouldRegrabSearching ) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) ) // YaLTeR - add the boolean into the condition.
 		{
 			if ( caps & FCAP_CONTINUOUS_USE )
 				m_afPhysicsFlags |= PFLAG_USING;
@@ -2914,6 +2922,8 @@ void CHL2_Player::PlayerUse ( void )
 		// lets the ladder code unset this flag.
 		m_bPlayUseDenySound = true;
 	}
+
+	m_bShouldRegrabSearching = false; // YaLTeR
 
 	// Debounce the use key
 	if ( usedSomething && pUseEntity )
@@ -3128,8 +3138,17 @@ bool CHL2_Player::Weapon_CanSwitchTo( CBaseCombatWeapon *pWeapon )
 void CHL2_Player::PickupObject( CBaseEntity *pObject, bool bLimitMassAndSize )
 {
 	// can't pick up what you're standing on
-	if ( GetGroundEntity() == pObject )
+	if (GetGroundEntity() == pObject)
+	{
+		// YaLTeR Start
+		if (m_bShouldRegrabSearching)
+		{
+			m_bShouldRegrab = true;
+		}
+		// YaLTeR End
+
 		return;
+	}
 	
 	if ( bLimitMassAndSize == true )
 	{
