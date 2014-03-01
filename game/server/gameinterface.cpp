@@ -91,6 +91,9 @@
 #include "timer.h"
 #include "GhostRecord.h"
 #include "GhostOnlineEngine.h"
+#include "TickCounter.h"
+
+CUtlVector<TickCounter*> counters;
 
 #ifdef CSTRIKE_DLL // BOTPORT: TODO: move these ifdefs out
 #include "bot/bot.h"
@@ -729,7 +732,9 @@ void CServerGameDLL::PostInit()
 
 void CServerGameDLL::DLLShutdown( void )
 {
-
+	if (GhostOnlineEngine::getEngine()->shouldAct) {
+		GhostOnlineEngine::getEngine()->disconnect(true);
+	}
 	// Due to dependencies, these are not autogamesystems
 	ModelSoundsCacheShutdown();
 
@@ -1102,6 +1107,13 @@ void CServerGameDLL::GameFrame( bool simulating )
 		// If we're skipping frames, then the frametime is 2x the normal tick
 		gpGlobals->frametime *= 2.0f;
 	}
+	/*CBasePlayer* player = UTIL_GetLocalPlayer();
+	if (player) {
+		size_t size = counters.Count();
+		for (int i = 0; i < size; i++) {
+			counters[i]->init(gpGlobals->tickcount);
+		}
+	}*/
 	if (BlaTimer::timer()->IsRunning()) {
 		if (BlaTimer::timer()->InLevelLoad()) {
 			CBasePlayer* player = UTIL_GetLocalPlayer();
@@ -1187,11 +1199,12 @@ void CServerGameDLL::GameFrame( bool simulating )
 			if (player) {
 				float timet = (float) Plat_FloatTime();
 				Vector loc = player->EyePosition();
+				Vector vel = player->GetLocalVelocity();
 				if( GhostOnlineEngine::firstTime) {
 					GhostOnlineEngine::getEngine()->sendFirstData();
 				}
 				if ( timet >= GhostOnlineEngine::nextTime ) {//see if we should update again
-					RunLine l = GhostUtils::createLine(GhostRecord::getGhostName(), STRING(gpGlobals->mapname), timet, loc.x, loc.y, loc.z);
+					OnlineRunLine l = GhostUtils::createLine(GhostRecord::getGhostName(), STRING(gpGlobals->mapname), vel.x, vel.y, vel.z, loc.x, loc.y, loc.z);
 					GhostOnlineEngine::getEngine()->sendLine(l); 
 					GhostOnlineEngine::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 				}

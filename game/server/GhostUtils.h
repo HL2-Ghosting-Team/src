@@ -162,6 +162,7 @@ public:
 		unsigned char ghostGreen;
 		unsigned char ghostBlue;
 		unsigned char firstByte;
+		float finalTime;
 		CUtlVector<RunLine> RunData;
 
 		GhostData(){};
@@ -178,6 +179,7 @@ public:
 			trailGreen = other.trailGreen;
 			trailBlue = other.trailBlue;
 			RunData = other.RunData;
+			finalTime = other.finalTime;
 		};
 
 		GhostData& operator=(const GhostData& other) {
@@ -192,6 +194,7 @@ public:
 			trailGreen = other.trailGreen;
 			trailBlue = other.trailBlue;
 			RunData = other.RunData;
+			finalTime = other.finalTime;
 			return *this;
 		};
 	};
@@ -242,14 +245,16 @@ public:
 		return l;
 	}
 
-	static RunLine createLine(const char* name, const char* map, float tim, float x, float y, float z) {
-		struct RunLine l;
+	static OnlineRunLine createLine(const char* name, const char* map, float vx, float vy, float vz, float x, float y, float z) {
+		struct OnlineRunLine l;
 		Q_strcpy(l.name, name);
 		Q_strcpy(l.map, map);
-		l.tim = tim;
-		l.x = x;
-		l.y = y;
-		l.z = z;
+		l.velX = vx;
+		l.velY = vy;
+		l.velZ = vz;
+		l.locX = x;
+		l.locY = y;
+		l.locZ = z;
 		return l;
 	}
 
@@ -272,7 +277,11 @@ public:
 		}
 		while (!filesystem->EndOfFile(myFile)) {
 			struct RunLine l = readLine(filesystem, myFile);
-			ghostData->RunData.AddToTail(l);
+			if (Q_stricmp("DONE", l.map) == 0) {
+				ghostData->finalTime = l.tim;
+			} else {
+				ghostData->RunData.AddToTail(l);
+			}
 		}
 		return true;
 	}
@@ -280,7 +289,8 @@ public:
 
 	static int getFileCount(const char* searchkey) {
 		char fileName[256];
-		Q_strcpy(fileName, searchkey);
+		Q_strcpy(fileName, "runs/");
+		Q_strcat(fileName, searchkey, 256);
 		Q_strcat(fileName, "_*.run", 256);
 		int toReturn = 0;
 		FileFindHandle_t findHandle; // note: FileFINDHandle
@@ -388,6 +398,7 @@ public:
 		}
 		float finalTime = 0.0f;
 		if (loadLess) {
+			/* OLD SHIT
 			int size = toReadFrom->RunData.Count();
 			float offset = 0.0f;
 			for (int i = 0; i < (size - 1); i++) {
@@ -404,7 +415,8 @@ public:
 				}
 			}
 			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim - offset;
-			//subtract the offsets from loads to get actual ingame time
+			//subtract the offsets from loads to get actual ingame time */
+			finalTime = toReadFrom->finalTime * .015;
 		} else {
 			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim;
 		}
@@ -415,7 +427,10 @@ public:
 
 	static void listRun(const char* fileName) {
 		GhostData gd;
-		if (openRun(fileName, &gd)) {
+		char file[256];
+		Q_strcpy(file, "runs/");
+		Q_strcat(file, fileName, 256);
+		if (openRun(file, &gd)) {
 			Msg("Run by: %s\n", gd.RunData[0].name);
 			ConColorMsg(Color((int)gd.ghostRed, (int)gd.ghostGreen, (int)gd.ghostBlue, 255), "Ghost Color\n");
 			ConColorMsg(Color((int)gd.trailRed, (int)gd.trailGreen, (int)gd.trailBlue, 255), "Trail Color\n");

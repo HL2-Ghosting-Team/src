@@ -60,6 +60,7 @@ void CHudSpeedMeter::OnThink()
 	C_BasePlayer *player = C_BasePlayer::GetLocalPlayer();
 	if (player) {
 		if (player->IsInAVehicle()) {
+			
 			C_PropVehicleDriveable* veh = (C_PropVehicleDriveable*)player->GetVehicle();
 			if (veh) {
 				velocity = veh->GetSpeed();

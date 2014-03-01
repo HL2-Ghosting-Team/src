@@ -489,7 +489,6 @@ void C_PropAirboat::Simulate()
 {
 	UpdateHeadlight();
 	UpdateWake();
-
 	BaseClass::Simulate();
 }
 

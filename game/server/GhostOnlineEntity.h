@@ -20,7 +20,7 @@ public:
 
 	GhostUtils::GhostData ghostData;//we're only using this for colors and trail length
 
-	void updateStep(RunLine);
+	void updateStep(OnlineRunLine);
 	void EndRun();
 	void CreateTrail();
 	void StartRun();
@@ -37,8 +37,7 @@ protected:
 private:
 	char  m_gModel[256];
 	char  m_gName[256];
-	RunLine currentStep; 
-	RunLine nextStep;
+	OnlineRunLine currentStep;
 	float startTime;
 	CBaseEntity *trail;
 	

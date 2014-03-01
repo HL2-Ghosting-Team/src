@@ -59,7 +59,7 @@ void GhostRecord::writeHeader() {
 	if (!myFile) return;
 	unsigned char first = 0xAF;//This is HL2. 0xAE = portal.
 	filesystem->Write(&first, sizeof(first), myFile); 
-	unsigned char version = 0x00;
+	unsigned char version = 0x01;
 	filesystem->Write(&version, sizeof(version), myFile); 
 	unsigned char game = 0x00;//HL2
 	filesystem->Write(&game, sizeof(game), myFile);
@@ -79,10 +79,11 @@ void GhostRecord::writeHeader() {
 	filesystem->Write(&tl, sizeof(tl), myFile);//trail length
 }
 
-void GhostRecord::endRun() {
+void GhostRecord::endRun(float finalTickCount) {
 	shouldRecord = false;
 	if (myFile) {
-		Msg("Stopping recording...\n");
+		Msg("Run Complete!\n");
+		writeLine("DONE", "DONE", finalTickCount, 0, 0, 0);
 		filesystem->Flush(myFile);
 		filesystem->Close(myFile);
 		char newName[MAX_PATH];
@@ -93,7 +94,7 @@ void GhostRecord::endRun() {
 		V_StripExtension(fileName, newName, sizeof(newName));
 		Q_strcat(newName, "-", MAX_PATH);
 		char finalTime[32];
-		GhostUtils::getFinalTime(NULL, fileName, true, false, finalTime);
+		GhostUtils::getFinalTime(NULL, fileName, true, true, finalTime);
 		Q_strcat(newName, finalTime, MAX_PATH);
 		Q_strcat(newName, ".run", MAX_PATH);
 		filesystem->Close(myFile);

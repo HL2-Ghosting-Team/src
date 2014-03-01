@@ -74,9 +74,9 @@ namespace
 namespace sf
 {
 ////////////////////////////////////////////////////////////
-//const IpAddress IpAddress::None;
-//const IpAddress IpAddress::LocalHost(127, 0, 0, 1);
-//const IpAddress IpAddress::Broadcast(255, 255, 255, 255);
+const IpAddress IpAddress::None;
+const IpAddress IpAddress::LocalHost(127, 0, 0, 1);
+const IpAddress IpAddress::Broadcast(255, 255, 255, 255);
 
 
 ////////////////////////////////////////////////////////////

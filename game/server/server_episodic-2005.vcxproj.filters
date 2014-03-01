@@ -3587,6 +3587,12 @@
     <ClInclude Include="SFML\include\SFML\Time.hpp">
       <Filter>Source Files\SFML\include</Filter>
     </ClInclude>
+    <ClInclude Include="TickCounter.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="TickCounterEngine.h">
+      <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\..\lib\public\choreoobjects.lib">

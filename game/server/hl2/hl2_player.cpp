@@ -84,14 +84,27 @@ ConVar hl2_darkness_flashlight_factor ( "hl2_darkness_flashlight_factor", "1" );
 static ConVar bla_autowepswitch("bla_autowepswitch", "0",
                 FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
                 "Switch weapon on ammunition depletion.\n0 = switch to another weapon (default), 1 = do not switch to another weapon");
+static void checkCheats(IConVar *var, const char* pOldValue, float fOldValue) {
+	if (!var) return;
+	if (!((ConVar*)var)->GetString()) return;
+	int toCheck = ((ConVar*)var)->GetInt();
+	if (toCheck == (int)fOldValue) return;
+	if (sv_cheats) {
+		bool val = sv_cheats->GetBool();
+		if (!val) {
+			Warning("sv_cheats needs to be 1 for this command!\n");
+			((ConVar*)var)->Revert();
+		}
+	}
+}
 //Credit CZF, default is off
 static ConVar bla_itemflying("bla_itemflying", "0",
-               FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE,
+							 FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_CHEAT,
                "Don't force the player to drop objects he is "
                "carrying. This allows to continuously jump on "
                "an object which causes the player to be boosted "
                "up on every jump, ultimately allowing him to "
-               "fly.\n0 = off (default), 1 = old-style itemflying");
+			   "fly.\n0 = off (default), 1 = old-style itemflying", checkCheats);
 
 #ifdef HL2MP
 	#define	HL2_WALK_SPEED 150

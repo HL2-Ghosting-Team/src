@@ -33,7 +33,7 @@ public:
 	static bool firstTime;
 
 	static void connect(void);//bind the socket, make the thread
-	static void disconnect(void);//close the socket, remove all ghost entities (clear the vector)
+	static void disconnect(bool);//close the socket, remove all ghost entities (clear the vector)
 
 	static sf::UdpSocket sendSock;
 	static sf::IpAddress serverIPAddress;
@@ -47,7 +47,7 @@ public:
 	GhostOnlineRun* getRun(const char*);//by name, the recieve thread uses this heavily!
 	GhostOnlineRun* getRun(GhostOnlineEntity*);//this is by entity, used for interpolation
 	void stopAllRuns();	
-	void sendLine(RunLine);
+	void sendLine(OnlineRunLine);
 	bool inTransition;
 
 };

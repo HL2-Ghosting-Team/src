@@ -1226,6 +1226,8 @@
     <ClInclude Include="..\shared\tempentity.h" />
     <ClInclude Include="TemplateEntities.h" />
     <ClInclude Include="..\shared\touchlink.h" />
+    <ClInclude Include="TickCounter.h" />
+    <ClInclude Include="TickCounterEngine.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="trains.h" />
     <ClInclude Include="triggers.h" />

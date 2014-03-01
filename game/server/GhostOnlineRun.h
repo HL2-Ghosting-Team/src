@@ -25,7 +25,7 @@ public:
 	void StartRun();
 	//ends the run for good
 	void EndRun();
-	void updateStep(RunLine);
+	void updateStep(OnlineRunLine);
 	GhostOnlineEntity* ent;
 	bool IsStarted() {
 		return isStarted;

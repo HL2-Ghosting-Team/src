@@ -31,7 +31,7 @@ void GhostOnlineRun::StartRun() {
 	}
 }
 
-void GhostOnlineRun::updateStep(RunLine newLine) {
+void GhostOnlineRun::updateStep(OnlineRunLine newLine) {
 	if (ent && ent->isActive) ent->updateStep(newLine);
 }
 

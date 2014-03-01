@@ -80,48 +80,20 @@ void GhostOnlineEntity::HandleGhost() {
 			if (!IsEffectActive(EF_NODRAW)) AddEffects(EF_NODRAW);
 			return;
 		}
-		if (Q_strlen(nextStep.name) > 0) {
-			if (IsEffectActive(EF_NODRAW)) RemoveEffects(EF_NODRAW);
-			if (Q_strcmp(currentStep.map, nextStep.map) == 0) {
-				//interpolate position
-				float x = currentStep.x;
-				float y = currentStep.y;
-				float z = currentStep.z;
-				if (x == 0.0f) return;
-				float x2 = nextStep.x;
-				float y2 = nextStep.y;
-				float z2 = nextStep.z;
-				float t1 = currentStep.tim;
-				float t2 = nextStep.tim;
-				float scalar = ((((float)Plat_FloatTime()) - startTime) - t1) / (t2 - t1); 
-				float xfinal = x + (scalar * (x2 - x));
-				float yfinal = y + (scalar * (y2 - y));
-				float zfinal = z + (scalar * (z2 - z));
-				SetAbsOrigin(Vector(xfinal, yfinal, (zfinal - 15.0f)));
-			} else {//set it to the last position before it updates to the next map
-				SetAbsOrigin(Vector(currentStep.x, currentStep.y, (currentStep.z - 15.0f)));
-			}
-		}
+		if (IsEffectActive(EF_NODRAW)) RemoveEffects(EF_NODRAW);
 	}//TODO else { AddEffect(EF_NODRAW)
 }
 
-void GhostOnlineEntity::updateStep(RunLine step) {
-
-	//TODO
-	/*
-	Make a float for the current time, reset it upon getting a new next step.
-	Shift the last next step to current step, intepolate using the new next step.
-	The time passed here should be a reference, in order to mimick the local interpolation
-	done.
-
-	*/
-	if (Vector(step.x, step.y, step.z) == Vector(nextStep.x, nextStep.y, nextStep.z)) return;
-	currentStep = nextStep;
-	startTime = (float)Plat_FloatTime();
-	nextStep = step;
-	float timeDiff = nextStep.tim - currentStep.tim;
-	currentStep.tim = 0;
-	nextStep.tim = timeDiff;
+void GhostOnlineEntity::updateStep(OnlineRunLine step) {
+	if (Q_strlen(currentStep.map) > 0) {
+		if (Vector(currentStep.locX, currentStep.locY, currentStep.locZ) == Vector(step.locX, step.locY, step.locZ)) {
+			SetAbsVelocity(Vector(0,0,0));
+			return;
+		}
+	}
+	currentStep = step;
+	SetAbsOrigin(Vector(currentStep.locX, currentStep.locY, currentStep.locZ - 15.0f));
+	SetLocalVelocity(Vector(currentStep.velX, currentStep.velY, currentStep.velZ));
 }
 
 void GhostOnlineEntity::StartRun() {

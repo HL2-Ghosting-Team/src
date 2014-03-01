@@ -23,7 +23,7 @@ public:
 
 	static void writeHeader();
 
-	static void endRun();
+	static void endRun(float);
 
 	static const char* getGhostName();
 

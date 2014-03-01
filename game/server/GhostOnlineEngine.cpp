@@ -41,7 +41,7 @@ static void onIPChange(IConVar *var, const char* pOldValue, float fOldValue) {
 
 static ConVar serverIP("gh_online_ip", "127.0.0.1", 
 					   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
-					   "How long the trail of the ghost lasts in seconds.\n0 = no trail drawn for your ghost.", 
+					   "The IP of the server to connect to.", 
 					   onIPChange);
 
 sf::Packet& operator <<(sf::Packet& packet, GhostUtils::GhostData& data) {
@@ -131,14 +131,16 @@ void GhostOnlineEngine::handleLine(sf::Packet* toRead) {
 	if (!(toRead->getDataSize() > 0)) return;
 	char playerName[64];
 	char map[64];
-	float tim, x, y, z;
+	float vx, vy, vz, x, y, z;
 	*toRead >> playerName;
 	*toRead >> map;
-	*toRead >> tim;
+	*toRead >> vx;
+	*toRead >> vy;
+	*toRead >> vz;
 	*toRead >> x;
 	*toRead >> y;
 	*toRead >> z;
-	RunLine l = GhostUtils::createLine(playerName, map, tim, x, y, z);
+	OnlineRunLine l = GhostUtils::createLine(playerName, map, vx, vy, vz, x, y, z);
 	GhostOnlineRun* run = getRun(playerName);
 	if (run) {
 		if (!run->IsStarted()) {
@@ -217,31 +219,29 @@ void GhostOnlineEngine::stopAllRuns() {
 }
 
 
-void GhostOnlineEngine::disconnect() {
+void GhostOnlineEngine::disconnect(bool gameShutdown) {
 
 	if (!getEngine()->shouldAct) {
 		Msg("Not connected to anything!\n");
 		return;
 	}
+	shouldAct = false;
 	sf::Packet pack;
 
 	pack << "d";
 	pack << GhostRecord::getGhostName();
 	sendSock.send(pack, serverIPAddress, 4445);
-	shouldAct = false;
-
-#if defined(_LINUX) || defined(_OSX)
-	usleep(60*1000);
-#else
-	Sleep(60);
-#endif
 	sendSock.unbind();
 	nextTime = 0.0f;
 
-	getEngine()->stopAllRuns();
+	if(!gameShutdown) getEngine()->stopAllRuns();
 }
 
-ConCommand disconnect_con("gh_online_disconnect", GhostOnlineEngine::disconnect, "Disconnects from the Online server.", 0);
+static void discon() {
+	GhostOnlineEngine::getEngine()->disconnect(false);
+}
+
+ConCommand disconnect_con("gh_online_disconnect", discon, "Disconnects from the Online server.", 0);
 
 bool GhostOnlineEngine::isActive() {
 	return ghosts.Count() > 0;
@@ -257,9 +257,9 @@ void GhostOnlineEngine::sendFirstData() {
 	firstTime = false;
 }
 
-void GhostOnlineEngine::sendLine(RunLine l) {
+void GhostOnlineEngine::sendLine(OnlineRunLine l) {
 	if (!shouldAct) return;
 	sf::Packet pack;
-	pack << "l" << l.name << l.map << l.tim << l.x << l.y << l.z;
+	pack << "l" << l.name << l.map << l.velX << l.velY << l.velZ << l.locX << l.locY << l.locZ;
 	sendSock.send(pack, serverIPAddress, 4445);
 }

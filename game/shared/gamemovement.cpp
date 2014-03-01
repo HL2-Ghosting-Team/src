@@ -2214,12 +2214,28 @@ void CGameMovement::PlaySwimSound()
 {
 	MoveHelper()->StartSound( mv->GetAbsOrigin(), "Player.Swim" );
 }
+static void checkCheats(IConVar *var, const char* pOldValue, float fOldValue) {
+#ifndef CLIENT_DLL
+	if (!var) return;
+	if (!((ConVar*)var)->GetString()) return;
+	int toCheck = ((ConVar*)var)->GetInt();
+	if (toCheck == (int)fOldValue) return;
+	if (sv_cheats) {
+		bool val = sv_cheats->GetBool();
+		if (!val) {
+			Warning("sv_cheats needs to be 1 for this command!\n");
+			((ConVar*)var)->Revert();
+		}
+	}
+#endif
+}
+
 //Credit: CZF
 static ConVar bla_pogo("bla_pogo", "0",
 					   FCVAR_DEMO | FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_CHEAT,
               "Keep jumping when jump button is down. This removes "
               "the need for external scripts like AutoHotkey."
-			  "\n0 = off, 1 = on");
+			  "\n0 = off, 1 = on", checkCheats);
 
 
 //-----------------------------------------------------------------------------

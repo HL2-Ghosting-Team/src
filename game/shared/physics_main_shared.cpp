@@ -74,9 +74,23 @@ ConVar debug_touchlinks( "debug_touchlinks", "0", 0, "Spew touch link activity" 
 #else
 #define DebugTouchlinks() false
 #endif
-
+static void checkCheats(IConVar *var, const char* pOldValue, float fOldValue) {	
+#ifndef CLIENT_DLL
+	if (!var) return;
+	if (!((ConVar*)var)->GetString()) return;
+	int toCheck = ((ConVar*)var)->GetInt();
+	if (toCheck == (int)fOldValue) return;
+	if (sv_cheats) {
+		bool val = sv_cheats->GetBool();
+		if (!val) {
+			Warning("sv_cheats needs to be 1 for this command!\n");
+			((ConVar*)var)->Revert();
+		}
+	}
+#endif
+}
 // YaLTeR Start
-ConVar y_wallclimb_autoregrab("y_wallclimb_autoregrab", "0", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_CHEAT, "If set to 1, automatically regrabs the prop after it falls down if a player jumps from it.");
+ConVar y_wallclimb_autoregrab("y_wallclimb_autoregrab", "0", FCVAR_ARCHIVE | FCVAR_REPLICATED | FCVAR_CHEAT, "If set to 1, automatically regrabs the prop after it falls down if a player jumps from it.", checkCheats);
 // YaLTeR End
 
 //-----------------------------------------------------------------------------

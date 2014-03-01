@@ -157,26 +157,10 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 
 		//breen_01 (slomo boom/teleport), stop the timer and the ghost recording
 		else if (Q_strcmp(name, "logic_portal_final_end_2") == 0) {
+			float finalTick = BlaTimer::timer()->GetCurrentTime();
 			BlaTimer::timer()->Stop();
-			GhostRecord::endRun();
-		}
-
-		/*For whatever fucking reason Episode 2's engine causes a softlock
-		 in Entanglement where you and Alyx meet her dad for the first time.
-
-		 I found that the easiest way around it (besides editing the map) was to "resume" the scene, 
-		 if it were to occur.
-		 (Because for whatever reason the entire fucking scene "freezes" randomly, and I couldn't 
-		 find the cause in the ai_ code)
-
-		 What the following code does is automatically call the resume at about the right time
-		 (either at or a bit after) so that the scene goes on without a hitch.*/
-		else if (Q_strcmp(name, "logic_start_reunion") == 0) {
-			CBaseEntity* scene1 = gEntList.FindEntityByName(NULL, "lcs_np_cell01b");
-			if (scene1) {
-				g_EventQueue.AddEvent("lcs_np_cell01b", "Resume", variant_t(), 7.75f, NULL, NULL);
-				g_EventQueue.AddEvent("lcs_np_cell02", "Resume", variant_t(), 93.0f, NULL, NULL);
-			}
+			GhostRecord::endRun(finalTick);
+			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "stop"); 
 		}
 
 		m_OnTrigger.FireOutput( inputdata.pActivator, this );
