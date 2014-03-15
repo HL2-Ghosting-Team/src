@@ -9,6 +9,7 @@
 #include "ghosthud.h"
 #include "timer.h"
 #include "GhostUtils.h"
+#include "GhostRecord.h"
 
 
 #include "tier0/memdbgon.h"
@@ -54,7 +55,7 @@ static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldV
 	gpGlobals->trailLength = (unsigned char)((ConVar*)var)->GetInt();
 }
 static ConVar spriteLength("gh_trail_length", "5", 
-						   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						   FCVAR_ARCHIVE | FCVAR_REPLICATED, 
 						   "How long the trail of the ghost lasts in seconds.\n0 = no trail drawn for your ghost.", 
 						   onTrailLengthChange);
 unsigned char GhostEngine::getTrailLength() {
@@ -82,7 +83,7 @@ static void onColorTChange(IConVar *var, const char* pOldValue, float fOldValue)
 	}
 }
 static ConVar spriteColor("gh_trail_color", "237 133 60", 
-						  FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						  FCVAR_ARCHIVE | FCVAR_REPLICATED, 
 						  "The R G B values for the color of the ghost's trail.", 
 						  onColorTChange);
 
@@ -106,7 +107,7 @@ static void onColorGChange(IConVar *var, const char* pOldValue, float fOldValue)
 	}
 }
 static ConVar ghostColor("gh_ghost_color", "237 133 60", 
-						 FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+						 FCVAR_ARCHIVE | FCVAR_REPLICATED, 
 						 "The R G B (0 - 255) values for color for your ghost.", onColorGChange);
 
 
@@ -125,7 +126,7 @@ void GhostEngine::initVars() {
 	Msg("Current trail color: R: %i, G: %i, B: %i\n", gpGlobals->trailRed, gpGlobals->trailGreen, gpGlobals->trailBlue);
 	gpGlobals->trailLength = (unsigned char)spriteLength.GetInt();
 	Msg("Current trail length: %i\n", gpGlobals->trailLength);
-	Msg("Name for the person is %s\n", engine->GetClientConVarValue(0, "gh_name"));
+	Msg("Name for the person is %s\n", GhostRecord::getGhostName());
 }
 
 //-----------------------------------------END VARS ----------------------------------------------------------------
@@ -289,7 +290,7 @@ ConCommand stop("gh_stop_all_ghosts", stopallg, "Stops all current ghosts, if th
 ConCommand restart("gh_restart_runs", restartG, "Restarts the run(s) back to the first step. Use gh_play_all_ghosts in order to play them again.", 0);
 ConCommand playAll("gh_play_all_ghosts", playAllG, "Plays back all ghosts that are loaded, but not currently playing.", 0);
 
-static ConVar shouldDraw("gh_draw_trails", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE | FCVAR_DEMO,
+static ConVar shouldDraw("gh_draw_trails", "1", FCVAR_REPLICATED | FCVAR_ARCHIVE,
 	"Toggles global drawing of trails on (1) or off (0).");
 
 bool GhostEngine::shouldDrawTrails() {

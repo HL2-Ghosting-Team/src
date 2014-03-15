@@ -17,7 +17,7 @@ using namespace vgui;
 #include "vgui_helpers.h"
 
 static ConVar gh_hud("gh_hud", "1",
-					 FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DEMO, 
+					 FCVAR_CLIENTDLL | FCVAR_ARCHIVE, 
 					 "Turn the Ghosts display on/off.");
 
 class GhostHud : public CHudElement, public Panel {

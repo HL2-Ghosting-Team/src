@@ -309,7 +309,7 @@ public:
 		char fileish[MAX_PATH];
 		count++;
 		Q_snprintf(fileish, (sizeof("000") + 1), "%03d", (count));
-		sstr << nameKey << "_" << fileish;
+		sstr << "runs/" << nameKey << "_" << fileish;
 		char fileName[MAX_PATH];
 		Q_strcpy(fileName, sstr.str().c_str());
 		V_SetExtension(fileName, ".run", sizeof(fileName));
@@ -318,7 +318,7 @@ public:
 			//increment the _### suffix by 1
 			count++;					
 			Q_snprintf(fileish, (sizeof("000") + 1), "%03d", count);
-			loopStream << nameKey << "_" << fileish;
+			loopStream << "runs/" << nameKey << "_" << fileish;
 			Q_strcpy(fileName, loopStream.str().c_str());
 			V_SetExtension(fileName, ".run", sizeof(fileName));
 		}
@@ -398,24 +398,7 @@ public:
 		}
 		float finalTime = 0.0f;
 		if (loadLess) {
-			/* OLD SHIT
-			int size = toReadFrom->RunData.Count();
-			float offset = 0.0f;
-			for (int i = 0; i < (size - 1); i++) {
-				RunLine cS = toReadFrom->RunData[i];
-				RunLine nS = toReadFrom->RunData[i + 1];
-				//we're only detecting loads, not pause time
-				//this means we're comparing the maps to see when they're different,
-				//indicating a load.
-				if (Q_strlen(cS.map) == 0) {
-					if (Q_strlen(nS.map) > 0) {
-						float difference = (nS.tim - cS.tim);
-						offset += difference;
-					}
-				}
-			}
-			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim - offset;
-			//subtract the offsets from loads to get actual ingame time */
+			//1 tick = .015 second
 			finalTime = toReadFrom->finalTime * .015;
 		} else {
 			finalTime = toReadFrom->RunData[toReadFrom->RunData.Count() - 1].tim;

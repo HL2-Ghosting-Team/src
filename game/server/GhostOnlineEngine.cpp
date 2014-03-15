@@ -40,7 +40,7 @@ static void onIPChange(IConVar *var, const char* pOldValue, float fOldValue) {
 }
 
 static ConVar serverIP("gh_online_ip", "127.0.0.1", 
-					   FCVAR_ARCHIVE | FCVAR_DEMO | FCVAR_REPLICATED, 
+					   FCVAR_ARCHIVE | FCVAR_REPLICATED, 
 					   "The IP of the server to connect to.", 
 					   onIPChange);
 

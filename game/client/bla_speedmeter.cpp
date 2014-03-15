@@ -16,7 +16,7 @@ using namespace vgui;
 //Credit CZF!
 
 static ConVar gh_speedmeter("gh_speedmeter", "1", 
-							FCVAR_CLIENTDLL | FCVAR_ARCHIVE | FCVAR_DEMO, 
+							FCVAR_CLIENTDLL | FCVAR_ARCHIVE, 
 							"Turn the speedmeter on/off");
 
 class CHudSpeedMeter : public CHudElement, public CHudNumericDisplay
