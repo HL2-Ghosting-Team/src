@@ -62,10 +62,12 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
+      <Message>
+      </Message>
       <Command>copy "$(TargetDir)"server.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\server.dll"
 </Command>
-      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\server.dll;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -126,7 +128,8 @@
       <OutputFile>$(OutDir)Server.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command />
+      <Command>copy "$(TargetDir)$(TargetFileName)" "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -134,8 +137,10 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
-      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\server.dll;</Outputs>
+      <Message>
+      </Message>
+      <Outputs>
+      </Outputs>
       <Command>copy "$(TargetDir)"server.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
     </CustomBuildStep>
     <ClCompile>
@@ -201,7 +206,8 @@
       <OutputFile>$(OutDir)Server.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command />
+      <Command>copy "$(TargetDir)$(TargetFileName)" "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

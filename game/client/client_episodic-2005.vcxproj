@@ -64,10 +64,12 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
-      <Command>copy "$(TargetDir)"client.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
-</Command>
-      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll;%(Outputs)</Outputs>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -129,7 +131,8 @@
       <OutputFile>$(OutDir)Client.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command />
+      <Command>copy "$(TargetDir)$(TargetFileName)" "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,10 +140,12 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
-      <Command>copy "$(TargetDir)"client.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
-</Command>
-      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll;</Outputs>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -206,7 +211,8 @@
       <OutputFile>$(OutDir)Client.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command />
+      <Command>copy "$(TargetDir)$(TargetFileName)" "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
