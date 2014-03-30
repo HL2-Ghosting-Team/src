@@ -18,12 +18,12 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -50,7 +50,7 @@
     <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>C:\Program Files %28x86%29\Steam\SteamApps\sourcemods\ghostingmod\bin</OutDir>
+    <OutDir>.\Release_episodic\</OutDir>
     <IntDir>.\Release_episodic\</IntDir>
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <PreLinkEventUseInBuild>true</PreLinkEventUseInBuild>
@@ -64,10 +64,10 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
-      <Command>copy "$(TargetDir)"client.dll "c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
+      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
+      <Command>copy "$(TargetDir)"client.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
 </Command>
-      <Outputs>c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll;%(Outputs)</Outputs>
+      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -137,10 +137,10 @@
       <Command />
     </PreBuildEvent>
     <CustomBuildStep>
-      <Message>Copying to c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
-      <Command>copy "$(TargetDir)"client.dll "c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
+      <Message>Copying to e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\</Message>
+      <Command>copy "$(TargetDir)"client.dll "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"
 </Command>
-      <Outputs>c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll</Outputs>
+      <Outputs>e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin\client.dll;</Outputs>
     </CustomBuildStep>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
