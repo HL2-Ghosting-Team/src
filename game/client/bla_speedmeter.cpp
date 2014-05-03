@@ -19,6 +19,8 @@ static ConVar gh_speedmeter("gh_speedmeter", "1",
 							FCVAR_CLIENTDLL | FCVAR_ARCHIVE, 
 							"Turn the speedmeter on/off");
 
+static ConVar gh_speedmeter_hvel( "gh_speedmeter_hvel", "0", (FCVAR_CLIENTDLL | FCVAR_ARCHIVE), "If set to 1, doesn't take the vertical velocity component into account." );
+
 class CHudSpeedMeter : public CHudElement, public CHudNumericDisplay
 {
 	DECLARE_CLASS_SIMPLE(CHudSpeedMeter, CHudNumericDisplay);
@@ -68,6 +70,13 @@ void CHudSpeedMeter::OnThink()
 		} else {
 			velocity = player->GetLocalVelocity();
 		}
+
+        // Remove the vertical component if necessary
+        if (gh_speedmeter_hvel.GetBool())
+        {
+            velocity.z = 0;
+        }
+
 		SetDisplayValue((int)velocity.Length());
 	}
 }
