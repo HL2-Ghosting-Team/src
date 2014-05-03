@@ -43,8 +43,10 @@ local.properties
 
 # Build results
 
+game/client/Release_episodic/*
+
 [Dd]ebug_episodic/
-[Rr]elease_episodic/
+*/[Rr]elease_episodic/
 game/server/[Rr]elease_episodic/
 game/server/[Dd]ebug_episodic/
 game/client/[Rr]elease_episodic/
@@ -77,8 +79,9 @@ build/
 *.tmp
 *.tmp_proj
 *.log
+*.*.*.tlog
 .1.tlog
-.tlog
+*.tlog
 *.map
 *.vspscc
 *.vssscc
@@ -86,6 +89,16 @@ build/
 *.pidb
 *.log
 *.scc
+CL.read.1.tlog
+CL.write.1.tlog
+Client.map
+Client.write.1.tlog
+cl.command.1.tlog
+CL.read.1.tlog
+CL.write.1.tlog
+Server.map
+Server.write.1.tlog
+cl.command.1.tlog
 
 # Visual C++ cache files
 ipch/
