@@ -235,3 +235,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.tlog
+game/server/Release_episodic/cl.command.1.tlog
+*.tlog
