@@ -127,7 +127,7 @@ void GhostRecord::record(const CCommand &args) {
 		char fileNameGenerated[MAX_PATH];
 		GhostUtils::generateFileName(playerName, fileNameGenerated);
 		if (fileNameGenerated) {
-			Q_strcat(fileName, fileNameGenerated, sizeof(fileName));
+			Q_strcpy(fileName, fileNameGenerated);
 		}
 	}
 	V_SetExtension(fileName, ".run", sizeof(fileName));
