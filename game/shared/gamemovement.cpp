@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright ï¿½ 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:
 //
@@ -2307,7 +2307,7 @@ bool CGameMovement::CheckJumpButton( void )
 	{
 		if (dontJump)
 		{
-			Log("Prevented a consequtive jump.\n");
+			Log("Prevented a consecutive jump.\n");
 		}
 
 		return false;		// don't pogo stick
