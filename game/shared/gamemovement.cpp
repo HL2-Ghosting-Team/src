@@ -2385,7 +2385,7 @@ bool CGameMovement::CheckJumpButton( void )
 
 		iMovement = bla_movement.GetInt();
 		if (iMovement < 0 || iMovement > 1)
-			iMovement = 0;//default to ABH if it's like 2 or some shit
+			iMovement = 0;//default to ABH if it's like 2
 
 		if (!pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked)
 			flBoost = 0.5f;
