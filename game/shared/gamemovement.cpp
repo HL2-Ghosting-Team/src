@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright ï¿½ 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose:
 //
@@ -2307,7 +2307,7 @@ bool CGameMovement::CheckJumpButton( void )
 	{
 		if (dontJump)
 		{
-			Log("Prevented a consequtive jump.\n");
+			Log("Prevented a consecutive jump.\n");
 		}
 
 		return false;		// don't pogo stick
@@ -2385,7 +2385,7 @@ bool CGameMovement::CheckJumpButton( void )
 
 		iMovement = bla_movement.GetInt();
 		if (iMovement < 0 || iMovement > 1)
-			iMovement = 0;//default to ABH if it's like 2 or some shit
+			iMovement = 0;//default to ABH if it's like 2
 
 		if (!pMoveData->m_bIsSprinting && !player->m_Local.m_bDucked)
 			flBoost = 0.5f;

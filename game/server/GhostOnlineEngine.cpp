@@ -44,6 +44,9 @@ static ConVar serverIP("gh_online_ip", "127.0.0.1",
 					   "The IP of the server to connect to.", 
 					   onIPChange);
 
+static ConVar serverPortSend("gh_online_port_send", "5145", FCVAR_ARCHIVE | FCVAR_REPLICATED, "The port of the server to send the data packets to.");
+static ConVar serverPortReceive("gh_online_port_receive", "5146", FCVAR_ARCHIVE | FCVAR_REPLICATED, "The port of the server to receieve information from.");
+
 sf::Packet& operator <<(sf::Packet& packet, GhostUtils::GhostData& data) {
 	return packet << data.trailLength <<  data.trailRed << data.trailGreen << data.trailBlue << data.ghostRed << data.ghostGreen << data.ghostBlue;
 }
@@ -59,7 +62,7 @@ static unsigned ReceiveThread(void *params) {
 			sf::IpAddress sender;
 			unsigned short port;
 			if ((GhostOnlineEngine::sendSock.receive(pack, sender, port) == sf::Socket::Done) && (pack.getDataSize() > 0)) {
-				if (port == 4446) {
+				if (port == serverPortReceive.GetInt()) {
 					GhostOnlineEngine::getEngine()->handleEvent(&pack);
 				}
 			}
@@ -175,7 +178,7 @@ void GhostOnlineEngine::connect() {
 		Msg("Already connected!\n");
 		return;
 	}
-	if (sendSock.bind(4445) != sf::Socket::Done) {
+	if (sendSock.bind(serverPortSend.GetInt()) != sf::Socket::Done) {
 		Msg("Failed to bind port!\n");
 		return;
 	}
@@ -230,7 +233,7 @@ void GhostOnlineEngine::disconnect(bool gameShutdown) {
 
 	pack << "d";
 	pack << GhostRecord::getGhostName();
-	sendSock.send(pack, serverIPAddress, 4445);
+	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
 	sendSock.unbind();
 	nextTime = 0.0f;
 
@@ -253,7 +256,7 @@ void GhostOnlineEngine::sendFirstData() {
 	sf::Packet pack;
 	pack << "c" << GhostRecord::getGhostName() << gpGlobals->trailLength << gpGlobals->trailRed << gpGlobals->trailGreen << gpGlobals->trailBlue
 		<< gpGlobals->ghostRed << gpGlobals->ghostGreen << gpGlobals->ghostBlue;
-	sendSock.send(pack, serverIPAddress, 4445);
+	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
 	firstTime = false;
 }
 
@@ -261,5 +264,5 @@ void GhostOnlineEngine::sendLine(OnlineRunLine l) {
 	if (!shouldAct) return;
 	sf::Packet pack;
 	pack << "l" << l.name << l.map << l.velX << l.velY << l.velZ << l.locX << l.locY << l.locZ;
-	sendSock.send(pack, serverIPAddress, 4445);
+	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
 }
