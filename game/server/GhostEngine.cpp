@@ -29,20 +29,18 @@ GhostEngine* GhostEngine::getEngine() {
 	return instance;
 }
 
-bool GhostEngine::isOnline() {
-	return isOnlineMode;
-}
-
-void GhostEngine::setOnlineMode(bool newBool) {
-	isOnlineMode = newBool;
-}
-
 
 static void listRunC(const CCommand &args) {
 	GhostUtils::listRun(args.Arg(1));
 }
 
 static ConCommand listRun("gh_listrun", listRunC, "Gives an in-depth look at a ghost file.", 0, GhostUtils::FileAutoCompleteList);
+
+
+static ConVar autoRecord("gh_autorecord", "1", FCVAR_ARCHIVE | FCVAR_REPLICATED, "Auto records the ghost file for you.\n 1 = on, 0 = off");
+bool GhostEngine::shouldAutoRecord() {
+	return autoRecord.GetBool();
+}
 
 
 static void onTrailLengthChange(IConVar *var, const char* pOldValue, float fOldValue) {

@@ -67,7 +67,7 @@ public:
 	}
 
 	static int FileAutoCompleteList ( char const *partial, 
-		char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 	{
 		char fileDir[MAX_PATH];
 		int toReturn = 0;
@@ -96,7 +96,7 @@ public:
 
 
 	static int FileAutoCompleteLoad ( char const *partial, 
-		char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 	{
 		char fileDir[MAX_PATH];
 		int toReturn = 0;
@@ -124,7 +124,7 @@ public:
 	}
 
 	static int FileAutoComplete ( char const *partial, 
-		char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
 	{
 		char fileDir[MAX_PATH];
 		int toReturn = 0;
@@ -134,6 +134,7 @@ public:
 		toSearch[0] = strtok(part, " ");
 		toSearch[1] = strtok(0, " ");
 		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
+			
 			FileFindHandle_t findHandle; // note: FileFINDHandle
 			std::stringstream ss1;
 			ss1 << "runs/";

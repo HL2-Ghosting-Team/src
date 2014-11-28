@@ -6,19 +6,17 @@ class GhostEngine {
 
 public:
 	GhostEngine() {
-		isOnlineMode = false;
 	};
 	//gets the singleton Engine instance
 	static GhostEngine* getEngine();
 	CUtlVector<GhostRun*> ghosts;
 	//CUtlVector<OnlineGhostRun*> onlineGhosts;
 	static GhostEngine* instance;
-	bool isOnline();
-	void setOnlineMode(bool);
 	bool isActive();
 	//convars
 	void initVars();
 	bool shouldDrawTrails();
+	bool shouldAutoRecord();
 	unsigned char getTrailLength();
 	unsigned char getGhostColorRed();
 	unsigned char getGhostColorGreen();
@@ -36,8 +34,5 @@ public:
 	
 	GhostRun* getRun(GhostEntity*);
 	void stopAllRuns();	
-	
-private:
-	bool isOnlineMode;
 
 };

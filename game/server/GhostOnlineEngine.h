@@ -42,6 +42,7 @@ public:
 	void handleLine(sf::Packet*);
 	void handleDisconnect(sf::Packet*);
 	void handleConnect(sf::Packet*);
+	void handleKick(sf::Packet*);
 
 	void addRun(GhostOnlineRun*);
 	GhostOnlineRun* getRun(const char*);//by name, the recieve thread uses this heavily!

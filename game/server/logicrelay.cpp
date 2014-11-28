@@ -152,7 +152,7 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 		if (Q_strcmp(name, "logic_start_train") == 0) {
 			BlaTimer::timer()->Start();									
 			GhostEngine::getEngine()->playAllGhosts();									
-			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_record"); 
+			if (GhostEngine::getEngine()->shouldAutoRecord()) engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_record"); 
 		} 
 
 		//breen_01 (slomo boom/teleport), stop the timer and the ghost recording

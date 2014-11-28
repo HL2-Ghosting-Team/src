@@ -23,29 +23,11 @@ GhostOnlineEngine* GhostOnlineEngine::getEngine() {
 	return instance;
 }
 
-static void onIPChange(IConVar *var, const char* pOldValue, float fOldValue) {
-	if (!((ConVar*)var)->GetString()) return;
-	if (!pOldValue) return;
-	if (Q_strcmp(((ConVar*)var)->GetString(), pOldValue) == 0) {
-		return;
-	}
-	const char* toCheck = ((ConVar*)var)->GetString();
-	struct sockaddr_in sa;
-	int result = inet_pton(AF_INET, toCheck, &(sa.sin_addr));
-	if (result == 1) {
-		//successful
-	} else {
-		((ConVar*)var)->SetValue(((ConVar*)var)->GetDefault());
-	}
-}
-
 static ConVar serverIP("gh_online_ip", "127.0.0.1", 
 					   FCVAR_ARCHIVE | FCVAR_REPLICATED, 
-					   "The IP of the server to connect to.", 
-					   onIPChange);
+					   "The IP of the server to connect to.");
 
-static ConVar serverPortSend("gh_online_port_send", "5145", FCVAR_ARCHIVE | FCVAR_REPLICATED, "The port of the server to send the data packets to.");
-static ConVar serverPortReceive("gh_online_port_receive", "5146", FCVAR_ARCHIVE | FCVAR_REPLICATED, "The port of the server to receieve information from.");
+static ConVar serverPort("gh_online_port", "5145", FCVAR_ARCHIVE | FCVAR_REPLICATED, "The port of the server.");
 
 sf::Packet& operator <<(sf::Packet& packet, GhostUtils::GhostData& data) {
 	return packet << data.trailLength <<  data.trailRed << data.trailGreen << data.trailBlue << data.ghostRed << data.ghostGreen << data.ghostBlue;
@@ -62,7 +44,7 @@ static unsigned ReceiveThread(void *params) {
 			sf::IpAddress sender;
 			unsigned short port;
 			if ((GhostOnlineEngine::sendSock.receive(pack, sender, port) == sf::Socket::Done) && (pack.getDataSize() > 0)) {
-				if (port == serverPortReceive.GetInt()) {
+				if (port == serverPort.GetInt()) {
 					GhostOnlineEngine::getEngine()->handleEvent(&pack);
 				}
 			}
@@ -96,12 +78,22 @@ void GhostOnlineEngine::handleEvent(sf::Packet *toRead) {
 
 		//TODO
 		break;
-	case 0x04:
+	case 0x04://another user disconnected
 		handleDisconnect(toRead);
+		break;
+	case 0x05://this user being kicked from server
+		handleKick(toRead);
 		break;
 	default:
 		break;
 	}
+}
+
+void GhostOnlineEngine::handleKick(sf::Packet *toRead) {
+	char reason[64];
+	*toRead >> reason;
+	Msg("Kicked from the online server! Reason: %s\n", reason);
+	disconnect(false);
 }
 
 void GhostOnlineEngine::handleDisconnect(sf::Packet *toRead) {
@@ -178,23 +170,15 @@ void GhostOnlineEngine::connect() {
 		Msg("Already connected!\n");
 		return;
 	}
-	if (sendSock.bind(serverPortSend.GetInt()) != sf::Socket::Done) {
+	if (sendSock.bind(serverPort.GetInt()) != sf::Socket::Done) {
 		Msg("Failed to bind port!\n");
 		return;
 	}
-	struct sockaddr_in recTemp;
-	if (inet_pton(AF_INET, serverIP.GetString(), &recTemp) == 1) {
-		serverIPAddress = serverIP.GetString();
-		CreateSimpleThread(ReceiveThread, NULL);
-		firstTime = true;
-		shouldAct = true;
-		//GhostRecord::playerNameDirty = true;
-		Msg("Connected and created the thread!\n");
-	} else {
-		Msg("The IP address is invalid!\n");
-		sendSock.unbind();
-		return;
-	}
+	serverIPAddress = serverIP.GetString();
+	CreateSimpleThread(ReceiveThread, NULL);
+	firstTime = true;
+	shouldAct = true;
+	Msg("Connected and created the thread!\n");
 }
 
 ConCommand connect_con("gh_online_connect", GhostOnlineEngine::connect, "Connects to the Online server using the IP specified in\ngh_online_ip", 0);
@@ -224,7 +208,7 @@ void GhostOnlineEngine::stopAllRuns() {
 
 void GhostOnlineEngine::disconnect(bool gameShutdown) {
 
-	if (!getEngine()->shouldAct) {
+	if (!shouldAct) {
 		Msg("Not connected to anything!\n");
 		return;
 	}
@@ -233,7 +217,7 @@ void GhostOnlineEngine::disconnect(bool gameShutdown) {
 
 	pack << "d";
 	pack << GhostRecord::getGhostName();
-	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
+	sendSock.send(pack, serverIPAddress, serverPort.GetInt());
 	sendSock.unbind();
 	nextTime = 0.0f;
 
@@ -256,7 +240,7 @@ void GhostOnlineEngine::sendFirstData() {
 	sf::Packet pack;
 	pack << "c" << GhostRecord::getGhostName() << gpGlobals->trailLength << gpGlobals->trailRed << gpGlobals->trailGreen << gpGlobals->trailBlue
 		<< gpGlobals->ghostRed << gpGlobals->ghostGreen << gpGlobals->ghostBlue;
-	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
+	sendSock.send(pack, serverIPAddress, serverPort.GetInt());
 	firstTime = false;
 }
 
@@ -264,5 +248,5 @@ void GhostOnlineEngine::sendLine(OnlineRunLine l) {
 	if (!shouldAct) return;
 	sf::Packet pack;
 	pack << "l" << l.name << l.map << l.velX << l.velY << l.velZ << l.locX << l.locY << l.locZ;
-	sendSock.send(pack, serverIPAddress, serverPortSend.GetInt());
+	sendSock.send(pack, serverIPAddress, serverPort.GetInt());
 }

@@ -2307,7 +2307,7 @@ bool CGameMovement::CheckJumpButton( void )
 	{
 		if (dontJump)
 		{
-			Log("Prevented a consecutive jump.\n");
+			DevLog("Prevented a consecutive jump.\n");
 		}
 
 		return false;		// don't pogo stick
