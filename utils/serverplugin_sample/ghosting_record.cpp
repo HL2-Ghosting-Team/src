@@ -24,6 +24,9 @@
 #include "tier2/tier2.h"
 #include "game/server/iplayerinfo.h"
 #include "GhostUtils.h"
+#include "iserver.h"
+#include "toolframework\ienginetool.h"
+#include "toolframework\itoolentity.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -36,6 +39,8 @@ CGlobalVars *gpGlobals = NULL;
 edict_t *currPlayer = NULL;
 IPlayerInfo* playerInfo = NULL;
 IServerGameEnts * serverGameEnts = NULL;
+IServerGameDLL * serverGameDLL = NULL;
+IServerTools* serverTools = NULL;
 
 float nextTime = 0.00f;
 float startTime = 0.00f;
@@ -130,6 +135,8 @@ bool GhostingRecord::Load(	CreateInterfaceFn interfaceFactory, CreateInterfaceFn
 	engine = (IVEngineServer*)interfaceFactory(INTERFACEVERSION_VENGINESERVER, NULL);
 	filesystem = (IFileSystem *)interfaceFactory(FILESYSTEM_INTERFACE_VERSION, NULL);
 	serverGameEnts = (IServerGameEnts*)gameServerFactory(INTERFACEVERSION_SERVERGAMEENTS, NULL);
+	serverGameDLL = (IServerGameDLL*)gameServerFactory(INTERFACEVERSION_SERVERGAMEDLL, NULL);
+	serverTools = (IServerTools*)gameServerFactory(VSERVERTOOLS_INTERFACE_VERSION, NULL);
 	// get the interfaces we want to use
 	if(	! ( engine && g_pFullFileSystem && filesystem && serverGameEnts && playerinfomanager ) ){
 		return false; // we require all these interface to function
@@ -206,11 +213,14 @@ void GhostingRecord::GameFrame( bool simulating ) {
 				currPlayer = engine->PEntityOfEntIndex(i);
 				playerInfo = playerinfomanager->GetPlayerInfo(currPlayer);
 				if (playerInfo != NULL) {
+					
 					break;
 				}
 			}
 		}
 		if (currPlayer != NULL && playerInfo != NULL) {
+			IServerEntity* player = serverTools->GetIServerEntity((IClientEntity*)engine->PEntityOfEntIndex(1));
+			player->GetBaseEntity()->EyePosition();
 			CBaseEntity *playerEntity = serverGameEnts->EdictToBaseEntity(currPlayer);
 			if (playerEntity) {
 				float time = (((float)Plat_FloatTime()) - startTime);

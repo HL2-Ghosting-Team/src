@@ -1,30 +1,27 @@
 import java.awt.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class GhostingServer {
 
     private static ServerSend serverSend = null;
-    public static HashSet<User> userSet = new HashSet<>();
+    public static CopyOnWriteArraySet<User> userSet = new CopyOnWriteArraySet<>();
     public static boolean debug = false;
     public static int port = 5145;
     public static InetAddress machineIP = null;
 
     public static void main(String args[]) throws Exception {
-        /**
-         * TODO
-         * launch options:
-         * -ip "xxx.xx.xx.xxx"
-         * -debug
-         * -port xxxx
-         */
         System.setProperty("java.net.preferIPv4Stack", "true");
         handleArgs(args);
         if (machineIP == null) machineIP = InetAddress.getLocalHost();
@@ -116,16 +113,13 @@ public class GhostingServer {
                         log("Could not find user " + split[1] + " !");
                     }
                 } else {
-                    log("Usage: \"kick <user>\" where <user> is the name of a user.");
+                    log("Usage: \"kick (user)\" where (user) is the name of a user.");
                 }
             } else if (message.startsWith("status")) {
                 if (serverSend != null && serverSend.isAlive()) {
                     log("The server is currently running on " + machineIP.toString() + " with port " + port);
                     log("The server currently has " + userSet.size() + " user(s) on it:");
-                    HashSet<User> set = duplicateSet();
-                    for (User u : set) {
-                        u.printUser();
-                    }
+                    userSet.forEach(User::printUser);
                 } else {
                     log("The server is currently NOT running! Try starting the server with \"restart\"!");
                     log("The server would be run on " + machineIP.toString() + " on port " + port);
@@ -136,20 +130,17 @@ public class GhostingServer {
                     if (u != null) {
                         u.printUser();
                     } else {
-                        log("Could not find user \"" + split[1] +"\"!");
+                        log("Could not find user \"" + split[1] + "\"!");
                     }
                 } else {
-                    log("Usage: \"poll <user>\" where <user> is the name of a user.");
+                    log("Usage: \"poll (user)\" where (user) is the name of a user.");
                 }
-            } else if (message.startsWith("stop")) {
+            } else if (message.startsWith("stop") || message.startsWith("quit")) {
                 if (serverSend != null && serverSend.isAlive()) {
                     log("Shutting down server!");
                     UserEventType kicked = UserEventType.KICK_USER;
                     kicked.reason = "Server shutting down!";
-                    HashSet<User> set = duplicateSet();
-                    for (User u : set) {
-                        u.addEvent(new UserEvent(u, kicked));
-                    }
+                    userSet.stream().forEach(u -> u.addEvent(new UserEvent(u, kicked)));
                     log("Waiting for all users to disconnect...");
                     int count = 0;
                     while (!userSet.isEmpty()) {
@@ -173,7 +164,6 @@ public class GhostingServer {
                 if (serverSend != null && serverSend.isAlive()) {
                     log("Server currently running! Try using \"stop\" first!");
                 } else {
-                    ServerSend.shouldRun = true;
                     serverSend = new ServerSend();
                     serverSend.start();
                 }
@@ -197,23 +187,23 @@ public class GhostingServer {
                         port = Integer.parseInt(split[1]);
                         log("Port changed to " + port + " !");
                     } catch (Exception e) {
-                        log("Could not change the port!");
+                        log("Could not change the port! Usage: \"port (new port)\" !");
                         e.printStackTrace();
                     }
                 }
             } else if (message.equalsIgnoreCase("y")) {
                 shouldRun = false;
+            } else if (message.equalsIgnoreCase("help")) {
+                log("Available commands:");
+                log("kick (user) - Kicks (user) from server.");
+                log("poll (user) - Gets (user) information (position, velocity etc).");
+                log("stop/quit   - Gracefully stops the server if running, shuts down program if not.");
+                log("restart     - Restart the server.");
+                log("status      - Gets the status of the server (server IP, how many connected, etc).");
+                log("ip (new IP) - Changes the server's IP to (new IP).");
+                log("port (port) - Changes the server's port to (port)");
+                log("help        - Displays this dialog.");
             }
-            /**
-             * TODO:
-             *  - kick user
-             *  - poll user (get info)
-             *  - stop server
-             *  - restart server (with a new socket IP?)
-             *  - status (poll the server; how many connected etc)
-             *  - ip [new IP]
-             *  - port [new port]
-             */
         }
 
         @Override
@@ -230,10 +220,13 @@ public class GhostingServer {
      * This thread handles updating user run lines, as well as sending out the lines to users.
      */
     public static class ServerSend extends Thread {
-        DatagramSocket socket = null;
-        public static boolean shouldRun = true;
+
+        private DatagramSocket socket;
+        public static boolean shouldRun;
 
         public ServerSend() {
+            shouldRun = true;
+            socket = null;
         }
 
         @Override
@@ -264,65 +257,67 @@ public class GhostingServer {
                 if (socket == null) break;
                 byte[] buff = new byte[512];
                 DatagramPacket request = new DatagramPacket(buff, buff.length);
+                boolean rec = false;
                 try {
                     socket.receive(request);
+                    rec = true;
                 } catch (Exception e) {
                     if (!(e instanceof SocketTimeoutException))
                         e.printStackTrace();
                 }
-
-                DataCounterStream dcs = new DataCounterStream(request.getData(), new DataInputStream(new ByteArrayInputStream(request.getData())));
-                char indicator = dcs.getIndicator();
-                if (indicator == 'l') {
-                    String name = dcs.getString();
-                    User u = getUser(name);
-                    //is the user even valid?
-                    if (u != null) {
-                        //update the map, velocity, and location
-                        String map = dcs.getString();
-                        if (u.getMap() == null || !u.getMap().equalsIgnoreCase(map)) {
-                            u.setMap(map);
+                if (rec) {
+                    DataCounterStream dcs = new DataCounterStream(request.getData(), new DataInputStream(new ByteArrayInputStream(request.getData())));
+                    char indicator = dcs.getIndicator();
+                    if (indicator == 'l') {
+                        String name = dcs.getString();
+                        User u = getUser(name);
+                        //is the user even valid?
+                        if (u != null) {
+                            //update the map, velocity, and location
+                            String map = dcs.getString();
+                            if (u.getMap() == null || !u.getMap().equalsIgnoreCase(map)) {
+                                u.setMap(map);
+                            }
+                            float vx = dcs.getFloat();
+                            float vy = dcs.getFloat();
+                            float vz = dcs.getFloat();
+                            u.setVelocity(vx, vy, vz);
+                            float x = dcs.getFloat();
+                            float y = dcs.getFloat();
+                            float z = dcs.getFloat();
+                            u.setLocation(x, y, z);
+                            //update the user with the other ghost data
+                            sendExistingLocational(socket, request, u);
+                            //add/remove new ghosts if there are any
+                            u.completeEvents(socket, request);
                         }
-                        float vx = dcs.getFloat();
-                        float vy = dcs.getFloat();
-                        float vz = dcs.getFloat();
-                        u.setVelocity(vx, vy, vz);
-                        float x = dcs.getFloat();
-                        float y = dcs.getFloat();
-                        float z = dcs.getFloat();
-                        u.setLocation(x, y, z);
-                        //update the user with the other ghost data
-                        sendExistingLocational(socket, request, u);
-                        //add/remove new ghosts if there are any
-                        u.completeEvents(socket, request);
-                    }
-                } else if (indicator == 'c') {
-                    String name = dcs.getString();
-                    if (getUser(name) != null) {
-                        UserEventType kicked = UserEventType.KICK_USER;
-                        kicked.reason = "Change your gh_name to something unique, there already is a " + name + " on the server!";
-                        sendKick(socket, request, null, kicked);
-                    } else {
-                        int trailLength = dcs.readUnsignedByte();
-                        int trailRed = dcs.readUnsignedByte();
-                        int trailGreen = dcs.readUnsignedByte();
-                        int trailBlue = dcs.readUnsignedByte();
-                        int ghostRed = dcs.readUnsignedByte();
-                        int ghostGreen = dcs.readUnsignedByte();
-                        int ghostBlue = dcs.readUnsignedByte();
-                        User u = new User(name, trailLength, trailRed, trailGreen, trailBlue, ghostRed, ghostGreen, ghostBlue);
-                        log("User received! " + name + " trail: " + trailLength + " colors: " + u.getGhostColor().toString());
-                        sendExistingUsers(socket, request);
-                        createUserEvent(u, UserEventType.NEW_USER);
-                        addNewUser(u);
-                    }
-                } else if (indicator == 'd') {
-                    //TODO verify the sending packet -- will this actually be a problem?
-                    String name = dcs.getString();
-                    User u = getUser(name);
-                    if (u != null) {
-                        log(u.getName() + " has disconnected!");
-                        createUserEvent(u, UserEventType.DISCONNECT);
+                    } else if (indicator == 'c') {
+                        String name = dcs.getString();
+                        if (getUser(name) != null) {
+                            UserEventType kicked = UserEventType.KICK_USER;
+                            kicked.reason = "Change your gh_name to something unique, there already is a " + name + " on the server!";
+                            sendKick(socket, request, null, kicked);
+                        } else {
+                            int trailLength = dcs.readUnsignedByte();
+                            int trailRed = dcs.readUnsignedByte();
+                            int trailGreen = dcs.readUnsignedByte();
+                            int trailBlue = dcs.readUnsignedByte();
+                            int ghostRed = dcs.readUnsignedByte();
+                            int ghostGreen = dcs.readUnsignedByte();
+                            int ghostBlue = dcs.readUnsignedByte();
+                            User u = new User(name, trailLength, trailRed, trailGreen, trailBlue, ghostRed, ghostGreen, ghostBlue);
+                            log("User received! " + name + " trail: " + trailLength + " colors: " + u.getGhostColor().toString());
+                            sendExistingUsers(socket, request);
+                            createUserEvent(u, UserEventType.NEW_USER);
+                            addNewUser(u);
+                        }
+                    } else if (indicator == 'd') {
+                        String name = dcs.getString();
+                        User u = getUser(name);
+                        if (u != null) {
+                            log(u.getName() + " has disconnected!");
+                            createUserEvent(u, UserEventType.DISCONNECT);
+                        }
                     }
                 }
             }
@@ -350,8 +345,7 @@ public class GhostingServer {
      * @param recipient The packet initially received to send back to.
      * @param exclude   The user to exclude from the send.
      */
-    public static synchronized void sendExistingLocational(DatagramSocket sock, DatagramPacket recipient, User exclude) {
-        //needed dupe for potential modification while looping (disconnected users, etc)
+    public static void sendExistingLocational(DatagramSocket sock, DatagramPacket recipient, User exclude) {
         for (User toSend : userSet) {
             if (exclude.getName().equalsIgnoreCase(toSend.getName())) continue;
             sendRunLine(sock, recipient, toSend);
@@ -364,7 +358,7 @@ public class GhostingServer {
      * @param sock      The socket to send on.
      * @param recipient The packet initially received to send back to.
      */
-    public static synchronized void sendExistingUsers(DatagramSocket sock, DatagramPacket recipient) {
+    public static void sendExistingUsers(DatagramSocket sock, DatagramPacket recipient) {
         //the following sends the OTHER PEOPLE data to the NEW PERSON
         for (User existingUser : userSet) {
             sendGhostData(sock, recipient, existingUser);
@@ -505,7 +499,7 @@ public class GhostingServer {
      * @param eventUser The user the event is about.
      * @param event     The type of the event.
      */
-    public static synchronized void createUserEvent(User eventUser, UserEventType event) {
+    public static void createUserEvent(User eventUser, UserEventType event) {
         if (event == UserEventType.DISCONNECT) {
             userSet.remove(eventUser);
         }
@@ -514,7 +508,7 @@ public class GhostingServer {
         }
     }
 
-    static enum UserEventType {
+    enum UserEventType {
         NEW_USER,
         DISCONNECT,
         KICK_USER;
@@ -538,27 +532,13 @@ public class GhostingServer {
      * @param name The name of the user to get.
      * @return The user object if it exists, otherwise null.
      */
-    public static synchronized User getUser(String name) {
+    public static User getUser(String name) {
         for (User u : userSet) {
             if (u.getName().equalsIgnoreCase(name)) {
                 return u;
             }
         }
         return null;
-    }
-
-    /**
-     * Counts the users of a given name.
-     *
-     * @param name The name of the user.
-     * @return The number of users with the given name.
-     */
-    public static synchronized int getUserCount(String name) {
-        int count = 0;
-        for (User u : userSet) {
-           if (u.getName().equalsIgnoreCase(name)) count++;
-        }
-        return count;
     }
 
     /**
@@ -571,26 +551,15 @@ public class GhostingServer {
         userSet.add(u);
     }
 
-    /**
-     * Duplicates the user set and returns the copy.
-     *
-     * @return The duplicated set.
-     */
-    public static synchronized HashSet<User> duplicateSet() {
-        HashSet<User> dupe = new HashSet<>();
-        dupe.addAll(userSet);
-        return dupe;
-    }
-
     public static class User {
-        String name, map;
-        Velocity vel;
-        Location loc;
-        int trailLength;
-        Color ghostColor, trailColor;
-        HashSet<UserEvent> events;
-        long lastUpdate;
-        long ping = 0;
+        private String name, map;
+        private Velocity vel;
+        private Location loc;
+        private int trailLength;
+        private Color ghostColor, trailColor;
+        private CopyOnWriteArrayList<UserEvent> events;
+        private long lastUpdate;
+        private long ping = 0;
 
         public User(String name, int tl, int tr, int tg, int tb, int gr, int gg, int gb) {
             this.name = name;
@@ -600,7 +569,7 @@ public class GhostingServer {
             trailColor = new Color(tr, tg, tb);
             loc = new Location(0, 0, 0);
             vel = new Velocity(0, 0, 0);
-            events = new HashSet<>();
+            events = new CopyOnWriteArrayList<>();
         }
 
         public void setLocation(float x, float y, float z) {
@@ -650,7 +619,7 @@ public class GhostingServer {
             return trailLength;
         }
 
-        public synchronized void addEvent(UserEvent newEvent) {
+        public void addEvent(UserEvent newEvent) {
             events.add(newEvent);
         }
 
@@ -677,12 +646,22 @@ public class GhostingServer {
 
         public void printUser() {
             System.out.printf("Name: %s%nCurrent map: %s%nTrail length: %d seconds%nGhost color: %s%nTrail color: %s%n%s%n%s%nHas events: %b%nPing: %d ms",
-                    name, map, trailLength, ghostColor.toString(), trailColor.toString(), loc.toString(), vel.toString(), hasEvents(), (int)ping);
+                    name, map, trailLength, ghostColor.toString(), trailColor.toString(), loc.toString(), vel.toString(), hasEvents(), (int) ping);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof User) &&
+                    ((User) obj).getGhostColor().equals(this.getGhostColor()) &&
+                    ((User) obj).getName().equals(this.getName()) &&
+                    ((User) obj).getMap().equals(this.getMap()) &&
+                    ((User) obj).getTrailColor().equals(this.getTrailColor()) &&
+                    ((User) obj).getTrailLength() == this.getTrailLength();
         }
     }
 
     public static class Velocity {
-        float vx, vy, vz;
+        private float vx, vy, vz;
 
         public Velocity(float x, float y, float z) {
             vx = x;
@@ -714,7 +693,7 @@ public class GhostingServer {
     }
 
     public static class Location {
-        float x, y, z;
+        private float x, y, z;
 
         public Location(float x, float y, float z) {
             this.x = x;
@@ -746,15 +725,13 @@ public class GhostingServer {
     }
 
     public static class DataCounterStream {
-        int totalBytesRead;
-        DataInputStream dis;
-        ByteBuffer buf;
-        byte[] buffer;
+        private int totalBytesRead;
+        private DataInputStream dis;
+        private ByteBuffer buf;
 
         public DataCounterStream(byte[] buffer, DataInputStream dis) {
             totalBytesRead = 0;
             this.dis = dis;
-            this.buffer = buffer;
             buf = ByteBuffer.wrap(buffer).asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
         }
 
