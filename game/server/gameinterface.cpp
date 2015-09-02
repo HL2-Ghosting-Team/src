@@ -1114,6 +1114,7 @@ void CServerGameDLL::GameFrame( bool simulating )
 			counters[i]->init(gpGlobals->tickcount);
 		}
 	}*/
+	
 	if (BlaTimer::timer()->IsRunning()) {
 		if (BlaTimer::timer()->InLevelLoad()) {
 			CBasePlayer* player = UTIL_GetLocalPlayer();

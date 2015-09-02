@@ -9,7 +9,6 @@ import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -629,9 +628,7 @@ public class GhostingServer {
 
         public void completeEvents(DatagramSocket sock, DatagramPacket pack) {
             if (!hasEvents()) return;
-            Iterator<UserEvent> iterator = events.iterator();
-            while (iterator.hasNext()) {
-                UserEvent u = iterator.next();
+            for (UserEvent u : events) {
                 if (u.eventType == UserEventType.DISCONNECT) {
                     sendDisconnect(sock, pack, u.eventUser);
                 } else if (u.eventType == UserEventType.NEW_USER) {
@@ -640,8 +637,8 @@ public class GhostingServer {
                     sendKick(sock, pack, u.eventUser, u.eventType);
                     break;
                 }
-                iterator.remove();
             }
+            events.clear();
         }
 
         public void printUser() {
