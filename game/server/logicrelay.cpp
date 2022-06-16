@@ -138,6 +138,7 @@ void CLogicRelay::InputToggle( inputdata_t &inputdata )
 }
 
 
+static ConVar gh_autoplay("gh_autoplay", "", FCVAR_REPLICATED, "Auto play the ghosts runs.\nExample: gh_autoplay \"run1.run/run2.run/run3.run\"");
 //-----------------------------------------------------------------------------
 // Purpose: Input handler that triggers the relay.
 //-----------------------------------------------------------------------------
@@ -150,18 +151,21 @@ void CLogicRelay::InputTrigger( inputdata_t &inputdata )
 
 		//trainstation_01 (train starts moving), start recording, playback, and timer
 		if (Q_strcmp(name, "logic_start_train") == 0) {
+			GhostEngine::flPlayTime = .0f;
+			GhostEngine::getEngine()->stopAllRuns();
+			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_stop");
+
 			BlaTimer::timer()->Start();									
 			GhostEngine::getEngine()->playAllGhosts();									
-			if (GhostEngine::getEngine()->shouldAutoRecord()) engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_record"); 
-		} 
+			if (GhostEngine::getEngine()->shouldAutoRecord()) engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "gh_record");
 
-		//breen_01 (slomo boom/teleport), stop the timer and the ghost recording
-		else if (Q_strcmp(name, "logic_portal_final_end_2") == 0) {
-			float finalTick = BlaTimer::timer()->GetCurrentTime();
-			BlaTimer::timer()->Stop();
-			GhostRecord::endRun(finalTick);
-			engine->ClientCommand(UTIL_GetLocalPlayer()->edict(), "stop"); 
-		}
+			const char *pszRuns = gh_autoplay.GetString();
+			CUtlVector<char *> vecRuns;
+			Q_SplitString(pszRuns, "/", vecRuns);
+			if (pszRuns != NULL)
+				for (int i = 0; i < vecRuns.Size(); i++)
+					GhostEngine::getEngine()->StartRun(vecRuns[i], true);
+		} 
 
 		m_OnTrigger.FireOutput( inputdata.pActivator, this );
 

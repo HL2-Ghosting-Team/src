@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "GhostUtils.h"
 #include "GhostRecord.h"
+#include "engine/baseautocompletefilelist.h"
 
 
 #include "tier0/memdbgon.h"
@@ -17,6 +18,13 @@
 //Is the engine supporting any ghosts right now?
 bool GhostEngine::isActive() {
 	return (ghosts.Count() != 0);// || (onlineGhosts.Count() != 0);
+}
+
+static ConVar gh_realtime("gh_realtime", "0", FCVAR_ARCHIVE | FCVAR_REPLICATED, "Use Plat_FloatTime (the real time) instead game time");
+
+float GhostEngine::GetPlayTime()
+{
+	return gh_realtime.GetBool() ? Plat_FloatTime() : GhostEngine::flPlayTime;
 }
 
 GhostEngine* GhostEngine::instance = NULL;
@@ -34,10 +42,11 @@ static void listRunC(const CCommand &args) {
 	GhostUtils::listRun(args.Arg(1));
 }
 
-static ConCommand listRun("gh_listrun", listRunC, "Gives an in-depth look at a ghost file.", 0, GhostUtils::FileAutoCompleteList);
+CON_COMMAND_AUTOCOMPLETEFILE(gh_listrun, listRunC, "Gives an in-depth look at a ghost file.", "runs", run);
 
 
 static ConVar autoRecord("gh_autorecord", "1", FCVAR_ARCHIVE | FCVAR_REPLICATED, "Auto records the ghost file for you.\n 1 = on, 0 = off");
+static ConVar gh_autoplay("gh_autoplay", "", FCVAR_REPLICATED, "Auto play the ghosts runs.\nExample: gh_autoplay \"run1.run/run2.run/run3.run\"");
 bool GhostEngine::shouldAutoRecord() {
 	return autoRecord.GetBool();
 }
@@ -133,23 +142,7 @@ void GhostEngine::initVars() {
 
 //Called before every level load to transfer the data of
 //the last ghost, for continuity's sake.
-void GhostEngine::transferGhostData() {
-	int size = ghosts.Count();
-	for (int i = 0; i < size; i++) {
-		GhostRun * it = ghosts[i];
-		if (!it->ent || !it->isPlaying) {//in user-reset or not started
-			continue;
-		}
-		Msg("Transferring ghost data for %s!\n", it->ghostName);
-		if (Q_strlen(it->ent->currentMap) != 0) {
-			Q_strcpy(it->currentMap, it->ent->currentMap);
-		} else {//this should never happen, just incase though
-			Q_strcpy(it->currentMap, STRING(gpGlobals->mapname));
-		}
-		it->step = it->ent->step;
-		it->startTime = it->ent->startTime;
-	}
-}
+void GhostEngine::transferGhostData() {}
 
 GhostRun* GhostEngine::getRun(GhostEntity* toGet) {
 	int size = ghosts.Count();
@@ -213,7 +206,7 @@ void startRun_f (const CCommand &args) {
 	}
 }
 
-ConCommand start("gh_play", startRun_f, "Loads a ghost and immediately starts playing it.", 0, GhostUtils::FileAutoComplete);
+CON_COMMAND_AUTOCOMPLETEFILE(gh_play, startRun_f, "Loads a ghost and immediately starts playing it.", "runs", run);
 
 void loadRun_f(const CCommand &args) {
 	if ( (args.ArgC() > 1) && (args.Arg(1) != NULL) && (Q_strcmp(args.Arg(1), "") != 0)) {
@@ -221,7 +214,7 @@ void loadRun_f(const CCommand &args) {
 	}
 }
 
-ConCommand load("gh_load", loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", 0, GhostUtils::FileAutoCompleteLoad);
+CON_COMMAND_AUTOCOMPLETEFILE(gh_load, loadRun_f, "Loads a ghost but does not play it. Use gh_play_all_ghosts to play it.", "runs", run);
 
 //Recursive until none left. 
 //Didn't want to bother with having the size of the vector change in mid-loop
@@ -308,6 +301,6 @@ void stopTimer() {
 ConCommand startTimer_c("gh_timer_start", startTimer, "Starts the timer.", 0);
 ConCommand stopTimer_c("gh_timer_stop", stopTimer, "Stops the timer.", 0);
 
-
+float GhostEngine::flPlayTime = .0f;
 
 

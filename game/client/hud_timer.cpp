@@ -264,7 +264,7 @@ void CHudTimer::Paint(void)
 	//surface()->DrawPrintText(L"TIME", wcslen(L"TIME"));
 	// Draw current time.
 	surface()->DrawSetTextFont(surface()->GetFontTall(m_hTextFont));
-	surface()->DrawSetTextPos(digit_xpos, digit_ypos);
+	surface()->DrawSetTextPos(text_xpos, text_ypos);
 	surface()->DrawPrintText(m_pwCurrentTime, wcslen(m_pwCurrentTime));
 }
 

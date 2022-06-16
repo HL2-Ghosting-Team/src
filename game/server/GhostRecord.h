@@ -19,7 +19,7 @@ public:
 
 	static void onNameChange(IConVar*, const char*, float);
 
-	static void writeLine(const char*, const char*, float, float, float, float);
+	static void writeLine(const char* map, const char* name, float ti, float x, float y, float z, float yaw);
 
 	static void writeHeader();
 

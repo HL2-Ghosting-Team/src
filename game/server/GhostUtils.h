@@ -66,92 +66,6 @@ public:
 		}
 	}
 
-	static int FileAutoCompleteList ( char const *partial, 
-		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-	{
-		char fileDir[MAX_PATH];
-		int toReturn = 0;
-		char part[MAX_PATH];
-		char* toSearch[2] = {0};
-		Q_strcpy(part, partial);
-		toSearch[0] = strtok(part, " ");
-		toSearch[1] = strtok(0, " ");
-		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
-			FileFindHandle_t findHandle; // note: FileFINDHandle
-			std::stringstream ss1;
-			ss1 << "runs/";
-			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
-			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
-			for(int i = 0; pFilename; i++) {
-				std::stringstream ss;
-				ss << "gh_listrun " << pFilename;
-				Q_strcpy(commands[i], ss.str().c_str());
-				pFilename = filesystem->FindNext(findHandle);
-				toReturn = i + 1;
-			}
-			filesystem->FindClose(findHandle);
-		}
-		return toReturn; // number of entries
-	}
-
-
-	static int FileAutoCompleteLoad ( char const *partial, 
-		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-	{
-		char fileDir[MAX_PATH];
-		int toReturn = 0;
-		char part[MAX_PATH];
-		char* toSearch[2] = {0};
-		Q_strcpy(part, partial);
-		toSearch[0] = strtok(part, " ");
-		toSearch[1] = strtok(0, " ");
-		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
-			FileFindHandle_t findHandle; // note: FileFINDHandle
-			std::stringstream ss1;
-			ss1 << "runs/";
-			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
-			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
-			for(int i = 0; pFilename; i++) {
-				std::stringstream ss;
-				ss << "gh_load " << pFilename;
-				Q_strcpy(commands[i], ss.str().c_str());
-				pFilename = filesystem->FindNext(findHandle);
-				toReturn = i + 1;
-			}
-			filesystem->FindClose(findHandle);
-		}
-		return toReturn; // number of entries
-	}
-
-	static int FileAutoComplete ( char const *partial, 
-		char commands[ 256 ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-	{
-		char fileDir[MAX_PATH];
-		int toReturn = 0;
-		char part[MAX_PATH];
-		char* toSearch[2] = {0};
-		Q_strcpy(part, partial);
-		toSearch[0] = strtok(part, " ");
-		toSearch[1] = strtok(0, " ");
-		if (UTIL_GetModDir(fileDir, MAX_PATH)) {
-			
-			FileFindHandle_t findHandle; // note: FileFINDHandle
-			std::stringstream ss1;
-			ss1 << "runs/";
-			ss1 << (toSearch[1] == 0 ? "" : toSearch[1]) << "*.run";
-			const char *pFilename = filesystem->FindFirstEx( ss1.str().c_str(), "MOD", &findHandle );
-			for(int i = 0; pFilename; i++) {
-				std::stringstream ss;
-				ss << "gh_play " << pFilename;
-				Q_strcpy(commands[i], ss.str().c_str());
-				pFilename = filesystem->FindNext(findHandle);
-				toReturn = i + 1;
-			}
-			filesystem->FindClose(findHandle);
-		}
-		return toReturn; // number of entries
-	}
-
 	static struct GhostData {
 		unsigned char version;
 		unsigned char game;
@@ -241,6 +155,7 @@ public:
 		fs->Read(&l.x, sizeof(l.x), myFile);//x
 		fs->Read(&l.y, sizeof(l.y), myFile);//y
 		fs->Read(&l.z, sizeof(l.z), myFile);//z
+		fs->Read(&l.yaw, sizeof(l.yaw), myFile);//yaw
 		delete[] mapName;
 		delete[] playerName;
 		return l;

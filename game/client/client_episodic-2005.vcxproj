@@ -131,7 +131,7 @@
       <OutputFile>$(OutDir)Client.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "e:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "C:\Games\hlsr\Ghosting\ghosting\bin"</Command>
       <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -211,7 +211,7 @@
       <OutputFile>$(OutDir)Client.bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>copy "$(TargetDir)$(TargetFileName)" "c:\program files (x86)\steam\steamapps\SourceMods\ghostingmod\bin"</Command>
+      <Command>copy "$(TargetDir)$(TargetFileName)" "C:\Games\hlsr\Ghosting\ghosting\bin"</Command>
       <Message>Copy the DLL into the Ghosting Mod folder.</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
