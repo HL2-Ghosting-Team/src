@@ -47,7 +47,7 @@ void GhostRun::StartRun(bool resetGhost) {
 			isPlaying = true;
 			entity->SetAbsOrigin(Vector(ghostData.RunData[0].x, ghostData.RunData[0].y, ghostData.RunData[0].z));
 			if (DispatchSpawn(entity) == 0) {
-				entity->startTime = (float) Plat_FloatTime();
+				entity->startTime = GhostEngine::GetPlayTime();
 				entity->step = 0;
 				entity->StartRun();
 				ent = entity;

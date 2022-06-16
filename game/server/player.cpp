@@ -67,6 +67,9 @@
 #include "gameinterface.h"
 #include "hl2orange.spa.h"
 #include "cdll_int.h"
+#include "GhostEngine.h"
+#include "timer.h"
+#include "GhostRecord.h"
 
 #ifdef HL2_DLL
 #include "combine_mine.h"
@@ -7406,6 +7409,18 @@ END_DATADESC()
 
 void CStripWeapons::InputStripWeapons(inputdata_t &data)
 {
+	CBasePlayer *pLocalPlayer = UTIL_GetLocalPlayer();
+
+	if (!Q_strcmp(GetEntityName().ToCStr(), "weaponstrip_end_game")
+		&& pLocalPlayer->GetAbsOrigin().DistTo(Vector(-2449.5f, -1380.2f, -446.f)) > 256.f
+		&& pLocalPlayer->GetActiveWeapon() )
+	{
+		float finalTick = BlaTimer::timer()->GetCurrentTime();
+		BlaTimer::timer()->Stop();
+		GhostRecord::endRun(finalTick);
+		engine->ClientCommand(pLocalPlayer->edict(), "stop");
+	}
+
 	StripWeapons(data, false);
 }
 

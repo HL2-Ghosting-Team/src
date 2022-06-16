@@ -1,5 +1,6 @@
 #include "cbase.h"
 #include "GhostRecord.h"
+#include "GhostEngine.h"
 
 #include "tier0/memdbgon.h"
 
@@ -41,7 +42,7 @@ const char* GhostRecord::getGhostName() {
 	return ghName.GetString();
 }
 
-void GhostRecord::writeLine(const char* map, const char* name, float ti, float x, float y, float z) {
+void GhostRecord::writeLine(const char* map, const char* name, float ti, float x, float y, float z, float yaw) {
 	if (!myFile) return;
 	unsigned char mapLength = strlen(map);
 	unsigned char nameLength = strlen(name);
@@ -53,13 +54,14 @@ void GhostRecord::writeLine(const char* map, const char* name, float ti, float x
 	filesystem->Write(&x, sizeof(x), myFile);//x
 	filesystem->Write(&y, sizeof(y), myFile);//y
 	filesystem->Write(&z, sizeof(z), myFile);//z
+	filesystem->Write(&yaw, sizeof(yaw), myFile);//yaw
 }
 
 void GhostRecord::writeHeader() {
 	if (!myFile) return;
 	unsigned char first = 0xAF;//This is HL2. 0xAE = portal.
 	filesystem->Write(&first, sizeof(first), myFile); 
-	unsigned char version = 0x01;
+	unsigned char version = 0x02;
 	filesystem->Write(&version, sizeof(version), myFile); 
 	unsigned char game = 0x00;//HL2
 	filesystem->Write(&game, sizeof(game), myFile);
@@ -83,7 +85,7 @@ void GhostRecord::endRun(float finalTickCount) {
 	shouldRecord = false;
 	if (myFile) {
 		Msg("Run Complete!\n");
-		writeLine("DONE", "DONE", finalTickCount, 0, 0, 0);
+		writeLine("DONE", "DONE", finalTickCount, 0, 0, 0, 0);
 		filesystem->Flush(myFile);
 		filesystem->Close(myFile);
 		char newName[MAX_PATH];
@@ -137,7 +139,7 @@ void GhostRecord::record(const CCommand &args) {
 		myFile = filesystem->Open(fileName, "w+b", "MOD");
 		shouldRecord = true;
 		firstTime = true;
-		startTime = (float) Plat_FloatTime();
+		startTime = GhostEngine::GetPlayTime();
 		nextTime = 0.0f;
 		mapNameDirty = true;
 		playerNameDirty = true;
@@ -151,7 +153,7 @@ static ConCommand rec( "gh_record", GhostRecord::record, "Records a run.", 0);
 void GhostRecord::stop(const CCommand &args) {
 	shouldRecord = false;
 	if (myFile) {
-		Msg("Stopping recording...\n");
+		Msg("Stopping recording...\n\"%s\" is saved.\n", fileName);
 		filesystem->Close(myFile);
 	}
 	mapName[0] = 0;

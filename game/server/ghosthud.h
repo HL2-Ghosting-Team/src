@@ -15,30 +15,39 @@ public:
 	void RemoveGhost(size_t ptr) {
 		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
 		user.MakeReliable();
+
 		UserMessageBegin(user, "GhostHud_RemoveGhost");
-		char string[255];
-		Q_snprintf(string, sizeof(string), "%i", ptr);
-		WRITE_STRING(string);
+		{
+			WRITE_LONG(ptr);
+		}
 		MessageEnd();
 	}
 
 	void AddGhost(size_t ptr, const char* name, const char* map) {
 		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
 		user.MakeReliable();
+
 		UserMessageBegin(user, "GhostHud_AddGhost");
-		char totalString[255];
-		Q_snprintf(totalString, sizeof(totalString), "%i:%s:%s", ptr, name, map);
-		WRITE_STRING(totalString);
+		{
+			WRITE_LONG(ptr);
+			WRITE_STRING(name);
+			WRITE_STRING(map);
+		}
 		MessageEnd();
 	}
 
-	void UpdateGhost(size_t ptr, int currentStep, const char* map) {
+	void UpdateGhost(size_t ptr, int currentStep, const char* map, float flYawDelta = .0f, float flDistance = .0f) {
 		CSingleUserRecipientFilter user(UTIL_GetLocalPlayer());
 		user.MakeReliable();
+
 		UserMessageBegin(user, "GhostHud_UpdateGhost");
-		char totalString[255];
-		Q_snprintf(totalString, sizeof(totalString), "%i:%i:%s", ptr, currentStep, map);
-		WRITE_STRING(totalString);
+		{
+			WRITE_LONG(ptr);
+			WRITE_LONG(currentStep);
+			WRITE_STRING(map);
+			WRITE_FLOAT(flYawDelta);
+			WRITE_FLOAT(flDistance);
+		}
 		MessageEnd();
 	}
 

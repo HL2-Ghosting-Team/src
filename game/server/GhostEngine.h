@@ -12,6 +12,8 @@ public:
 	CUtlVector<GhostRun*> ghosts;
 	//CUtlVector<OnlineGhostRun*> onlineGhosts;
 	static GhostEngine* instance;
+	static float flPlayTime;
+	static float GetPlayTime();
 	bool isActive();
 	//convars
 	void initVars();

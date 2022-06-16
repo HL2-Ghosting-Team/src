@@ -1,4 +1,4 @@
-#include "cbase.h"
+﻿#include "cbase.h"
 #include "GhostEntity.h"
 #include "GhostEngine.h"
 #include "ghosthud.h"
@@ -7,7 +7,37 @@
 #include "tier0/memdbgon.h"
 // Spawnflags
 
-#define MODEL "models/cone.mdl"
+#define MODEL "models/player.mdl" //"models/cone.mdl"
+
+void ChangeModelCallback(IConVar *var, const char *pszOldValue, float flOldValue)
+{
+	GhostEngine *pGhostEngine = GhostEngine::getEngine();
+	if (!pGhostEngine)
+		return;
+
+	int size = pGhostEngine->ghosts.Count();
+	for (int i = 0; i < size; i++)
+		if (GhostRun * it = pGhostEngine->ghosts[i])
+			it->ent->SetGhostModel(dynamic_cast<ConVar *>(var)->GetString());
+}
+
+void ChangeOpacityCallback(IConVar *var, const char *pszOldValue, float flOldValue)
+{
+	GhostEngine *pGhostEngine = GhostEngine::getEngine();
+	if (!pGhostEngine)
+		return;
+
+	char nOpacity = clamp(dynamic_cast<ConVar *>(var)->GetInt(), 0, 255);
+
+	int size = pGhostEngine->ghosts.Count();
+	for (int i = 0; i < size; i++)
+		if (GhostRun * it = pGhostEngine->ghosts[i])
+			it->ent->SetRenderColorA(nOpacity);
+}
+
+ConVar gh_model("gh_model", MODEL, FCVAR_ARCHIVE | FCVAR_REPLICATED, "Changes ghosts models", ChangeModelCallback);
+ConVar gh_opacity("gh_opacity", "75", FCVAR_ARCHIVE | FCVAR_REPLICATED, "Changes ghosts transparency", ChangeOpacityCallback);
+ConVar gh_opacity_range("gh_opacity_range", "200", FCVAR_ARCHIVE | FCVAR_REPLICATED, "From what distance to change the transparency of the ghost");
 
 LINK_ENTITY_TO_CLASS( ghost_entity, GhostEntity );
 
@@ -45,11 +75,11 @@ void GhostEntity::Spawn( void )
 		}
 	}
 	RemoveEffects(EF_NODRAW);
-	SetModel(MODEL);
+	SetGhostModel(gh_model.GetString());
 	SetSolid( SOLID_NONE );
 	SetRenderMode(kRenderTransColor);
 	SetRenderColor(ghostData.ghostRed, ghostData.ghostGreen, ghostData.ghostBlue);
-	SetRenderColorA(75);
+	SetRenderColorA(gh_opacity.GetInt());
 	SetMoveType( MOVETYPE_NOCLIP );
 	isActive = true;
 }
@@ -75,18 +105,21 @@ void GhostEntity::CreateTrail(){
 }
 
 void GhostEntity::updateStep() {
+	GhostRun* thisrun = GhostEngine::getEngine()->getRun(this);
+
 	const size_t runsize = ghostData.RunData.Count();
 	if (step < 0 || step >= runsize) {
 		currentStep = nextStep = NULL;
 		return;
 	}
 	currentStep = &ghostData.RunData[step];
-	float currentTime = ((float)Plat_FloatTime() - startTime);
+	float currentTime = (GhostEngine::GetPlayTime() - startTime);
 	if (currentTime > currentStep->tim) {//catching up to a fast ghost, you came in late
 		unsigned int x = step + 1;
 		while (++x < runsize) {
 			if (Q_strlen(ghostData.RunData[x].map) > 0) {
 				Q_strcpy(currentMap, ghostData.RunData[x].map);
+				Q_strcpy(thisrun->currentMap, ghostData.RunData[x].map);
 			}
 			if (currentTime < ghostData.RunData[x].tim) {
 				break;
@@ -96,9 +129,29 @@ void GhostEntity::updateStep() {
 	}
 	currentStep = &ghostData.RunData[step];//update it to the new step
 	//here's where we can get current time: currentStep->tim
-	GhostRun* thisrun = GhostEngine::getEngine()->getRun(this);
-	GhostHud::hud()->UpdateGhost((size_t)thisrun, step, currentMap);
-	currentTime = ((float)Plat_FloatTime() - startTime);//update to new time
+
+	float flYawDelta = .0f, flDistance = .0f;
+
+	if (!Q_strcmp(gpGlobals->mapname.ToCStr(), currentMap))
+		if (CBasePlayer *pLp = UTIL_GetLocalPlayer())
+			if (GhostEntity *pGhost = thisrun->ent)
+			{
+				Vector vGhPos = pGhost->GetAbsOrigin();
+
+				QAngle eyeAngles = pLp->EyeAngles();
+				QAngle ang;
+				VectorAngles(vGhPos - pLp->EyePosition(), ang);
+
+				flYawDelta = AngleNormalize(eyeAngles.y - ang.y);
+				flDistance = vGhPos.DistTo(pLp->GetAbsOrigin());
+			}
+
+	GhostHud::hud()->UpdateGhost((size_t)thisrun, step, currentMap, flYawDelta, flDistance);
+
+	thisrun->step = step;
+	thisrun->startTime = startTime;
+
+	currentTime = (GhostEngine::GetPlayTime() - startTime);//update to new time
 	if (step == (runsize - 1)) {//if it's on the last step
 		thisrun->EndRun();
 	} else {
@@ -144,19 +197,24 @@ void GhostEntity::HandleGhost() {
 					float x = currentStep->x;
 					float y = currentStep->y;
 					float z = currentStep->z;
+					float yaw = currentStep->yaw;
 					if (x == 0.0f) return;
 					float x2 = nextStep->x;
 					float y2 = nextStep->y;
 					float z2 = nextStep->z;
+					float yaw2 = nextStep->yaw;
 					float t1 = currentStep->tim;
 					float t2 = nextStep->tim;
-					float scalar = ((((float)Plat_FloatTime()) - startTime) - t1) / (t2 - t1); 
+					float scalar = ((GhostEngine::GetPlayTime() - startTime) - t1) / (t2 - t1);
 					float xfinal = x + (scalar * (x2 - x));
 					float yfinal = y + (scalar * (y2 - y));
 					float zfinal = z + (scalar * (z2 - z));
-					SetAbsOrigin(Vector(xfinal, yfinal, (zfinal - 15.0f)));
+					float yawfinal = yaw + (scalar * (yaw2 - yaw));
+					SetAbsOrigin(Vector(xfinal, yfinal, zfinal));
+					SetAbsAngles(QAngle(0, yawfinal, 0));
 				} else {//set it to the last position before it updates to the next map
-					SetAbsOrigin(Vector(currentStep->x, currentStep->y, (currentStep->z - 15.0f)));
+					SetAbsOrigin(Vector(currentStep->x, currentStep->y, currentStep->z));
+					SetAbsAngles(QAngle(0, currentStep->yaw, 0));
 				}
 			}
 		}

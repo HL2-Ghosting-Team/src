@@ -113,6 +113,9 @@ extern IParticleSystemQuery *g_pParticleSystemQuery;
 
 extern ConVar commentary;
 
+extern ConVar gh_opacity;
+extern ConVar gh_opacity_range;
+
 static CSteamAPIContext g_SteamAPIContext;
 CSteamAPIContext *steamapicontext = &g_SteamAPIContext;
 
@@ -1129,6 +1132,9 @@ void CServerGameDLL::GameFrame( bool simulating )
 	}
 	float oldframetime = gpGlobals->frametime;
 
+	if( !BlaTimer::timer()->InLevelLoad() )
+		GhostEngine::flPlayTime += gpGlobals->interval_per_tick;
+
 #ifdef _DEBUG
 	// For profiling.. let them enable/disable the networkvar manual mode stuff.
 	g_bUseNetworkVars = s_UseNetworkVars.GetBool();
@@ -1169,8 +1175,8 @@ void CServerGameDLL::GameFrame( bool simulating )
 	if (GhostRecord::shouldRecord) {
 		CBasePlayer* player = UTIL_GetLocalPlayer();
 		if (player) {
-			float timet = (((float)Plat_FloatTime()) - GhostRecord::startTime);
-			Vector loc = player->EyePosition();
+			float timet = (GhostEngine::GetPlayTime() - GhostRecord::startTime);
+			Vector loc = player->GetAbsOrigin();
 			if( GhostRecord::firstTime) {
 				GhostRecord::writeHeader();
 				GhostRecord::firstTime = false;
@@ -1189,16 +1195,37 @@ void CServerGameDLL::GameFrame( bool simulating )
 					playerToWrite = GhostRecord::playerName;
 					GhostRecord::playerNameDirty = false;
 				}
-				GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z); 
+				GhostRecord::writeLine(mapToWrite, playerToWrite, timet, loc.x, loc.y, loc.z, player->EyeAngles().y); 
 				GhostRecord::nextTime = timet + 0.04f;//~20 times a second, the more there is, the smoother it'll be
 			}
 		}
+	}
+	if (GhostEngine *pGhostEngine = GhostEngine::getEngine())
+	{
+		float flOpacityRange = gh_opacity_range.GetFloat();
+		if (flOpacityRange > .0f)
+			if (CBasePlayer* pLocalPlayer = UTIL_GetLocalPlayer())
+			{
+				Vector vPlayerPos = pLocalPlayer->GetAbsOrigin();
+
+				float flMult = gh_opacity.GetInt() / flOpacityRange;
+
+				int size = pGhostEngine->ghosts.Count();
+				for (int i = 0; i < size; i++)
+					if (GhostRun * it = pGhostEngine->ghosts[i])
+						if (GhostEntity *pGhost = it->ent)
+						{
+							float flDistance = pGhost->GetAbsOrigin().DistTo(vPlayerPos);
+							if (flDistance <= flOpacityRange)
+								pGhost->SetRenderColorA(flDistance * flMult);
+						}
+			}
 	}
 	if (GhostOnlineEngine::getEngine()) {
 		if (GhostOnlineEngine::getEngine()->shouldAct && !GhostOnlineEngine::getEngine()->inTransition) {
 			CBasePlayer* player = UTIL_GetLocalPlayer();
 			if (player) {
-				float timet = (float) Plat_FloatTime();
+				float timet = GhostEngine::GetPlayTime();
 				Vector loc = player->EyePosition();
 				Vector vel = player->GetLocalVelocity();
 				if( GhostOnlineEngine::firstTime) {

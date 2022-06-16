@@ -6,6 +6,7 @@ struct RunLine {
 		float x;
 		float y;
 		float z;
+		float yaw;	// Saves only yaw because ghost isn't player and it will be leans
 
 		RunLine& operator=(const RunLine& other) {
 			Q_strcpy(map, other.map);
@@ -14,6 +15,7 @@ struct RunLine {
 			x = other.x;
 			y = other.y;
 			z = other.z;
+			yaw = other.yaw;
 			return *this;
 		};
 };

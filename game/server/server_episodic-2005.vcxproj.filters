@@ -1776,6 +1776,9 @@
     <ClCompile Include="hl2\npc_vortigaunt_episodic.cpp">
       <Filter>Source Files\HL2 DLL</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\public\engine\baseautocompletefilelist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\achievement_saverestore.h">
@@ -3592,6 +3595,9 @@
     </ClInclude>
     <ClInclude Include="TickCounterEngine.h">
       <Filter>Source Files\Ghost</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\public\engine\baseautocompletefilelist.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

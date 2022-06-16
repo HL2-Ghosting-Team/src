@@ -129,7 +129,8 @@ public:
 	float GetCurrentTime()
 	{
 		if (m_bIsRunning) CalcTime();
-		return totalTicks;
+		//return totalTicks;
+		return m_bIsRunning ? GhostEngine::GetPlayTime() / gpGlobals->interval_per_tick : totalTicks;
 	}
 
 	void DispatchTimeToBeatMessage()
